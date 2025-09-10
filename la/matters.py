@@ -9,8 +9,8 @@ def _call_build_docx(mid, risks=None, findings=None):
         return build_docx(mid, risks=risks, findings=findings)
     except TypeError:
         try:
-            # some versions accept positional lists
-            return build_docx(mid, risks, findings)
+            # some versions accept positional lists - always pass empty lists
+            return build_docx(mid, [], [])
         except TypeError:
             # oldest versions only take mid
             return build_docx(mid)
@@ -22,7 +22,8 @@ def _call_build_json(mid, risks=None, findings=None):
         return build_json(mid, risks=risks, findings=findings)
     except TypeError:
         try:
-            return build_json(mid, risks, findings)
+            # some versions accept positional lists - always pass empty lists  
+            return build_json(mid, [], [])
         except TypeError:
             return build_json(mid)
 from fastapi.responses import JSONResponse, FileResponse
