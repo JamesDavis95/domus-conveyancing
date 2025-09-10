@@ -8,9 +8,8 @@ from la.models import LAMatter, LAFinding, LARisk
 from la.parsers import parse_llc1, parse_con29
 from la.services import parse_and_store, generate_client_report
 
-# Ensure LA tables exist (shares your Base)
-from la import models as _create_tables  # noqa: F401
-Base.metadata.create_all(bind=engine)
+# Models will be created at startup via main.py lifespan event
+# Ensure LA models are imported (done via la.models import)
 
 router = APIRouter(prefix="/la", tags=["Local Authority"])
 

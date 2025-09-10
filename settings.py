@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+import os
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
@@ -9,7 +10,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret"
 
     # Core services
-    DATABASE_URL: str = "postgresql+psycopg2://postgres:dev@postgres:5432/postgres"
+    DATABASE_URL: str = (
+        "sqlite:///./domus.db" 
+        if os.getenv("CODESPACES") == "true" or not os.getenv("DATABASE_URL")
+        else "postgresql+psycopg2://postgres:dev@postgres:5432/postgres"
+    )
     REDIS_URL: str = "redis://redis:6379/0"
 
     # S3 / MinIO

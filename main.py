@@ -3,15 +3,26 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from prometheus_client import CollectorRegistry, generate_latest, CONTENT_TYPE_LATEST, multiprocess
 # original: from prometheus_client import CONTENT_TYPE_LATEST, generate_latest, CollectorRegistry, multiprocess
 from starlette.middleware.sessions import SessionMiddleware
+from contextlib import asynccontextmanager
 
 from settings import settings
 from evidence import router as evidence_router
 from la.matters import router as matters_router
 from api import router as api_router
+from db import init_db
+# Import models to ensure they're registered with Base
+import la.models  # noqa: F401
 
 import sqlalchemy as sa, redis, boto3, socket
 
-app = FastAPI(title="Domus Conveyancing API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize database tables
+    init_db()
+    yield
+    # Shutdown: cleanup if needed (none for now)
+
+app = FastAPI(title="Domus Conveyancing API", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 @app.get("/health")
