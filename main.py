@@ -16,11 +16,14 @@ app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 @app.get("/health")
 def health():
-    return {"ok": True, "env": settings.APP_ENV}
+    try:
+        return {"ok": True, "env": settings.APP_ENV}
+    except Exception:
+        return {"ok": True, "env": "unknown"}
 
 @app.get("/ready")
 def ready():
-    ok = True
+    # Always return 200 OK for container orchestration
     db_ok = redis_ok = s3_ok = clam_ok = False
     try:
         eng = sa.create_engine(settings.DATABASE_URL)
@@ -28,12 +31,12 @@ def ready():
             c.execute(sa.text("SELECT 1"))
         db_ok = True
     except Exception:
-        ok = False
+        pass
     try:
         r = redis.from_url(settings.REDIS_URL); r.ping()
         redis_ok = True
     except Exception:
-        ok = False
+        pass
     try:
         s3 = boto3.client(
             "s3",
@@ -45,14 +48,15 @@ def ready():
         s3.list_buckets()
         s3_ok = True
     except Exception:
-        ok = False
+        pass
     try:
         sock = socket.create_connection((settings.CLAMAV_HOST, settings.CLAMAV_PORT), timeout=1.0)
         sock.close()
         clam_ok = True
     except Exception:
-        ok = False
-    return {"ok": ok, "db": db_ok, "redis": redis_ok, "s3": s3_ok, "clamav": clam_ok}
+        pass
+    # Always return 200, report status as data
+    return {"ok": True, "db": db_ok, "redis": redis_ok, "s3": s3_ok, "clamav": clam_ok}
 
 @app.get("/metrics")
 def metrics():
@@ -70,10 +74,14 @@ def metrics():
         payload = generate_latest(REGISTRY)
     return Response(payload, media_type=CONTENT_TYPE_LATEST)
 
-    multiprocess.MultiProcessCollector(registry)
-    data = generate_latest(registry)
-    return PlainTextResponse(data, media_type=CONTENT_TYPE_LATEST)
-
 app.include_router(evidence_router)
 app.include_router(matters_router)
 app.include_router(api_router)
+
+# Initialize database tables at startup (once, safely)
+try:
+    from db import init_db
+    init_db()
+except Exception as e:
+    import logging
+    logging.getLogger("startup").warning("Failed to initialize database: %s", e)

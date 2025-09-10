@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Request, Depends
-import httpx, time, tempfile, os
+import httpx, time, tempfile, os, logging
 from pdfminer.high_level import extract_text
 from redis import Redis
 from settings import settings
@@ -18,17 +18,45 @@ def _fw_headers(request: Request):
     return h
 
 async def _get(path, request: Request):
-    async with httpx.AsyncClient(timeout=30.0) as c:
-        r = await c.get(f"http://api:8000{path}", headers=_fw_headers(request))
-        if r.status_code>=400: raise HTTPException(r.status_code, r.text)
-        return r.json()
+    # For development/standalone mode, try localhost first, then original api host
+    hosts = ["http://localhost:8000", "http://api:8000"]
+    last_error = None
+    
+    for host in hosts:
+        async with httpx.AsyncClient(timeout=30.0) as c:
+            try:
+                r = await c.get(f"{host}{path}", headers=_fw_headers(request))
+                if r.status_code>=400: raise HTTPException(r.status_code, r.text)
+                return r.json()
+            except (httpx.ConnectError, httpx.TimeoutException) as e:
+                last_error = e
+                continue
+    
+    # If all hosts failed, raise the last error
+    if last_error:
+        raise HTTPException(503, f"Service unavailable: {last_error}")
+    raise HTTPException(503, "All API services unavailable")
 
 async def _post(path, request: Request, **kw):
-    async with httpx.AsyncClient(timeout=60.0) as c:
-        r = await c.post(f"http://api:8000{path}", headers=_fw_headers(request), **kw)
-        if r.status_code>=400: raise HTTPException(r.status_code, r.text)
-        try: return r.json()
-        except: return {"raw": r.text}
+    # For development/standalone mode, try localhost first, then original api host  
+    hosts = ["http://localhost:8000", "http://api:8000"]
+    last_error = None
+    
+    for host in hosts:
+        async with httpx.AsyncClient(timeout=60.0) as c:
+            try:
+                r = await c.post(f"{host}{path}", headers=_fw_headers(request), **kw)
+                if r.status_code>=400: raise HTTPException(r.status_code, r.text)
+                try: return r.json()
+                except: return {"raw": r.text}
+            except (httpx.ConnectError, httpx.TimeoutException) as e:
+                last_error = e
+                continue
+                
+    # If all hosts failed, raise the last error
+    if last_error:
+        raise HTTPException(503, f"Service unavailable: {last_error}")
+    raise HTTPException(503, "All API services unavailable")
 
 @router.post("/orgs")
 async def create_org_demo():
@@ -36,12 +64,16 @@ async def create_org_demo():
 
 @router.post("/matters")
 async def create_matter(request: Request):
-    await _post("/la/matters/ingest", request)
-    data = await _get("/la/matters/list", request)
-    items = data.get("matters",[]) or []
-    if not items: raise HTTPException(500,"No matters after ingest")
-    last = items[-1]
-    return {"matter":{"id":last.get("id"),"ref":last.get("ref")}}
+    try:
+        await _post("/la/matters/ingest", request)
+        data = await _get("/la/matters/list", request)
+        items = data.get("matters",[]) or []
+        if not items: raise HTTPException(500,"No matters after ingest")
+        last = items[-1]
+        return {"matter":{"id":last.get("id"),"ref":last.get("ref")}}
+    except Exception as e:
+        logging.getLogger("api_compat").error("Error in create_matter: %s", e)
+        raise
 
 @router.get("/matters/{mid}")
 async def get_matter(mid:int, request: Request):
@@ -87,9 +119,15 @@ async def risk_scan(mid:int, body:dict, request: Request, r:Redis=Depends(_redis
     if not job_id:
         return {"ok": False, "message": "Processor did not return job_id", "raw": out}
     for _ in range(60):
-        js = await _get(f"/jobs/{job_id}/status", request)
-        if js.get("status") == "finished":
-            break
+        try:
+            js = await _get(f"/jobs/{job_id}/status", request)
+            if js.get("status") == "finished":
+                break
+        except HTTPException as e:
+            if e.status_code == 404:
+                logging.getLogger("api_compat").warning("Job %s status not found, continuing", job_id)
+                break
+            raise
         time.sleep(1)
 
     updated = await _get(f"/la/matters/{mid}/detail", request)
