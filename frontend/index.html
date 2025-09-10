@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Domus – Console (Single File)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:2rem;line-height:1.45}
+    .card{border:1px solid #e5e7eb;border-radius:12px;padding:1rem;margin:1rem 0;background:#fff}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .btn{padding:.5rem .8rem;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer}
+    .btn:hover{background:#f9fafb}
+    input[type="text"]{padding:.45rem .6rem;border:1px solid #ddd;border-radius:10px;min-width:280px}
+    input[type="file"]{padding:.25rem .3rem}
+    pre{background:#fafafa;border:1px solid #eee;border-radius:8px;padding:.75rem;overflow:auto;max-height:320px}
+    .muted{color:#6b7280}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{padding:.45rem;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:top}
+    .ok{color:#16a34a;font-weight:600}
+    .err{color:#dc2626;font-weight:600}
+    .pill{display:inline-block;padding:.2rem .5rem;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
+  </style>
+</head>
+<body>
+  <h1>Domus – Console</h1>
+  <p class="muted">Paste your <code>X-Api-Key</code>, create a matter, upload a PDF, scan risks, view enquiries, and open the client passport.</p>
+
+  <div class="card">
+    <div class="row">
+      <input id="api-key" placeholder="X-Api-Key" />
+      <button class="btn" id="new-org">Create Org (demo)</button>
+      <span id="org-out" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <button class="btn" id="new-matter">Create Matter</button>
+      <input id="matter-id" placeholder="Matter ID"/>
+      <button class="btn" id="get-matter">Get Matter</button>
+      <button class="btn" id="passport">Passport</button>
+      <span id="status" class="muted"></span>
+    </div>
+    <pre id="matter">No matter yet.</pre>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <input type="file" id="file" accept="application/pdf"/>
+      <button class="btn" id="upload">Upload PDF</button>
+      <button class="btn" id="scan">Scan Risks</button>
+    </div>
+    <pre id="upload-out">No upload.</pre>
+  </div>
+
+  <div class="card">
+    <h3>Enquiries</h3>
+    <div id="enquiries">No enquiries.</div>
+  </div>
+
+  <script>
+  async function fetchJSON(url, opts={}){
+    const key = document.getElementById('api-key')?.value?.trim();
+    const headers = Object.assign({}, opts.headers||{});
+    if(key) headers['X-Api-Key']=key;
+    const r = await fetch(url, Object.assign({}, opts, { headers }));
+    const t = await r.text(); let j; try{j=JSON.parse(t)}catch{j={raw:t}};
+    if(!r.ok){ console.warn('Request failed', r.status, t); }
+    return {ok:r.ok,status:r.status,json:j};
+  }
+
+  function setTxt(id, val){
+    document.getElementById(id).textContent = (typeof val==='string')? val : JSON.stringify(val,null,2);
+  }
+
+  async function createOrg(){
+    setTxt('org-out','creating...');
+    const {json}=await fetchJSON('/api/orgs',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:'Demo '+Date.now()})});
+    if(json?.org?.api_key){
+      document.getElementById('api-key').value = json.org.api_key;
+      setTxt('org-out','Org created ✓');
+    }else{
+      setTxt('org-out','Failed');
+    }
+  }
+
+  async function createMatter(){
+    setTxt('status','creating matter...');
+    const {json}=await fetchJSON('/api/matters',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+    if(json?.matter?.id){
+      document.getElementById('matter-id').value = json.matter.id;
+      setTxt('matter', json);
+      setTxt('status','created ✓');
+    } else {
+      setTxt('status','failed');
+    }
+  }
+
+  async function getMatter(){
+    const mid=document.getElementById('matter-id').value.trim();
+    if(!mid){ return; }
+    setTxt('status','loading...');
+    const {json}=await fetchJSON('/api/matters/'+mid);
+    setTxt('matter', json);
+    setTxt('status','loaded ✓');
+    await loadEnquiries();
+  }
+
+  async function uploadPDF(){
+    const mid=document.getElementById('matter-id').value.trim();
+    const f=document.getElementById('file').files[0];
+    if(!mid||!f){ return; }
+    const fd=new FormData(); fd.append('file', f);
+    const res=await fetchJSON('/api/matters/'+mid+'/upload?kind=search',{method:'POST',body:fd});
+    setTxt('upload-out', res.json);
+    await getMatter();
+  }
+
+  async function scanRisks(){
+    const mid=document.getElementById('matter-id').value.trim();
+    if(!mid) return;
+    const m = await fetchJSON('/api/matters/'+mid);
+    const docs = m?.json?.spine?.docs || [];
+    if(!docs.length){ setTxt('upload-out','No docs to scan'); return; }
+    const docId = docs[docs.length-1].id;
+    const res = await fetchJSON('/api/matters/'+mid+'/risk-scan',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({doc_id:docId})});
+    setTxt('upload-out', res.json);
+    await getMatter();
+    await loadEnquiries();
+  }
+
+  async function passport(){
+    const mid=document.getElementById('matter-id').value.trim();
+    if(!mid) return;
+    const {json}=await fetchJSON('/api/passport/'+mid);
+    setTxt('matter', json);
+  }
+
+  async function loadEnquiries(){
+    const mid=document.getElementById('matter-id').value.trim();
+    if(!mid) return;
+    const {json}=await fetchJSON('/api/matters/'+mid+'/enquiries');
+    const el=document.getElementById('enquiries');
+    const items=json?.items||[];
+    if(items.length===0){ el.textContent='No enquiries.'; return; }
+    el.innerHTML = `<table><thead><tr><th>ID</th><th>Risk</th><th>Status</th><th>Draft</th><th>Actions</th></tr></thead><tbody>${
+      items.map(e=>`<tr><td>${e.id}</td><td>${e.risk_id??''}</td><td>${e.status}</td><td><pre>${(e.draft_text||'').replace(/</g,'&lt;')}</pre></td><td><button data-promote="${e.id}" data-to="ready">Mark Ready</button> <button data-promote="${e.id}" data-to="sent">Mark Sent</button></td></tr>`).join('')
+    }</tbody></table>`;
+    el.querySelectorAll('button[data-promote]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id=btn.getAttribute('data-promote'); const to=btn.getAttribute('data-to');
+        await fetchJSON('/api/enquiries/'+id+'/promote',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({status:to})});
+        await loadEnquiries();
+      });
+    });
+  }
+
+  document.getElementById('new-org').addEventListener('click', createOrg);
+  document.getElementById('new-matter').addEventListener('click', createMatter);
+  document.getElementById('get-matter').addEventListener('click', getMatter);
+  document.getElementById('passport').addEventListener('click', passport);
+  document.getElementById('upload').addEventListener('click', uploadPDF);
+  document.getElementById('scan').addEventListener('click', scanRisks);
+  </script>
+</body>
+</html>

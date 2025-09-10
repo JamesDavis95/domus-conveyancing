@@ -1,0 +1,27 @@
+{
+    # Optional: email for Let's Encrypt
+    email you@example.com
+    # Optional: enable debug
+    # debug
+}
+
+# Replace example.com with your domain; for local dev you can use tls internal
+example.com {
+    encode gzip
+
+    @api path / /docs* /openapi.json /health /ready /metrics /api* /la*
+    reverse_proxy api:8000
+
+    @minio path /minio* /api/minio*
+    reverse_proxy minio:9001
+
+    @prom path /prometheus*
+    reverse_proxy prometheus:9090
+
+    # HTTPS via Let's Encrypt (public) or internal for local dev
+    tls {
+        # For public domain certs, remove 'internal' and keep default ACME
+        # For local dev (no public DNS), uncomment the following:
+        # internal
+    }
+}

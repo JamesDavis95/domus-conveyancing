@@ -1,0 +1,41 @@
+:80 {
+  encode gzip
+
+  handle /public* {
+    uri strip_prefix /public
+    root * /srv/public
+    try_files {path} {path}/ /index.html
+    file_server
+  }
+
+  handle /api* {
+    reverse_proxy api:8000
+  }
+  handle /la* {
+    reverse_proxy api:8000
+  }
+  handle /jobs* {
+    reverse_proxy api:8000
+  }
+  handle /metrics {
+    reverse_proxy api:8000
+  }
+  handle /health {
+    reverse_proxy api:8000
+  }
+  handle /ready {
+    reverse_proxy api:8000
+  }
+  handle /docs* {
+    reverse_proxy api:8000
+  }
+  handle /openapi.json {
+    reverse_proxy api:8000
+  }
+
+  handle {
+    root * /srv/www
+    try_files {path} {path}/ /index.html
+    file_server
+  }
+}

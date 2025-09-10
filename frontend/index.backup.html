@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Domus Conveyancing — Minimal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; max-width: 900px; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
+    .row { margin: 10px 0; }
+    label { display:block; font-weight:600; margin-bottom:6px; }
+    input[type="text"] { width: 100%; max-width: 420px; padding: 8px; }
+    pre { background: #111; color: #eee; padding: 12px; border-radius: 8px; overflow: auto; max-height: 55vh; }
+    button { padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; background:#f6f7f9; cursor:pointer; }
+    .grid { display:grid; gap:16px; grid-template-columns: 1fr 1fr; align-items:start; }
+    .muted { color:#666; font-size:12px; }
+  </style>
+</head>
+<body>
+  <h2>Domus Conveyancing — Minimal Uploader</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="row">
+        <label for="council">Council</label>
+        <input id="council" name="council" type="text" placeholder="e.g. Hertfordshire" />
+      </div>
+      <div class="row">
+        <label for="files">Local Search PDF(s)</label>
+        <input id="files" name="files" type="file" accept="application/pdf" multiple />
+      </div>
+      <div class="row">
+        <button id="processBtn" type="button">Process</button>
+        <span class="muted">Posts to <code>/api/process-batch</code></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Response (first record)</h3>
+      <pre id="out">—</pre>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const $ = (id)=>document.getElementById(id);
+      const btn = $('processBtn');
+      const out = $('out');
+
+      async function processBatch(){
+        const council = $('council')?.value?.trim();
+        const filesEl = $('files');
+
+        if(!council){ out.textContent = 'Please enter a council.'; return; }
+        if(!filesEl || !filesEl.files || filesEl.files.length === 0){ out.textContent = 'Please choose at least one PDF.'; return; }
+
+        const fd = new FormData();
+        fd.append('council', council);
+        for(const f of filesEl.files){ fd.append('files', f); }
+
+        out.textContent = 'Uploading...';
+        try {
+          const res = await fetch('/api/process-batch', { method:'POST', body: fd });
+          const status = res.status;
+          if(!res.ok){
+            const txt = await res.text();
+            throw new Error('Server ' + status + ': ' + txt.slice(0,500));
+          }
+          const data = await res.json();
+          if(data && Array.isArray(data.records) && data.records.length){
+            const first = data.records[0];
+            out.textContent = JSON.stringify(first, null, 2);
+          } else {
+            out.textContent = 'No records returned.';
+          }
+        } catch (e) {
+          console.error(e);
+          out.textContent = 'Error: ' + e.message;
+        }
+      }
+
+      btn.addEventListener('click', processBatch);
+    })();
+  </script>
+</body>
+</html>

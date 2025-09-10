@@ -1,0 +1,4 @@
+__pycache__/
+*.db
+*.pdf
+frontend/node_modules/

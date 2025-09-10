@@ -1,0 +1,4 @@
+services:
+  api:
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:dev@postgres:5432/postgres

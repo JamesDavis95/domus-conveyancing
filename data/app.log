@@ -1,0 +1,19 @@
+2025-09-08 17:16:07,847 INFO 89f622be-dc7c-4ff5-a258-48647e17bead Saved upload: ./data/uploads/89f622be-dc7c-4ff5-a258-48647e17bead_20-07-15_DL+IR_Audlem_Road.pdf (1358464 bytes)
+2025-09-08 17:16:10,323 INFO 89f622be-dc7c-4ff5-a258-48647e17bead PDF parsed; has_text=True
+2025-09-08 17:16:10,324 INFO 89f622be-dc7c-4ff5-a258-48647e17bead Extraction complete.
+2025-09-08 17:16:10,344 INFO 89f622be-dc7c-4ff5-a258-48647e17bead Risk items: 6
+2025-09-08 17:16:10,346 INFO 89f622be-dc7c-4ff5-a258-48647e17bead DB insert OK.
+2025-09-08 17:53:28,971 INFO ba4e0d71-53a1-4bac-983a-4eb092028ab3 Saved upload: ./data/uploads/ba4e0d71-53a1-4bac-983a-4eb092028ab3_20-07-15_DL+IR_Audlem_Road.pdf (1358464 bytes)
+2025-09-08 17:53:31,416 INFO ba4e0d71-53a1-4bac-983a-4eb092028ab3 PDF parsed; has_text=True
+2025-09-08 17:53:31,417 INFO ba4e0d71-53a1-4bac-983a-4eb092028ab3 Extraction complete.
+2025-09-08 17:53:31,437 INFO ba4e0d71-53a1-4bac-983a-4eb092028ab3 Risk items: 6
+2025-09-08 17:53:31,439 INFO ba4e0d71-53a1-4bac-983a-4eb092028ab3 DB insert OK.
+2025-09-08 18:15:33,323 INFO bad9a337-9105-4efd-9fe2-9c3cc3158217 Saved upload: ./data/uploads/bad9a337-9105-4efd-9fe2-9c3cc3158217_20-07-15_DL+IR_Audlem_Road.pdf (1358464 bytes)
+2025-09-08 18:15:35,809 INFO bad9a337-9105-4efd-9fe2-9c3cc3158217 PDF parsed; has_text=True
+2025-09-08 18:15:35,810 INFO bad9a337-9105-4efd-9fe2-9c3cc3158217 Extraction complete.
+2025-09-08 18:15:35,810 ERROR bad9a337-9105-4efd-9fe2-9c3cc3158217 UNCAUGHT: risk_engine() takes 1 positional argument but 2 were given
+2025-09-08 18:15:35,810 ERROR Traceback (most recent call last):
+  File "/Users/jamesdavis/domus-conveyancing/main.py", line 95, in analyse_convey
+    risks = risk_engine(conv_struct, text or "")
+TypeError: risk_engine() takes 1 positional argument but 2 were given
+
