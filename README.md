@@ -37,3 +37,4 @@ export REDIS_URL=redis://localhost:6379/0
 python worker.py
 # UI: use "Async OCR" checkbox; upload enqueues OCR and /api/jobs/{id}/status is polled
 ```
+# Deployment trigger
