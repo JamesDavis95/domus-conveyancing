@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Domus – Console</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:2rem;line-height:1.45;background:#fcfcfd}
+    .card{border:1px solid #e5e7eb;border-radius:12px;padding:1rem;margin:1rem 0;background:#fff}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .btn{padding:.5rem .8rem;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer}
+    .btn:hover{background:#f9fafb}
+    input[type="text"]{padding:.45rem .6rem;border:1px solid #ddd;border-radius:10px;min-width:220px}
+    input[type="file"]{padding:.3rem .4rem;border:1px dashed #ddd;border-radius:10px}
+    label{font-size:12px;color:#374151}
+    pre{background:#fafafa;border:1px solid #eee;border-radius:8px;padding:.75rem;overflow:auto;max-height:50vh}
+    .muted{color:#6b7280}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{padding:.45rem;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:top}
+    h1{margin-top:0}
+    .pill{display:inline-block;padding:.15rem .5rem;border:1px solid #e5e7eb;border-radius:999px;font-size:12px;background:#f9fafb}
+    .spinner{display:inline-block;min-width:1ch;animation:blink 1.2s infinite steps(1,start)}
+    @keyframes blink{50%{opacity:0.25}}
+  </style>
+</head>
+<body>
+  <h1>Domus – Console</h1>
+
+  <div class="card" aria-label="API Key">
+    <div class="row">
+      <label for="api-key">API Key</label>
+      <input id="api-key" placeholder="X-Api-Key" aria-label="API Key"/>
+      <button class="btn" id="new-org">Create Org (demo key)</button>
+      <span id="org-out" class="muted" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <div class="card" aria-label="Create Matter">
+    <h3>Create Matter</h3>
+    <div class="row">
+      <label for="council">Council</label>
+      <input id="council" placeholder="Council (optional)" aria-label="Council"/>
+      <label for="uprn">UPRN</label>
+      <input id="uprn" placeholder="UPRN" aria-label="UPRN"/>
+      <label for="title_no">Title No</label>
+      <input id="title_no" placeholder="Title No" aria-label="Title number"/>
+      <label for="address">Address</label>
+      <input id="address" placeholder="Address" aria-label="Address"/>
+      <label for="postcode">Postcode</label>
+      <input id="postcode" placeholder="Postcode" aria-label="Postcode"/>
+      <button class="btn" id="new-matter">Create Matter</button>
+    </div>
+    <div class="row" style="margin-top:.5rem">
+      <label for="matter-id">Matter ID</label>
+      <input id="matter-id" placeholder="Matter ID" aria-label="Matter ID"/>
+      <button class="btn" id="get-matter">Get Matter</button>
+      <button class="btn" id="approve">Approve</button>
+      <button class="btn" id="passport">Passport</button>
+      <span id="status" class="muted" aria-live="polite"></span>
+    </div>
+    <pre id="matter">No matter yet.</pre>
+  </div>
+
+  <div class="card" aria-label="Documents and Scan">
+    <h3>Documents & Scan</h3>
+    <div class="row">
+      <label for="file">PDF</label>
+      <input type="file" id="file" accept="application/pdf" aria-label="Upload PDF"/>
+      <label><input type="checkbox" id="async-ocr" /> Async OCR</label>
+      <button class="btn" id="upload">Upload PDF</button>
+      <button class="btn" id="scan">Scan Risks (async)</button>
+      <span id="scan-status" class="muted" aria-live="polite"></span>
+    </div>
+    <pre id="upload-out">No upload.</pre>
+  </div>
+
+  <div class="card" aria-label="Exports">
+    <h3>Exports</h3>
+    <div class="row">
+      <button class="btn" id="dl-report">Download Report.docx</button>
+      <button class="btn" id="dl-llc1">Download LLC1.docx</button>
+      <button class="btn" id="dl-bundle">Download Bundle.zip</button>
+    </div>
+  </div>
+
+  <div class="card" aria-label="Enquiries">
+    <h3>Enquiries <span class="pill" id="enq-count">0</span></h3>
+    <div id="enquiries">No enquiries.</div>
+  </div>
+
+  <div class="card" aria-label="SLA and Metrics">
+    <h3>SLA / Metrics</h3>
+    <table id="metrics-table">
+      <thead><tr><th>Total Matters</th><th>Approved</th><th>Avg (s)</th><th>P50 (s)</th><th>P90 (s)</th></tr></thead>
+      <tbody><tr><td colspan="5" class="muted">No metrics yet.</td></tr></tbody>
+    </table>
+    <pre id="metrics" class="muted"></pre>
+  </div>
+
+  <div class="card" aria-label="Quick Links">
+    <div class="row">
+      <a class="btn" href="/api/searches.csv" target="_blank" rel="noopener">CSV</a>
+      <a class="btn" href="/docs" target="_blank" rel="noopener">OpenAPI</a>
+      <a class="btn" href="/health" target="_blank" rel="noopener">Health</a>
+      <a class="btn" href="/metrics" target="_blank" rel="noopener">Metrics</a>
+    </div>
+  </div>
+
+  <script src="/app/app.js"></script>
+</body>
+</html>

@@ -1,40 +1,39 @@
-
-# DEV default DB
-import os
-os.environ.setdefault("DATABASE_URL","postgresql+psycopg2://postgres:dev@postgres:5432/postgres")
-import os
-from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
+import os, logging
+from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DB_URL = os.getenv("DATABASE_URL","sqlite:///app.db")
-connect_args = {"check_same_thread": False} if DB_URL.startswith("sqlite") else {}
-engine = create_engine(DB_URL, echo=False, future=True, connect_args=connect_args)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+# Safe default for Codespaces/dev
+os.environ.setdefault("DATABASE_URL", "sqlite:///./dev.db")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL, future=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-class Matters(Base):
-    __tablename__ = "matters"
-    id = Column(Integer, primary_key=True)
-    ref = Column(String(255))
-    created_at = Column(String(64))  # ISO UTC
-    council_id = Column(String(64), nullable=True)
-    status = Column(String(32), default="done")  # pending/processing/done/failed
-
-class Findings(Base):
-    __tablename__ = "findings"
-    id = Column(Integer, primary_key=True)
-    matter_id = Column(Integer, ForeignKey("matters.id"))
-    kind = Column(String(255))
-    value = Column(Text)
-    evidence_json = Column(Text, nullable=True)
-
-class Risks(Base):
-    __tablename__ = "risks"
-    id = Column(Integer, primary_key=True)
-    matter_id = Column(Integer, ForeignKey("matters.id"))
-    code = Column(String(255))
-    level = Column(String(32))
-    evidence_json = Column(Text, nullable=True)
+def _add_column(conn, table: str, ddl: str):
+    try:
+        conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {ddl}"))
+    except Exception as e:
+        logging.getLogger(__name__).info("add column skipped (%s.%s): %s", table, ddl, e)
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    # Import models to register mappers
+    import models  # noqa
+
+    # Create tables if missing
+    # try:
+    #     Base.metadata.create_all(engine)
+    # except Exception as e:
+    #     logging.getLogger(__name__).exception("create_all failed: %s", e)
+
+
+        # Alembic now manages schema changes. No further action needed here.
+
+def get_db():
+    """Dependency to get database session"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+    logging.getLogger(__name__).info("DB init OK")

@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domus Global</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --line: #1f2937;
+      --btn: #1d4ed8;
+      --btnh: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 260px;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(45deg, #60a5fa, #34d399);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    
+    /* Layout */
+    .app-layout {
+      display: flex;
+      min-height: calc(100vh - 60px);
+    }
+    
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 24px 0;
+      overflow-y: auto;
+    }
+    
+    .nav-section {
+      margin-bottom: 32px;
+    }
+    
+    .nav-section-title {
+      padding: 0 24px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 24px;
+      color: var(--text);
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-size: 14px;
+    }
+    
+    .nav-item:hover,
+    .nav-item.active {
+      background: var(--bg);
+      color: var(--success);
+    }
+    
+    .nav-item .icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+      max-width: calc(100vw - var(--sidebar-width));
+    }
+    
+    .page {
+      display: none;
+    }
+    
+    .page.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .page-header {
+      margin-bottom: 32px;
+    }
+    
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+    
+    .page-subtitle {
+      color: var(--muted);
+      font-size: 16px;
+      margin: 0;
+    }
+    
+    /* Components */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .panel h2 {
+      margin: 0 0 20px 0;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .panel h3 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      color: var(--muted);
+    }
+    
+    .grid {
+      display: grid;
+      gap: 24px;
+    }
+    
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    
+    .stat-card {
+      background: var(--bg);
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+    
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    
+    .stat-card .label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .stat-card .trend {
+      font-size: 12px;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .trend.up { color: var(--success); }
+    .trend.down { color: var(--danger); }
+    
+    /* Forms */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--btn);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    
+    .btn:hover { background: var(--panel); }
+    .btn.primary { background: var(--btn); border-color: var(--btn); color: white; }
+    .btn.primary:hover { background: var(--btnh); }
+    .btn.success { background: var(--success); border-color: var(--success); color: white; }
+    .btn.danger { background: var(--danger); border-color: var(--danger); color: white; }
+    .btn.sm { padding: 8px 12px; font-size: 12px; }
+    
+    /* Tables */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    .table th,
+    .table td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .table th {
+      background: var(--bg);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .table tbody tr {
+      transition: background 0.2s;
+    }
+    
+    .table tbody tr:hover {
+      background: var(--bg);
+    }
+    
+    /* Status badges */
+    .status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status.active { background: var(--success); color: white; }
+    .status.pending { background: var(--warning); color: white; }
+    .status.inactive { background: var(--muted); color: white; }
+    .status.draft { background: var(--line); color: var(--muted); }
+    
+    /* Utilities */
+    .flex { display: flex; }
+    .flex-between { justify-content: space-between; }
+    .flex-center { align-items: center; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .mb-0 { margin-bottom: 0; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .text-success { color: var(--success); }
+    .text-warning { color: var(--warning); }
+    .text-danger { color: var(--danger); }
+    .text-muted { color: var(--muted); }
+    .text-sm { font-size: 12px; }
+    .fw-500 { font-weight: 500; }
+    .fw-600 { font-weight: 600; }
+    
+    /* Loading states */
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      border-top-color: var(--btn);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; }
+      .main-content { padding: 16px; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">Domus Enterprise Platform</div>
+    <div class="user-menu">
+      <div class="user-info">
+        <span>Admin User</span>
+        <span>•</span>
+        <span>East Hertfordshire Council</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main App Layout -->
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <div class="nav-section">
+        <div class="nav-section-title">Overview</div>
+        <button class="nav-item active" onclick="showPage('dashboard')">
+          <span class="icon"></span>
+          Dashboard
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Operations</div>
+        <button class="nav-item" onclick="showPage('matters')">
+          <span class="icon"></span>
+          Matters & Cases
+        </button>
+        <button class="nav-item" onclick="showPage('documents')">
+          <span class="icon"></span>
+          Document Processing
+        </button>
+        <button class="nav-item" onclick="showPage('workflow')">
+          <span class="icon"></span>
+          Workflow Management
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Administration</div>
+        <button class="nav-item" onclick="showPage('users')">
+          <span class="icon"></span>
+          User Management
+        </button>
+        <button class="nav-item" onclick="showPage('billing')">
+          <span class="icon"></span>
+          Financial Management
+        </button>
+        <button class="nav-item" onclick="showPage('integrations')">
+          <span class="icon"></span>
+          System Integrations
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Analytics</div>
+        <button class="nav-item" onclick="showPage('reports')">
+          <span class="icon"></span>
+          Reports & Analytics
+        </button>
+        <button class="nav-item" onclick="showPage('compliance')">
+          <span class="icon"></span>
+          Compliance & Audit
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">System</div>
+        <button class="nav-item" onclick="showPage('settings')">
+          <span class="icon"></span>
+          Settings
+        </button>
+        <button class="nav-item" onclick="showPage('support')">
+          <span class="icon"></span>
+          Support
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Dashboard Page -->
+      <div id="dashboard" class="page active">
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">Overview of your conveyancing operations</p>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">47</div>
+            <div class="label">Active Matters</div>
+            <div class="trend up">↗ +12% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">23</div>
+            <div class="label">Pending Reviews</div>
+            <div class="trend down">↘ -5% this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">£28,450</div>
+            <div class="label">Monthly Revenue</div>
+            <div class="trend up">↗ +18% vs last month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">2.3 hrs</div>
+            <div class="label">Avg Processing Time</div>
+            <div class="trend up">↗ 40% faster</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-2">
+          <div class="panel">
+            <h2>Quick Actions</h2>
+            <div class="flex gap-3">
+              <button class="btn primary" onclick="showPage('matters')">Create New Matter</button>
+              <button class="btn" onclick="showPage('documents')">Upload Documents</button>
+              <button class="btn" onclick="showPage('reports')">Generate Report</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2>System Status</h2>
+            <div class="text-sm">
+              <div class="flex flex-between mb-2">
+                <span>API Gateway</span>
+                <span class="status active">Online</span>
+              </div>
+              <div class="flex flex-between mb-2">
+                <span>Document Processing</span>
+                <span class="status active">Operational</span>
+              </div>
+              <div class="flex flex-between mb-2">
+                <span>Council Integrations</span>
+                <span class="status active">47 Connected</span>
+              </div>
+              <div class="flex flex-between">
+                <span>AI Processing</span>
+                <span class="status active">Ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="panel">
+          <h2>Recent Matters</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Matter Ref</th>
+                <th>Property Address</th>
+                <th>Council</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DOM-2025-001</td>
+                <td>123 High Street, Hertford</td>
+                <td>East Hertfordshire DC</td>
+                <td><span class="status active">In Progress</span></td>
+                <td>Sarah Johnson</td>
+                <td>15 Sep 2025</td>
+                <td><button class="btn sm">View</button></td>
+              </tr>
+              <tr>
+                <td>DOM-2025-002</td>
+                <td>45 Mill Lane, Ware</td>
+                <td>East Hertfordshire DC</td>
+                <td><span class="status pending">Pending Review</span></td>
+                <td>Mike Chen</td>
+                <td>18 Sep 2025</td>
+                <td><button class="btn sm">Review</button></td>
+              </tr>
+              <tr>
+                <td>DOM-2025-003</td>
+                <td>78 Castle Street, Hertford</td>
+                <td>East Hertfordshire DC</td>
+                <td><span class="status draft">Draft</span></td>
+                <td>Emma Wilson</td>
+                <td>20 Sep 2025</td>
+                <td><button class="btn sm">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Matters Management Page -->
+      <div id="matters" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Matters & Cases</h1>
+          <p class="page-subtitle">Manage conveyancing matters and workflow</p>
+        </div>
+
+        <!-- Filters and Actions -->
+        <div class="panel">
+          <div class="flex flex-between flex-center mb-4">
+            <h2 class="mb-0">All Matters</h2>
+            <button class="btn primary" onclick="showCreateMatterModal()">+ Create New Matter</button>
+          </div>
+          
+          <div class="grid grid-4">
+            <div class="form-group">
+              <label>Filter by Status</label>
+              <select>
+                <option>All Status</option>
+                <option>Draft</option>
+                <option>In Progress</option>
+                <option>Pending Review</option>
+                <option>Completed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Filter by Department</label>
+              <select>
+                <option>All Departments</option>
+                <option>Planning</option>
+                <option>Housing</option>
+                <option>Legal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Assigned To</label>
+              <select>
+                <option>All Users</option>
+                <option>Sarah Johnson</option>
+                <option>Mike Chen</option>
+                <option>Emma Wilson</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Search</label>
+              <input type="text" placeholder="Search by reference, address, or postcode">
+            </div>
+          </div>
+        </div>
+
+        <!-- Matters List -->
+        <div class="panel">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Matter Ref</th>
+                <th>Property</th>
+                <th>Council</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Assigned</th>
+                <th>Priority</th>
+                <th>Due Date</th>
+                <th>Cost</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>DOM-2025-001</strong></td>
+                <td>
+                  <div>123 High Street</div>
+                  <div class="text-muted text-sm">Hertford, SG14 1AB</div>
+                </td>
+                <td>East Hertfordshire DC</td>
+                <td>Planning</td>
+                <td><span class="status active">In Progress</span></td>
+                <td>Sarah Johnson</td>
+                <td><span class="text-warning">High</span></td>
+                <td>15 Sep 2025</td>
+                <td>£125.00</td>
+                <td>
+                  <button class="btn sm">View</button>
+                  <button class="btn sm">Edit</button>
+                </td>
+              </tr>
+              <!-- More rows would be loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Document Processing Page -->
+      <div id="documents" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Document Processing</h1>
+          <p class="page-subtitle">AI-powered document analysis and data extraction</p>
+        </div>
+
+        <!-- Upload Area -->
+        <div class="panel">
+          <h2>Upload Documents</h2>
+          <div class="grid grid-2">
+            <div>
+              <div class="form-group">
+                <label>Matter Reference</label>
+                <select>
+                  <option>Select existing matter...</option>
+                  <option>DOM-2025-001 - 123 High Street</option>
+                  <option>DOM-2025-002 - 45 Mill Lane</option>
+                  <option>Create new matter...</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Document Type</label>
+                <select>
+                  <option>Local Search (LLC1)</option>
+                  <option>Environmental Search (CON29)</option>
+                  <option>Planning Documents</option>
+                  <option>Title Deeds</option>
+                  <option>Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Council/Authority</label>
+                <input type="text" placeholder="e.g., East Hertfordshire District Council">
+              </div>
+            </div>
+
+            <div>
+              <div class="form-group">
+                <label>Property Address</label>
+                <input type="text" placeholder="Full property address">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Postcode</label>
+                  <input type="text" placeholder="e.g., SG14 1AB">
+                </div>
+                <div class="form-group">
+                  <label>UPRN (Optional)</label>
+                  <input type="text" placeholder="Unique Property Reference">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Files</label>
+                <input type="file" multiple accept=".pdf,.doc,.docx">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3 mb-0">
+            <button class="btn primary">Process Documents</button>
+            <button class="btn">Save as Draft</button>
+          </div>
+        </div>
+
+        <!-- Processing Status -->
+        <div class="panel">
+          <h2>Processing Queue</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Matter</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>AI Confidence</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>search_123_high_st.pdf</td>
+                <td>DOM-2025-001</td>
+                <td>Local Search</td>
+                <td><span class="status active">Processing</span></td>
+                <td>85%</td>
+                <td>92%</td>
+                <td><button class="btn sm">View Results</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- User Management Page -->
+      <div id="users" class="page">
+        <div class="page-header">
+          <h1 class="page-title">User Management</h1>
+          <p class="page-subtitle">Manage staff accounts and permissions</p>
+        </div>
+
+        <div class="panel">
+          <div class="flex flex-between flex-center mb-4">
+            <h2 class="mb-0">Council Staff</h2>
+            <button class="btn primary">+ Add New User</button>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Role</th>
+                <th>Last Login</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Sarah Johnson</strong></td>
+                <td>s.johnson@eastherts.gov.uk</td>
+                <td>Planning</td>
+                <td>Senior Officer</td>
+                <td>2 hours ago</td>
+                <td><span class="status active">Active</span></td>
+                <td>
+                  <button class="btn sm">Edit</button>
+                  <button class="btn sm">Permissions</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Mike Chen</strong></td>
+                <td>m.chen@eastherts.gov.uk</td>
+                <td>Housing</td>
+                <td>Officer</td>
+                <td>1 day ago</td>
+                <td><span class="status active">Active</span></td>
+                <td>
+                  <button class="btn sm">Edit</button>
+                  <button class="btn sm">Permissions</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Financial Management Page -->
+      <div id="billing" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Financial Management</h1>
+          <p class="page-subtitle">Billing, costs, and financial reporting</p>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">£28,450</div>
+            <div class="label">This Month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">£186,250</div>
+            <div class="label">Year to Date</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">£4,125</div>
+            <div class="label">Outstanding</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">£125.50</div>
+            <div class="label">Avg per Matter</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Recent Invoices</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Department</th>
+                <th>Period</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>INV-2025-001</strong></td>
+                <td>Planning</td>
+                <td>Aug 2025</td>
+                <td>£12,450.00</td>
+                <td><span class="status active">Paid</span></td>
+                <td>31 Aug 2025</td>
+                <td><button class="btn sm">Download PDF</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- System Integrations Page -->
+      <div id="integrations" class="page">
+        <div class="page-header">
+          <h1 class="page-title">System Integrations</h1>
+          <p class="page-subtitle">Connected systems and data sources</p>
+        </div>
+
+        <div class="panel">
+          <h2>Council Systems</h2>
+          <div class="grid grid-3">
+            <div class="stat-card">
+              <div class="flex flex-between flex-center">
+                <div>
+                  <div class="fw-600">Capita Academy</div>
+                  <div class="text-sm text-muted">CRM Integration</div>
+                </div>
+                <span class="status active">Connected</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="flex flex-between flex-center">
+                <div>
+                  <div class="fw-600">Civica CX</div>
+                  <div class="text-sm text-muted">Finance System</div>
+                </div>
+                <span class="status active">Connected</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="flex flex-between flex-center">
+                <div>
+                  <div class="fw-600">SharePoint</div>
+                  <div class="text-sm text-muted">Document Storage</div>
+                </div>
+                <span class="status pending">Pending</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports & Analytics Page -->
+      <div id="reports" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Reports & Analytics</h1>
+          <p class="page-subtitle">Performance metrics and business intelligence</p>
+        </div>
+
+        <div class="panel">
+          <h2>Performance Dashboard</h2>
+          <p class="text-muted">Detailed analytics coming soon...</p>
+        </div>
+      </div>
+
+      <!-- Compliance & Audit Page -->
+      <div id="compliance" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Compliance & Audit</h1>
+          <p class="page-subtitle">Security, compliance, and audit trails</p>
+        </div>
+
+        <div class="panel">
+          <h2>Compliance Status</h2>
+          <div class="grid grid-2">
+            <div>
+              <div class="flex flex-between mb-2">
+                <span>GDPR Compliance</span>
+                <span class="status active">Compliant</span>
+              </div>
+              <div class="flex flex-between mb-2">
+                <span>ISO 27001</span>
+                <span class="status active">Certified</span>
+              </div>
+              <div class="flex flex-between">
+                <span>Cyber Essentials Plus</span>
+                <span class="status active">Certified</span>
+              </div>
+            </div>
+            <div>
+              <div class="flex flex-between mb-2">
+                <span>Data Retention</span>
+                <span class="status active">Automated</span>
+              </div>
+              <div class="flex flex-between mb-2">
+                <span>Audit Logging</span>
+                <span class="status active">Active</span>
+              </div>
+              <div class="flex flex-between">
+                <span>Backup & Recovery</span>
+                <span class="status active">99.9% SLA</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workflow Management Page -->
+      <div id="workflow" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Workflow Management</h1>
+          <p class="page-subtitle">Automated workflows and approvals</p>
+        </div>
+
+        <div class="panel">
+          <h2>Active Workflows</h2>
+          <p class="text-muted">Workflow management interface coming soon...</p>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div id="settings" class="page">
+        <div class="page-header">
+          <h1 class="page-title">System Settings</h1>
+          <p class="page-subtitle">Configure platform settings and preferences</p>
+        </div>
+
+        <div class="panel">
+          <h2>General Settings</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Organization Name</label>
+              <input type="text" value="East Hertfordshire District Council">
+            </div>
+            <div class="form-group">
+              <label>Default Currency</label>
+              <select>
+                <option>GBP (£)</option>
+                <option>EUR (€)</option>
+                <option>USD ($)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Support Page -->
+      <div id="support" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Support</h1>
+          <p class="page-subtitle">Help, documentation, and contact support</p>
+        </div>
+
+        <div class="panel">
+          <h2>Get Help</h2>
+          <div class="grid grid-3">
+            <div class="stat-card">
+              <div class="fw-600">Documentation</div>
+              <div class="text-sm text-muted mt-2">User guides and tutorials</div>
+              <button class="btn mt-3">View Docs</button>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">Live Chat</div>
+              <div class="text-sm text-muted mt-2">Chat with support team</div>
+              <button class="btn mt-3">Start Chat</button>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">Email Support</div>
+              <div class="text-sm text-muted mt-2">Send us an email</div>
+              <button class="btn mt-3">Contact Us</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Page Navigation
+    function showPage(pageId) {
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+      
+      // Show selected page
+      document.getElementById(pageId).classList.add('active');
+      
+      // Update navigation
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Load page data
+      loadPageData(pageId);
+    }
+    
+    // Load data for specific pages
+    function loadPageData(pageId) {
+      switch(pageId) {
+        case 'dashboard':
+          loadDashboardData();
+          break;
+        case 'matters':
+          loadMattersData();
+          break;
+        case 'documents':
+          loadDocumentsData();
+          break;
+        case 'users':
+          loadUsersData();
+          break;
+        case 'billing':
+          loadBillingData();
+          break;
+        case 'integrations':
+          loadIntegrationsData();
+          break;
+      }
+    }
+    
+    // API calls to load real data
+    async function loadDashboardData() {
+      try {
+        const response = await fetch('/api/dashboard/overview', {
+          headers: {'Authorization': 'Bearer demo-token'}
+        });
+        const data = await response.json();
+        
+        // Update dashboard metrics with real data
+        updateDashboardMetrics(data.key_metrics);
+        updateRecentMatters(data.recent_matters);
+        console.log('Dashboard data loaded:', data);
+      } catch (error) {
+        console.error('Dashboard data loading failed:', error);
+      }
+    }
+    
+    function updateDashboardMetrics(metrics) {
+      // Update active matters
+      const activeMattersCard = document.querySelector('.stat-card');
+      if (activeMattersCard) {
+        const value = activeMattersCard.querySelector('.value');
+        const trend = activeMattersCard.querySelector('.trend');
+        if (value) value.textContent = metrics.active_matters.value;
+        if (trend) trend.textContent = `↗ ${metrics.active_matters.change} ${metrics.active_matters.period}`;
+      }
+    }
+    
+    function updateRecentMatters(matters) {
+      const tbody = document.querySelector('#dashboard .table tbody');
+      if (tbody && matters) {
+        tbody.innerHTML = matters.map(matter => `
+          <tr>
+            <td><strong>${matter.id}</strong></td>
+            <td>${matter.property_address}</td>
+            <td>${matter.council}</td>
+            <td><span class="status ${matter.status.replace('_', ' ')}">${matter.status.replace('_', ' ').toUpperCase()}</span></td>
+            <td>${matter.assigned_to}</td>
+            <td>${new Date(matter.due_date).toLocaleDateString()}</td>
+            <td><button class="btn sm" onclick="viewMatter('${matter.id}')">View</button></td>
+          </tr>
+        `).join('');
+      }
+    }
+    
+    async function loadMattersData() {
+      try {
+        const response = await fetch('/api/matters', {
+          headers: {'Authorization': 'Bearer demo-token'}
+        });
+        const data = await response.json();
+        
+        // Update matters table with real data
+        updateMattersTable(data.matters);
+        console.log('Matters data loaded:', data);
+      } catch (error) {
+        console.error('Matters data loading failed:', error);
+      }
+    }
+    
+    function updateMattersTable(matters) {
+      const tbody = document.querySelector('#matters .table tbody');
+      if (tbody && matters) {
+        tbody.innerHTML = matters.map(matter => `
+          <tr>
+            <td><strong>${matter.ref}</strong></td>
+            <td>
+              <div>${matter.property_address.split(',')[0]}</div>
+              <div class="text-muted text-sm">${matter.property_address}</div>
+            </td>
+            <td>${matter.council}</td>
+            <td>${matter.department}</td>
+            <td><span class="status ${matter.status}">${matter.status.replace('_', ' ').toUpperCase()}</span></td>
+            <td>${matter.assigned_to ? matter.assigned_to.name : 'Unassigned'}</td>
+            <td><span class="text-${matter.priority === 'high' ? 'warning' : 'muted'}">${matter.priority.toUpperCase()}</span></td>
+            <td>${new Date(matter.due_date).toLocaleDateString()}</td>
+            <td>£${matter.estimated_cost ? matter.estimated_cost.toFixed(2) : '0.00'}</td>
+            <td>
+              <button class="btn sm" onclick="viewMatter('${matter.id}')">View</button>
+              <button class="btn sm" onclick="editMatter('${matter.id}')">Edit</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+    
+    async function loadDocumentsData() {
+      // Document processing functionality
+      console.log('Document processing ready');
+    }
+    
+    async function loadUsersData() {
+      try {
+        const response = await fetch('/api/users', {
+          headers: {'Authorization': 'Bearer demo-token'}
+        });
+        const data = await response.json();
+        
+        // Update users table with real data
+        updateUsersTable(data.users);
+        console.log('Users data loaded:', data);
+      } catch (error) {
+        console.error('Users data loading failed:', error);
+      }
+    }
+    
+    function updateUsersTable(users) {
+      const tbody = document.querySelector('#users .table tbody');
+      if (tbody && users) {
+        tbody.innerHTML = users.map(user => `
+          <tr>
+            <td><strong>${user.full_name}</strong></td>
+            <td>${user.email}</td>
+            <td>${user.department}</td>
+            <td>${user.role.replace('_', ' ')}</td>
+            <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+            <td><span class="status ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>
+              <button class="btn sm" onclick="editUser(${user.id})">Edit</button>
+              <button class="btn sm" onclick="managePermissions(${user.id})">Permissions</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+    
+    async function loadBillingData() {
+      try {
+        const response = await fetch('/api/billing/summary');
+        const data = await response.json();
+        console.log('Billing data:', data);
+      } catch (error) {
+        console.log('Billing data loading (demo mode)');
+      }
+    }
+    
+    async function loadIntegrationsData() {
+      try {
+        const response = await fetch('/api/enterprise/integrations');
+        const data = await response.json();
+        console.log('Integrations data:', data);
+      } catch (error) {
+        console.log('Integrations data loading (demo mode)');
+      }
+    }
+    
+    // Action functions
+    function showCreateMatterModal() {
+      alert('Create Matter modal would open here - this would be a proper form in production');
+    }
+    
+    function viewMatter(matterId) {
+      alert(`View matter ${matterId} - this would open a detailed view`);
+    }
+    
+    function editMatter(matterId) {
+      alert(`Edit matter ${matterId} - this would open an edit form`);
+    }
+    
+    function editUser(userId) {
+      alert(`Edit user ${userId} - this would open a user edit form`);
+    }
+    
+    function managePermissions(userId) {
+      alert(`Manage permissions for user ${userId} - this would open permissions dialog`);
+    }
+    
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', function() {
+      loadDashboardData();
+      console.log('Domus Enterprise Platform initialized');
+    });
+  </script>
+</body>
+</html>

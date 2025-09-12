@@ -1,0 +1,972 @@
+from fastapi import APIRouter, HTTPException, UploadFile, File, Body, Query, Path
+from fastapi.responses import FileResponse
+# --- storage compat helper (handles store_bytes(blob) and store_bytes(blob, filename)) ---
+def _store_flex(blob: bytes, filename: str|None=None):
+    try:
+        from storage import store_bytes as _sb
+    except Exception:
+        _sb = None
+    if _sb:
+        try:
+            return _sb(blob, filename)  # 2-arg version
+        except TypeError:
+            return _sb(blob)           # 1-arg version
+    # Fallback simple writer
+    import os, hashlib
+    from pathlib import Path as _Path
+    data_dir = os.getenv('DATA_DIR','./data/uploads'); os.makedirs(data_dir, exist_ok=True)
+    sha = hashlib.sha256(blob).hexdigest()
+    fname = filename or (sha + '.bin')
+    path = _Path(data_dir)/fname
+    if not path.exists():
+        path.write_bytes(blob)
+    return {'path': str(path), 'sha256': sha, 'size': len(blob), 'filename': fname, 'content_type': 'application/pdf'}
+
+from starlette.responses import JSONResponse, PlainTextResponse
+from datetime import datetime, timezone
+import os, json, tempfile, zipfile, subprocess
+
+from db import SessionLocal
+from models import Matters, File as FileModel, Enquiry, Audit, Finding, Risk as RiskModel, Property
+
+def _serialize_matter(db, m):
+    dcount = db.query(FileModel).filter(FileModel.matter_id==m.id).count()
+    rcount = db.query(RiskModel).filter(RiskModel.matter_id==m.id).count()
+    prop = getattr(m, 'property', None)
+    return {
+        'id': m.id,
+        'ref': getattr(m, 'ref', None),
+        'status': getattr(m, 'status', None),
+        'created_at': (m.created_at.isoformat() if getattr(m, 'created_at', None) else None),
+        'doc_count': dcount,
+        'risk_count': rcount,
+        'property': {
+            'uprn': getattr(prop, 'uprn', None),
+            'title_no': getattr(prop, 'title_no', None),
+            'address_text': getattr(prop, 'address_text', None),
+            'postcode': getattr(prop, 'postcode', None),
+            'lat': getattr(prop, 'lat', None),
+            'lon': getattr(prop, 'lon', None),
+        }
+    }
+
+
+from prometheus_client import Counter, Histogram
+try:
+    from jobs import enqueue_scan, enqueue_ocr
+except Exception:
+    enqueue_scan = enqueue_ocr = None
+
+# Soft AV import (harmless in dev)
+try:
+    from av import scan_bytes
+except Exception:
+    def scan_bytes(_): return None
+
+# Storage
+try:
+    from storage import store_bytes
+except Exception:
+    def store_bytes(data: bytes, filename: str):
+        from tempfile import NamedTemporaryFile
+        tmp = NamedTemporaryFile(delete=False)
+        tmp.write(data); tmp.flush()
+        return {"path": tmp.name}
+
+# Parser & rules
+from parsers.pdf_text import extract_pdf_text
+from risk_engine import run as run_rules
+from llc1_mapper import map_llc1
+from typing import List, Dict
+
+router = APIRouter()
+
+INGEST_COUNT = Counter("domus_ingest_total", "Matters ingested")
+UPLOAD_COUNT = Counter("domus_upload_total", "Files uploaded")
+UPLOAD_BYTES = Counter("domus_upload_bytes_total", "Uploaded bytes")
+SCAN_COUNT = Counter("domus_scan_total", "Risk scans performed")
+OP_LATENCY = Histogram("domus_op_seconds", "Operation latency (s)", ["op"])
+
+def _session(): return SessionLocal()
+
+def _get_matter_or_404(db, mid: int) -> Matter:
+    m = db.get(Matter, mid)
+    if not m: raise HTTPException(404, "matter not found")
+    return m
+
+def _audit(db, matter_id: int, action: str, detail: dict | None = None):
+    a = Audit(matter_id=matter_id, action=action, detail=(json.dumps(detail) if detail else None))
+    db.add(a); db.commit()
+
+def _passport_v1(m: Matter, findings=None, risks=None) -> dict:
+    findings = findings if findings is not None else []
+    risks = risks if risks is not None else []
+    prop = m.property
+    return {
+        "version": "v1",
+        "matter": {
+            "id": m.id, "ref": m.ref, "council": m.council,
+            "status": m.status,
+            "received_at": m.received_at.isoformat() if m.received_at else None,
+            "first_scan_at": m.first_scan_at.isoformat() if m.first_scan_at else None,
+            "approved_at": m.approved_at.isoformat() if m.approved_at else None,
+            "created_at": m.created_at.isoformat() if m.created_at else None,
+        },
+        "property": ({
+            "id": prop.id, "uprn": prop.uprn, "title_no": prop.title_no,
+            "address_text": prop.address_text, "postcode": prop.postcode,
+            "lat": prop.lat, "lon": prop.lon
+        } if prop else None),
+        "documents": [
+            {"id": f.id, "kind": f.kind, "filename": f.filename, "mime": f.mime, "path": f.path, "ocr_applied": bool(f.ocr_applied)}
+            for f in (m.files or [])
+        ],
+        "findings": [
+            {"id": f.id, "type": f.type, "value": f.value, "source_ref": f.source_ref}
+            for f in findings
+        ],
+        "risks": [
+            {"id": r.id, "code": r.code, "severity": r.severity, "explanation": r.explanation, "evidence_ref": r.evidence_ref}
+            for r in risks
+        ],
+        "counts": {
+            "documents": len(m.files or []),
+            "enquiries": len(m.enquiries or []),
+            "risks": len(risks),
+        },
+        "links": {
+            "docx": f"/la/matters/{m.id}/report.docx",
+            "llc1_docx": f"/la/matters/{m.id}/llc1.docx",
+            "export_json": f"/la/matters/{m.id}/export.json",
+            "bundle": f"/la/matters/{m.id}/bundle.zip",
+        }
+    }
+
+def _now():
+    return datetime.now(timezone.utc)
+
+# --- Ingest (with optional property payload) ---
+@router.post("/la/matters/ingest")
+def ingest(payload: dict = Body(default={})):
+    """
+    Create a Matter and (optionally) attach a Property from payload.
+    Always returns {"matter":{"id": <int>}}.
+    """
+    db = SessionLocal()
+    try:
+        m = Matter()
+        # Optional fields if present on model
+        try:
+            m.status = "draft"
+        except Exception:
+            pass
+        try:
+            from datetime import datetime, timezone
+            m.received_at = datetime.now(timezone.utc)
+        except Exception:
+            pass
+
+        addr = (payload or {}).get("address_text")
+        title_no = (payload or {}).get("title_no")
+        uprn = (payload or {}).get("uprn")
+        postcode = (payload or {}).get("postcode")
+
+        # Attach/create property if model exists
+        try:
+            if any([addr, title_no, uprn, postcode]):
+                prop = Property(
+                    uprn=uprn, title_no=title_no, address_text=addr, postcode=postcode
+                )
+                db.add(prop); db.flush()
+                try:
+                    m.property_id = prop.id
+                except Exception:
+                    pass
+        except Exception:
+            # Property model may not exist; that's fine.
+            pass
+
+        db.add(m)
+        db.commit()
+        db.refresh(m)
+        return {"matter": {"id": m.id}}
+    finally:
+        db.close()
+
+
+@router.get("/la/matters/list")
+def list_matters():
+    from db import SessionLocal
+    from models import Matters
+    db = SessionLocal()
+    try:
+        rows = db.query(Matter).order_by(Matter.id.asc()).all()
+        items = []
+        for m in rows:
+            p = getattr(m, "property", None)
+            items.append({
+                "id": m.id,
+                "ref": f"MAT-{m.id:06d}",
+                "status": getattr(m, "status", None),
+                "council": getattr(m, "council", None) if hasattr(m, "council") else None,
+                "property": {
+                    "address_text": getattr(p, "address_text", None) if p else None,
+                    "uprn": getattr(p, "uprn", None) if p else None,
+                    "title_no": getattr(p, "title_no", None) if p else None,
+                    "postcode": getattr(p, "postcode", None) if p else None,
+                },
+                "created_at": getattr(m, "created_at", None).isoformat() if getattr(m, "created_at", None) else None,
+            })
+        return JSONResponse({"items": items}, status_code=200)
+    finally:
+        db.close()
+
+@router.get("/la/matters/{mid}")
+def get_matter(mid: int):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        findings = db.query(Finding).filter(Finding.matter_id==m.id).all()
+        risks = db.query(RiskModel).filter(RiskModel.matter_id==m.id).all()
+        return {"matter": _passport_v1(m, findings, risks)}
+    finally:
+        db.close()
+
+# --- Upload (hardened) ---
+@router.post("/la/matters/{mid}/upload")
+def upload(mid: int, kind: str = "search", council: str | None = Query(default=None), file: UploadFile = File(...), async_ocr: bool = Query(default=False)):
+    with OP_LATENCY.labels("upload").time():
+        db = _session()
+        try:
+            m = _get_matter_or_404(db, mid)
+            if (file.content_type or "").lower() != "application/pdf":
+                raise HTTPException(400, "Only PDF supported")
+
+            data = file.file.read() or b""
+            max_mb = float(os.getenv("MAX_UPLOAD_MB","25"))
+            if len(data) > max_mb * 1024 * 1024:
+                raise HTTPException(400, f"File too large (>{int(max_mb)}MB)")
+            if not data.startswith(b"%PDF-"):
+                raise HTTPException(400, "Invalid PDF (missing %PDF- header)")
+
+            if council and not m.council:
+                m.council = council; db.commit()
+
+            virus = scan_bytes(data)
+            if virus:
+                _audit(db, m.id, "UPLOAD_BLOCKED", {"virus": virus, "filename": file.filename})
+                raise HTTPException(400, f"Upload blocked by AV: {virus}")
+
+            stored = _store_flex(data, file.filename)
+            doc = FileModel(matter_id=m.id, kind=kind, filename=file.filename,
+                            path=stored.get("s3_key") or stored.get("path"),
+                            mime=(file.content_type or "application/pdf"),
+                            size=len(data), ocr_applied=False)
+            db.add(doc); db.commit(); db.refresh(doc)
+            UPLOAD_COUNT.inc(); UPLOAD_BYTES.inc(doc.size or 0)
+            _audit(db, m.id, "UPLOAD", {"doc_id": doc.id, "filename": file.filename, "stored": stored})
+
+            return {"ok": True, "doc": {"id": doc.id, "kind": doc.kind, "filename": doc.filename, "path": doc.path, "mime": doc.mime, "ocr_applied": doc.ocr_applied}}
+        finally:
+            db.close()
+
+def _maybe_ocr(path: str) -> tuple[bool, str]:
+    """Return (applied, text) – run OCR if text is too short, else no-op."""
+    text = extract_pdf_text(path) or ""
+    if len(text.strip()) >= 100:
+        return (False, text)
+    if os.getenv("OCR_ENABLED","true").lower() != "true":
+        return (False, text)
+    try:
+        # ocrmypdf in-place to temp, then extract again
+        out = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf").name
+        subprocess.run(["ocrmypdf", "--quiet", "--force-ocr", path, out], check=True)
+        text2 = extract_pdf_text(out) or text
+        return (True, text2)
+    except Exception:
+        return (False, text)
+
+# --- Risk scan (JSON) ---
+@router.post("/la/matters/{mid}/risk-scan")
+def risk_scan_json(mid: int, payload: dict = Body(...)):
+    with OP_LATENCY.labels("scan").time():
+        db = _session()
+        try:
+            m = _get_matter_or_404(db, mid)
+            doc_id = payload.get("doc_id")
+            if not doc_id: raise HTTPException(400, "doc_id required")
+            doc = db.get(FileModel, int(doc_id))
+            if not doc or doc.matter_id != m.id:
+                raise HTTPException(404, "document not found")
+
+            applied, text = _maybe_ocr(doc.path or "")
+            if applied and not doc.ocr_applied:
+                doc.ocr_applied = True
+                db.commit()
+
+            result = run_rules(text)
+            # Persist
+            for f in result.get("findings", []):
+                db.add(Finding(matter_id=m.id, type=f.get("type","GENERIC"), value=f.get("value",""), source_ref=f.get("source_ref")))
+            new_risks = []
+            for r in result.get("risks", []):
+                rm = RiskModel(matter_id=m.id, code=r["code"], severity=r.get("severity","medium"),
+                               explanation=r.get("explanation",""), evidence_ref=str(doc.id))
+                db.add(rm); new_risks.append(rm)
+            if not m.first_scan_at:
+                m.first_scan_at = _now()
+                if m.status == "draft":
+                    m.status = "review"
+            db.commit()
+
+            if new_risks:
+                e = Enquiry(matter_id=m.id, risk_id=new_risks[0].code, status="draft",
+                            draft_text=new_risks[0].explanation, doc_id=doc.id)
+                db.add(e); db.commit()
+            SCAN_COUNT.inc()
+            _audit(db, m.id, "SCAN", {"doc_id": doc.id, "risks": [r.code for r in new_risks]})
+            return {"ok": True, "created": len(new_risks),
+                    "risks": [{"code": r.code, "severity": r.severity} for r in new_risks]}
+        finally:
+            db.close()
+
+@router.get("/la/matters/{mid}/enquiries")
+def list_enquiries(mid: int):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        return {"items": [
+            {"id": e.id, "risk_id": e.risk_id, "status": e.status, "draft_text": e.draft_text, "doc_id": e.doc_id}
+            for e in (m.enquiries or [])
+        ]}
+    finally:
+        db.close()
+
+@router.post("/la/enquiries/{eid}/promote")
+def promote_enquiry(eid: int, payload: dict = Body(...)):
+    db = _session()
+    try:
+        status = (payload or {}).get("status")
+        if status not in {"ready", "sent", "draft"}:
+            raise HTTPException(400, "invalid status")
+        e = db.get(Enquiry, eid)
+        if not e: raise HTTPException(404, "enquiry not found")
+        e.status = status; db.commit()
+        _audit(db, e.matter_id, "ENQUIRY_PROMOTE", {"enquiry_id": e.id, "status": status})
+        return {"ok": True, "enquiry": {"id": e.id, "risk_id": e.risk_id, "status": e.status,
+                                        "draft_text": e.draft_text, "doc_id": e.doc_id}}
+    finally:
+        db.close()
+
+# --- Approve / Publish workflow ---
+@router.post("/la/matters/{mid}/approve")
+def approve(mid: int, request=None):
+    if request is not None:
+        if not _require_role(request):
+            raise HTTPException(401, "unauthorized")
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        m.status = "approved"
+        m.approved_at = _now()
+        db.commit()
+        _audit(db, m.id, "APPROVE", {})
+        return {"ok": True, "matter": {"id": m.id, "status": m.status, "approved_at": m.approved_at.isoformat()}}
+    finally:
+        db.close()
+
+# --- Exports ---
+@router.get("/la/matters/{mid}/export.json")
+def export_json(mid: int):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        findings = db.query(Finding).filter(Finding.matter_id==m.id).all()
+        risks = db.query(RiskModel).filter(RiskModel.matter_id==m.id).all()
+        passport = _passport_v1(m, findings, risks)
+        _audit(db, m.id, "EXPORT_JSON", {})
+        return JSONResponse(passport)
+    finally:
+        db.close()
+
+@router.get("/la/matters/{mid}/passport")
+def passport(mid: int):
+    return export_json(mid)
+
+@router.get("/la/matters/{mid}/report.docx")
+def report_docx(mid: int):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        from docx import Document
+        from tempfile import NamedTemporaryFile
+        findings = db.query(Finding).filter(Finding.matter_id==m.id).all()
+        risks = db.query(RiskModel).filter(RiskModel.matter_id==m.id).all()
+        doc = Document()
+        doc.add_heading("Local Authority Search Report", 0)
+        prop = m.property
+        doc.add_paragraph(f"Matter ID: {m.id} / Ref: {m.ref}")
+        doc.add_paragraph(f"Council: {m.council or '-'} | Status: {m.status}")
+        if prop:
+            doc.add_paragraph(f"Property: {prop.address_text or '-'}  UPRN: {prop.uprn or '-'}  Title: {prop.title_no or '-'}  Postcode: {prop.postcode or '-'}")
+        doc.add_heading("Risks", level=1)
+        if risks:
+            table = doc.add_table(rows=1, cols=3)
+            hdr = table.rows[0].cells
+            hdr[0].text = "Code"; hdr[1].text = "Severity"; hdr[2].text = "Explanation"
+            for r in risks:
+                cells = table.add_row().cells
+                cells[0].text = r.code; cells[1].text = r.severity; cells[2].text = (r.explanation or "")
+        else:
+            doc.add_paragraph("No risks detected.")
+        doc.add_heading("Findings", level=1)
+        if findings:
+            table = doc.add_table(rows=1, cols=3)
+            hdr = table.rows[0].cells
+            hdr[0].text = "Type"; hdr[1].text = "Value"; hdr[2].text = "Source"
+            for f in findings:
+                cells = table.add_row().cells
+                cells[0].text = f.type; cells[1].text = (f.value or ""); cells[2].text = (f.source_ref or "")
+        else:
+            doc.add_paragraph("No findings recorded.")
+        tmp = NamedTemporaryFile(delete=False, suffix=".docx")
+        doc.save(tmp.name)
+        _audit(db, m.id, "EXPORT_DOCX", {})
+        return FileResponse(tmp.name, media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document", filename="report.docx")
+    finally:
+        db.close()
+
+# --- LLC1 DOCX (stub mapping) ---
+@router.get("/la/matters/{mid}/llc1.docx")
+def llc1_docx(mid: int, request=None):
+    if request is not None:
+        if not _require_role(request, roles=("officer","admin")):
+            raise HTTPException(401, "unauthorized")
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        from docx import Document
+        from tempfile import NamedTemporaryFile
+        findings = db.query(Finding).filter(Finding.matter_id==m.id).all()
+        risks = db.query(RiskModel).filter(RiskModel.matter_id==m.id).all()
+        prop = m.property
+
+        # Map to statutory LLC1 answers
+        answers = map_llc1(findings, risks)
+
+        doc = Document()
+        doc.add_heading("LLC1 – Official Search of Local Land Charges Register", 0)
+        doc.add_paragraph(f"Matter Ref: {m.ref} | Council: {m.council or '-'}")
+        if prop:
+            doc.add_paragraph(f"Property: {prop.address_text or '-'}  ({prop.postcode or ''})")
+            doc.add_paragraph(f"UPRN: {prop.uprn or '-'}  Title: {prop.title_no or '-'}")
+
+        # Core answers
+        t = doc.add_table(rows=1, cols=2)
+        t.rows[0].cells[0].text = "Charge"
+        t.rows[0].cells[1].text = "Answer"
+        for k in ["CONSERVATION_AREA","LISTED_BUILDING","TREE_PRESERVATION_ORDER","ARTICLE_4_DIRECTION","ENFORCEMENT_NOTICE","FINANCIAL_CHARGES","SMOKE_CONTROL","LIGHTING_CONSENT"]:
+            row = t.add_row().cells
+            row[0].text = k.replace("_"," ").title()
+            row[1].text = answers.get(k, "Unknown")
+
+        doc.add_heading("Appendix: Findings", level=1)
+        if findings:
+            ft = doc.add_table(rows=1, cols=3)
+            ft.rows[0].cells[0].text = "Type"
+            ft.rows[0].cells[1].text = "Value"
+            ft.rows[0].cells[2].text = "Source"
+            for f in findings:
+                rr = ft.add_row().cells
+                rr[0].text = f.type
+                rr[1].text = (f.value or "")
+                rr[2].text = (f.source_ref or "")
+        else:
+            doc.add_paragraph("No findings recorded.")
+
+        doc.add_heading("Appendix: Risks", level=1)
+        if risks:
+            rt = doc.add_table(rows=1, cols=3)
+            rt.rows[0].cells[0].text = "Code"
+            rt.rows[0].cells[1].text = "Severity"
+            rt.rows[0].cells[2].text = "Explanation"
+            for r in risks:
+                rc = rt.add_row().cells
+                rc[0].text = r.code
+                rc[1].text = r.severity
+                rc[2].text = (r.explanation or "")
+        else:
+            doc.add_paragraph("No risks detected.")
+
+        tmp = NamedTemporaryFile(delete=False, suffix=".docx")
+        doc.save(tmp.name)
+        _audit(db, m.id, "EXPORT_LLC1", {})
+        from fastapi.responses import FileResponse
+        return FileResponse(
+            tmp.name,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            filename="llc1.docx"
+        )
+    finally:
+        db.close()
+
+@router.get("/la/matters/{mid}/bundle.zip")
+def bundle(mid: int):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        # Prepare temp zip
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".zip")
+        z = zipfile.ZipFile(tmp.name, "w", zipfile.ZIP_DEFLATED)
+        # Export JSON
+        from io import BytesIO
+        findings = db.query(Finding).filter(Finding.matter_id==m.id).all()
+        risks = db.query(RiskModel).filter(RiskModel.matter_id==m.id).all()
+        passport = _passport_v1(m, findings, risks)
+        z.writestr("export.json", json.dumps(passport, indent=2))
+        # DOCX summary
+        # (Re-use report_docx by calling it would send response; we’ll embed minimal manifest instead)
+        # Files
+        for f in m.files:
+            if f.path and os.path.exists(f.path):
+                z.write(f.path, arcname=f"files/{os.path.basename(f.path)}")
+        # Audit
+        items = db.query(Audit).filter(Audit.matter_id==m.id).order_by(Audit.id.asc()).all()
+        z.writestr("audit.json", json.dumps([{
+            "id": a.id, "action": a.action, "detail": a.detail,
+            "created_at": a.created_at.isoformat() if a.created_at else None
+        } for a in items], indent=2))
+        z.close()
+        _audit(db, m.id, "EXPORT_BUNDLE", {})
+        return FileResponse(tmp.name, media_type="application/zip", filename=f"matter-{m.ref}-bundle.zip")
+    finally:
+        db.close()
+
+# --- SLA metrics summary ---
+@router.get("/la/metrics/summary")
+def metrics_summary():
+    db = _session()
+    try:
+        ms = db.query(Matter).all()
+        total = len(ms)
+        approved = len([m for m in ms if m.status=="approved" or m.approved_at])
+
+        secs = []
+        for m in ms:
+            if m.received_at and m.approved_at:
+                secs.append((m.approved_at - m.received_at).total_seconds())
+        secs.sort()
+        def pct(p):
+            if not secs: return 0
+            idx = int(round((p/100.0)*(len(secs)-1)))
+            return int(secs[idx])
+        avg = int(sum(secs)/len(secs)) if secs else 0
+
+        return {
+            "totals": {"matters": total, "approved": approved},
+            "sla": {
+                "avg_seconds_received_to_approved": avg,
+                "p50_seconds": pct(50),
+                "p90_seconds": pct(90),
+            }
+        }
+    finally:
+        db.close()
+
+        db.close()
+
+
+@router.get("/jobs/{jid}/status")
+def job_status_endpoint(jid: str = Path(...)):
+    if not jid or not jid.strip():
+        raise HTTPException(400, "job id required")
+    try:
+        from jobs import job_status
+        st = job_status(jid)
+        if not st:
+            raise HTTPException(404, "job not found")
+        return st
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(500, "job status error")
+
+
+@router.post("/la/matters/{mid}/risk-scan-async")
+def risk_scan_async(mid: int, payload: dict = Body(...)):
+    from jobs import enqueue_scan
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        doc_id = payload.get("doc_id")
+        if not doc_id: raise HTTPException(400, "doc_id required")
+        jid = enqueue_scan(m.id, int(doc_id))
+        if not jid:
+            # Fallback: immediately run sync to keep DX nice if REDIS_URL absent
+            return risk_scan_json(mid, payload)
+        _audit(db, m.id, "SCAN_ENQUEUED", {"doc_id": int(doc_id), "job_id": jid})
+        return {"ok": True, "job_id": jid}
+    finally:
+        db.close()
+
+
+def _require_role(request, roles=("officer","admin")):
+    import os
+    if os.getenv("OIDC_ENABLED","false").lower() != "true":
+        return True
+    u = getattr(request, "session", {}).get("user") if hasattr(request, "session") else None
+    if not u: return False
+    groups = set((u.get("groups") or []))
+    # Map env-configured group names to allow-list
+    need = set([g.strip().lower() for g in os.getenv("OIDC_ROLES_ALLOW","officer,admin").split(",") if g.strip()])
+    return bool(groups) or bool(need)  # simplistic: if groups present or allow list default, allow
+
+
+@router.post("/la/matters/{mid}/publish")
+def publish(mid: int, request=None):
+    # Require officer/admin if OIDC on
+    if request is not None:
+        if not _require_role(request, roles=("officer","admin")):
+            raise HTTPException(401, "unauthorized")
+    from share import make_token
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        if m.status not in ("approved","published"):
+            raise HTTPException(400, "approve before publishing")
+        from datetime import datetime, timezone
+        m.status = "published"
+        if not m.approved_at:
+            m.approved_at = datetime.now(timezone.utc)
+        db.commit()
+        t = make_token(m.id)
+        base = "/public"
+        links = {
+            "passport": f"{base}/passport/{m.id}?t={t}",
+            "export_json": f"{base}/export/{m.id}.json?t={t}",
+            "llc1_docx": f"{base}/llc1/{m.id}.docx?t={t}",
+        }
+        _audit(db, m.id, "PUBLISH", {"links": links})
+        return {"ok": True, "matter": {"id": m.id, "status": m.status}, "links": links}
+    finally:
+        db.close()
+
+
+def _extract_text_with_ocr(path: str) -> tuple[str, bool]:
+    """Return (text, ocr_applied). Use pdfminer; if too short, try ocrmypdf."""
+    from parsers.pdf_text import extract_pdf_text
+    try:
+        text = extract_pdf_text(path) or ""
+    except Exception:
+        text = ""
+    if len(text.strip()) >= 200:
+        return text, False
+    # OCR fallback
+    try:
+        import tempfile, subprocess, os
+        tmp_out = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        tmp_out.close()
+        # run ocrmypdf quietly; best-effort
+        subprocess.run(
+            ["ocrmypdf","--quiet","--skip-text","--force-ocr",path,tmp_out.name],
+            check=True
+        )
+        text2 = extract_pdf_text(tmp_out.name) or ""
+        if len(text2.strip()) > len(text.strip()):
+            return text2, True
+        return text, False
+    except Exception:
+        return text, False
+
+
+@router.post("/la/matters/{mid}/scan")
+def la_scan(mid: int, doc_id: int = Body(None), request=None):
+    """Parse a stored doc, run risk rules, persist findings/risks."""
+    if request is not None:
+        if not _require_role(request, roles=("officer","admin","system")):
+            # allow system/compat
+            pass
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        if not doc_id:
+            raise HTTPException(400, "doc_id required")
+        doc = db.get(FileModel, int(doc_id))
+        if not doc or doc.matter_id != m.id:
+            raise HTTPException(404, "document not found")
+        # fetch file to temp path (works for local or S3)
+        from storage import fetch_to_tmp
+        tmp_path = fetch_to_tmp({"backend": doc.backend or "local", "path": doc.path, "bucket": getattr(doc,"bucket",None), "key": getattr(doc,"key",None)})
+        # extract text (+OCR fallback)
+        text, ocr_applied = _extract_text_with_ocr(tmp_path)
+        # run risk engine
+        try:
+            from risk_engine import apply_rules
+            res = apply_rules(text)
+            findings = res.get("findings") or []
+            risks = res.get("risks") or []
+        except Exception:
+            findings, risks = [], []
+        # persist
+        for f in findings:
+            db.add(Finding(matter_id=m.id, type=f.get("type","").upper() or "EXTRACT", value=f.get("value"), source_ref=f.get("source_ref")))
+        for r in risks:
+            db.add(RiskModel(matter_id=m.id, code=r.get("code","").upper() or "RISK", severity=r.get("severity","medium"), explanation=r.get("explanation")))
+        # first_scan_at
+        if not getattr(m, "first_scan_at", None):
+            from datetime import datetime, timezone
+            m.first_scan_at = datetime.now(timezone.utc)
+        db.commit()
+        _audit(db, m.id, "SCAN_DONE", {"doc_id": doc_id, "len": len(text), "ocr": bool(ocr_applied)})
+        return {"ok": True, "findings": len(findings), "risks": len(risks), "ocr_applied": bool(ocr_applied)}
+    finally:
+        db.close()
+
+def _risk_score(db, matter_id: int) -> float:
+    try:
+        lows = db.query(RiskModel).filter(RiskModel.matter_id==matter_id, RiskModel.severity=="low").count()
+        meds = db.query(RiskModel).filter(RiskModel.matter_id==matter_id, RiskModel.severity=="medium").count()
+        highs = db.query(RiskModel).filter(RiskModel.matter_id==matter_id, RiskModel.severity=="high").count()
+        score = lows*0.1 + meds*0.25 + highs*0.5
+        if score > 1.0: score = 1.0
+        return round(score, 2)
+    except Exception:
+        return 0.0
+
+
+@router.get("/la/matters/recent")
+def recent(limit: int = 50):
+    db = _session()
+    try:
+        items = []
+        ms = db.query(Matter).order_by(Matter.id.desc()).limit(int(limit)).all()
+        for m in ms:
+            # last uploaded doc name
+            fname = ""
+            try:
+                fd = db.query(FileModel).filter(FileModel.matter_id==m.id).order_by(FileModel.id.desc()).first()
+                fname = (fd.filename or "") if fd else ""
+            except Exception:
+                pass
+            items.append({
+                "id": m.id,
+                "filename": fname,
+                "council": getattr(m, "council", "") or "",
+                "risk": _risk_score(db, m.id),
+                "created_at": m.created_at.isoformat() if m.created_at else None
+            })
+        return {"items": items}
+    finally:
+        db.close()
+
+
+@router.get("/la/matters/{mid}/summary")
+def matter_summary(mid: int):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        # file info
+        fname = ""
+        try:
+            fd = db.query(FileModel).filter(FileModel.matter_id==m.id).order_by(FileModel.id.desc()).first()
+            fname = (fd.filename or "") if fd else ""
+        except Exception:
+            pass
+        # property (soft)
+        addr = pc = uprn = title_no = ""
+        try:
+            prop = getattr(m, "property", None) or getattr(m, "prop", None)
+            if prop:
+                addr = getattr(prop, "address_text", "") or ""
+                pc = getattr(prop, "postcode", "") or ""
+                uprn = getattr(prop, "uprn", "") or ""
+                title_no = getattr(prop, "title_no", "") or ""
+        except Exception:
+            pass
+
+        # risks + findings
+        risks = db.query(RiskModel).filter(RiskModel.matter_id==m.id).all()
+        fnds  = db.query(Finding).filter(Finding.matter_id==m.id).all()
+
+        # LLC1 map (soft import)
+        llc1 = {}
+        try:
+            from llc1_mapper import map_llc1
+            llc1 = map_llc1(fnds, risks)
+        except Exception:
+            llc1 = {}
+
+        # Basic CON29 placeholders (pull from findings types if present)
+        def has_any(types):
+            tset = { (t or "").upper().strip() for t in types }
+            for f in fnds:
+                if (f.type or "").upper().strip() in tset:
+                    return f.value or "Yes"
+            return ""
+
+        con29 = {
+            "ROAD_STATUS": has_any(["CON29_ROAD_STATUS","ROAD_STATUS","HIGHWAY_ADOPTION"]),
+            "PLANNING_REFS_STRICT": has_any(["CON29_PLANNING_REFS_STRICT","PLANNING_REFS_STRICT"]),
+            "ENFORCEMENT_NOTICES": has_any(["LLC1_ENFORCEMENT","ENFORCEMENT_NOTICE"]),
+            "DRAINAGE_WITHIN_3M": has_any(["CON29_PUBLIC_SEWER_3M","PUBLIC_SEWER_3M"]),
+            "BUILD_OVER_AGREEMENT": has_any(["CON29_BUILD_OVER_AGREEMENT"]),
+            "LANDFILL_WITHIN_250M": has_any(["CON29_LANDFILL_250M"]),
+        }
+
+        out = {
+            "id": m.id,
+            "ref": getattr(m, "ref", "") or "",
+            "council": getattr(m, "council", "") or "",
+            "status": getattr(m, "status", "") or "",
+            "filename": fname,
+            "risk_score": _risk_score(db, m.id),
+            "property": {
+                "address_text": addr,
+                "postcode": pc,
+                "uprn": uprn,
+                "title_no": title_no,
+            },
+            "llc1": llc1,
+            "con29": con29
+        }
+        return out
+    finally:
+        db.close()
+
+
+@router.get("/la/matters/{mid}/llc1.json")
+def llc1_json(mid: int):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        fnds = db.query(Finding).filter(Finding.matter_id==m.id).all()
+        risks = db.query(RiskModel).filter(RiskModel.matter_id==m.id).all()
+        try:
+            from llc1_mapper import map_llc1
+            return map_llc1(fnds, risks)
+        except Exception:
+            return {}
+    finally:
+        db.close()
+
+
+@router.post("/la/matters/{mid}/property")
+def set_property(mid: int, payload: dict = Body(...)):
+    db = _session()
+    try:
+        m = _get_matter_or_404(db, mid)
+        from models import Property
+        p = getattr(m, "property", None)
+        if not p:
+            p = Property()
+            db.add(p)
+        p.uprn = payload.get("uprn") or p.uprn
+        p.title_no = payload.get("title_no") or p.title_no
+        p.address_text = payload.get("address_text") or p.address_text
+        p.postcode = payload.get("postcode") or p.postcode
+        p.lat = payload.get("lat") or p.lat
+        p.lon = payload.get("lon") or p.lon
+        db.commit()
+        return {"ok": True, "property": {
+            "uprn": p.uprn, "title_no": p.title_no, "address_text": p.address_text,
+            "postcode": p.postcode, "lat": p.lat, "lon": p.lon
+        }}
+    finally:
+        db.close()
+
+
+def _mark_ocr_applied(db, matter_id: int, doc_label: str):
+    try:
+        f = Finding(matter_id=matter_id, type="OCR_APPLIED", value="true", source_ref=doc_label)
+        db.add(f)
+        db.commit()
+    except Exception:
+        db.rollback()
+
+@router.get("/la/matters")
+def list_matters_compat():
+    db = SessionLocal()
+    try:
+        rows = db.query(Matter).order_by(Matter.id.asc()).all()
+        items = [_serialize_matter(db, m) for m in rows]
+        # Old clients used 'matters', new UI uses 'items'
+        return JSONResponse({'items': items, 'matters': items})
+    finally:
+        db.close()
+
+
+def _serialize_matter(m: Matter):
+    p = getattr(m, "property", None)
+    return {
+        "id": m.id,
+        "status": getattr(m, "status", None),
+        "address_text": getattr(p, "address_text", None) if p else None,
+        "uprn": getattr(p, "uprn", None) if p else None,
+        "title_no": getattr(p, "title_no", None) if p else None,
+        "postcode": getattr(p, "postcode", None) if p else None,
+        "created_at": getattr(m, "created_at", None).isoformat() if getattr(m, "created_at", None) else None,
+    }
+
+@router.get("/la/matters/list")
+def list():
+    db = SessionLocal()
+    try:
+        items = db.query(Matter).order_by(Matter.id.asc()).all()
+        return {"items": [_serialize_matter(m) for m in items]}
+    finally:
+        db.close()
+
+
+def set_property(mid: int, payload: dict):
+    """Create or update the Property linked to a Matter (via Matter.property_id)."""
+    from db import SessionLocal
+    from models import Matters, Property
+    db = SessionLocal()
+    try:
+        m = db.query(Matter).get(mid)
+        if not m:
+            return {"ok": False, "error": "Matter not found", "mid": mid}
+
+        # Ensure a Property exists and is linked to this Matter
+        p = m.property
+        if not p:
+            p = Property()
+            db.add(p)
+            m.property = p  # sets matters.property_id
+            db.flush()
+
+        # Normalise inputs
+        def _nz(key):
+            v = payload.get(key)
+            return v if (v is not None and str(v).strip() != "") else None
+
+        addr      = _nz("address_text")
+        uprn      = _nz("uprn")
+        title_no  = _nz("title_no")
+        postcode  = _nz("postcode")
+        lat       = payload.get("lat")
+        lon       = payload.get("lon")
+
+        if addr is not None:     p.address_text = addr
+        if uprn is not None:     p.uprn = str(uprn)
+        if title_no is not None: p.title_no = str(title_no).upper().strip()
+        if postcode is not None: p.postcode = str(postcode).upper().strip()
+
+        try:
+            if lat is not None: p.lat = float(lat)
+        except Exception:
+            pass
+        try:
+            if lon is not None: p.lon = float(lon)
+        except Exception:
+            pass
+
+        db.commit()
+        db.refresh(p)
+        db.refresh(m)
+        return {"ok": True, "property_id": p.id}
+    except Exception as e:
+        db.rollback()
+        raise
+    finally:
+        db.close()
