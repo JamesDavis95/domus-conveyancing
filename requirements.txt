@@ -30,3 +30,4 @@ pdfminer.six==20231228
 redis==5.0.7
 PyPDF2
 aiohttp
+geopy
