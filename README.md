@@ -38,3 +38,4 @@ python worker.py
 # UI: use "Async OCR" checkbox; upload enqueues OCR and /api/jobs/{id}/status is polled
 ```
 # Deployment trigger
+# Ultra minimal deployment
