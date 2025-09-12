@@ -3,7 +3,7 @@ services:
     name: domus-global
     env: python
     buildCommand: pip install -r requirements-minimal.txt
-    startCommand: python ultra_minimal.py
+    startCommand: python app.py
     envVars:
       - key: PORT
         sync: false
