@@ -2,46 +2,17 @@
 import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Domus Global")
 
+# Mount static files for CSS, JS, images
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Domus Global - Conveyancing Platform</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 40px; background: #1e1e1e; color: white; }
-            .container { max-width: 800px; margin: 0 auto; text-align: center; }
-            h1 { color: #4CAF50; margin-bottom: 20px; }
-            .status { background: #2d2d2d; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🏢 Domus Global</h1>
-            <h2>Enterprise Conveyancing Platform</h2>
-            <div class="status">
-                <h3>✅ Platform Status: ONLINE</h3>
-                <p>Your AI-enhanced conveyancing platform is now live!</p>
-            </div>
-            <div class="status">
-                <h3>🚀 Features Available</h3>
-                <ul style="text-align: left;">
-                    <li>Document Processing & Analysis</li>
-                    <li>AI-Powered Property Intelligence</li>
-                    <li>Automated Workflow Management</li>
-                    <li>Real-time Case Tracking</li>
-                    <li>Professional Dashboard Interface</li>
-                </ul>
-            </div>
-            <p><strong>Platform successfully deployed and ready for use!</strong></p>
-        </div>
-    </body>
-    </html>
-    """
+    with open('frontend/platform.html', 'r') as f:
+        return f.read()
 
 @app.get("/health")
 async def health():
