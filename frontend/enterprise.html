@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus Admin Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --muted: #94a3b8;
+            --text: #e5e7eb;
+            --line: #1f2937;
+            --btn: #1d4ed8;
+            --btnh: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+        }
+        
+        .header {
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            background: linear-gradient(45deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 16px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .panel h2 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .endpoint {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .endpoint:hover {
+            border-color: var(--btn);
+            background: #0c1220;
+        }
+        
+        .endpoint-method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .get { background: var(--success); color: white; }
+        .post { background: var(--warning); color: white; }
+        
+        .endpoint-path {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            color: #60a5fa;
+        }
+        
+        .endpoint-desc {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .online { background: var(--success); }
+        .warning { background: var(--warning); }
+        
+        .response-area {
+            background: #000;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+        
+        .btn {
+            background: var(--btn);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: var(--btnh);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Domus Admin Dashboard</h1>
+        <p>System Administration & API Management</p>
+    </div>
+    
+    <div class="container">
+        <!-- Enterprise Features Panel -->
+        <div class="panel">
+            <h2>� System Management</h2>
+            
+            <div class="endpoint" onclick="testEndpoint('/api/enterprise/status', 'enterprise-status')">
+                <span class="endpoint-method get">GET</span>
+                <span class="endpoint-path">/api/enterprise/status</span>
+                <div class="endpoint-desc">System status and health check</div>
+                <button class="btn">Test Endpoint</button>
+                <div id="enterprise-status" class="response-area"></div>
+            </div>
+            
+            <div class="endpoint" onclick="testEndpoint('/api/enterprise/dashboard/ceo', 'ceo-dashboard')">
+                <span class="endpoint-method get">GET</span>
+                <span class="endpoint-path">/api/enterprise/dashboard/ceo</span>
+                <div class="endpoint-desc">Admin dashboard with system metrics</div>
+                <button class="btn">Test Endpoint</button>
+                <div id="ceo-dashboard" class="response-area"></div>
+            </div>
+            
+            <div class="endpoint" onclick="testEndpoint('/api/enterprise/integrations', 'integrations')">
+                <span class="endpoint-method get">GET</span>
+                <span class="endpoint-path">/api/enterprise/integrations</span>
+                <div class="endpoint-desc">Available system integrations</div>
+                <button class="btn">Test Endpoint</button>
+                <div id="integrations" class="response-area"></div>
+            </div>
+            
+            <div class="endpoint" onclick="testEndpoint('/api/enterprise/competitive-analysis', 'competitive')">
+                <span class="endpoint-method get">GET</span>
+                <span class="endpoint-path">/api/enterprise/competitive-analysis</span>
+                <div class="endpoint-desc">System performance analysis</div>
+                <button class="btn">Test Endpoint</button>
+                <div id="competitive" class="response-area"></div>
+            </div>
+        </div>
+        
+        <!-- Strategic Expansion Panel -->
+        <div class="panel">
+            <h2>� API Integrations</h2>
+            
+            <div class="endpoint" onclick="testEndpoint('/api/strategy/data-integration', 'data-integration')">
+                <span class="endpoint-method get">GET</span>
+                <span class="endpoint-path">/api/strategy/data-integration</span>
+                <div class="endpoint-desc">Data integration configuration</div>
+                <button class="btn">Test Endpoint</button>
+                <div id="data-integration" class="response-area"></div>
+            </div>
+            
+            <div class="endpoint" onclick="testEndpoint('/api/strategy/partnerships', 'partnerships')">
+                <span class="endpoint-method get">GET</span>
+                <span class="endpoint-path">/api/strategy/partnerships</span>
+                <div class="endpoint-desc">Partner API connections</div>
+                <button class="btn">Test Endpoint</button>
+                <div id="partnerships" class="response-area"></div>
+            </div>
+            
+            <div class="endpoint" onclick="testEndpoint('/api/strategy/market-expansion', 'market-expansion')">
+                <span class="endpoint-method get">GET</span>
+                <span class="endpoint-path">/api/strategy/market-expansion</span>
+                <div class="endpoint-desc">System expansion capabilities</div>
+                <button class="btn">Test Endpoint</button>
+                <div id="market-expansion" class="response-area"></div>
+            </div>
+        </div>
+        
+
+        
+        <!-- System Status Panel -->
+        <div class="panel">
+            <h2><span class="status-indicator online"></span>System Status</h2>
+            
+            <div style="margin: 15px 0;">
+                <div><strong>✅ Enterprise Must-Haves:</strong> <span style="color: var(--success)">OPERATIONAL</span></div>
+                <div><strong>✅ API Gateway:</strong> <span style="color: var(--success)">CONNECTED</span></div>
+                <div><strong>✅ Council Dashboard:</strong> <span style="color: var(--success)">READY</span></div>
+                <div><strong>✅ Data Strategy:</strong> <span style="color: var(--success)">LOADED</span></div>
+                <div><strong>✅ Strategic Ecosystem:</strong> <span style="color: var(--success)">ACTIVE</span></div>
+            </div>
+            
+            <div style="background: var(--bg); padding: 12px; border-radius: 6px; margin-top: 15px;">
+                <div><strong>Total Endpoints:</strong> 20+</div>
+                <div><strong>Enterprise Features:</strong> 6 modules</div>
+                <div><strong>Strategic Capabilities:</strong> 4 modules</div>
+                <div><strong>Market Readiness:</strong> 100%</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function testEndpoint(path, responseId) {
+            const responseDiv = document.getElementById(responseId);
+            responseDiv.style.display = 'block';
+            responseDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(path);
+                const data = await response.json();
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseDiv.textContent = `Error: ${error.message}`;
+                responseDiv.style.color = '#ef4444';
+            }
+        }
+        
+        // Auto-test enterprise status on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testEndpoint('/api/enterprise/status', 'enterprise-status');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

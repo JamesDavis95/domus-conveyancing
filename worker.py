@@ -1,21 +1,23 @@
-import sys
-import logging
-from redis import Redis
+import os
 from rq import Worker, Queue
-from settings import settings
+from redis import Redis
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+# Ensure job functions are importable (e.g., in jobs.py)
+try:
+    import jobs  # noqa: F401
+except Exception:
+    # Optional: provide a tiny fallback job for sanity checks
+    def echo(x): return x
 
-logger = logging.getLogger("worker")
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+QUEUE_NAME = os.getenv("RQ_QUEUE", "default")
 
-redis = Redis.from_url(settings.REDIS_URL)
-queue = Queue("default", connection=redis)
+def main():
+    conn = Redis.from_url(REDIS_URL)
+    # pass connection explicitly; works across RQ 1.x/2.x
+    q = Queue(QUEUE_NAME, connection=conn)
+    w = Worker([q], connection=conn)
+    w.work(with_scheduler=True)
 
 if __name__ == "__main__":
-    logger.info("Starting RQ worker, listening on 'default' queue")
-    worker = Worker([queue], connection=redis)
-    worker.work()
+    main()

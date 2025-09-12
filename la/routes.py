@@ -10,7 +10,7 @@ from la.services import parse_and_store, generate_client_report
 
 # Ensure LA tables exist (shares your Base)
 from la import models as _create_tables  # noqa: F401
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Disabled for Alembic compatibility
 
 router = APIRouter(prefix="/la", tags=["Local Authority"])
 

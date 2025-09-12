@@ -1,4 +1,4 @@
-#!/Users/jamesdavis/domus-conveyancing/.venv/bin/python
+#!/workspaces/domus-conveyancing/.venv/bin/python
 import sys
 from fastapi.cli import main
 if __name__ == '__main__':

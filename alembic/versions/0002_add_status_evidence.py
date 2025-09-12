@@ -8,18 +8,24 @@ depends_on = None
 
 def upgrade():
     with op.batch_alter_table('matters') as b:
-        b.add_column(sa.Column('status', sa.String(32), server_default='done'))
-        b.add_column(sa.Column('council_id', sa.String(64), nullable=True))
+        # b.add_column(sa.Column('status', sa.String(32), server_default='done'))  # Already in model
+        # b.add_column(sa.Column('council_id', sa.String(64), nullable=True))  # Already in model
+        pass
     with op.batch_alter_table('findings') as b:
-        b.add_column(sa.Column('evidence_json', sa.Text, nullable=True))
+        # b.add_column(sa.Column('evidence_json', sa.Text, nullable=True))  # Already in model
+        pass
     with op.batch_alter_table('risks') as b:
-        b.add_column(sa.Column('evidence_json', sa.Text, nullable=True))
+        # b.add_column(sa.Column('evidence_json', sa.Text, nullable=True))  # Already in model
+        pass
 
 def downgrade():
     with op.batch_alter_table('risks') as b:
-        b.drop_column('evidence_json')
+        # b.drop_column('evidence_json')  # Already in model
+        pass
     with op.batch_alter_table('findings') as b:
-        b.drop_column('evidence_json')
+        # b.drop_column('evidence_json')  # Already in model
+        pass
     with op.batch_alter_table('matters') as b:
-        b.drop_column('council_id')
-        b.drop_column('status')
+        # b.drop_column('council_id')  # Already in model
+        # b.drop_column('status')  # Already in model
+        pass

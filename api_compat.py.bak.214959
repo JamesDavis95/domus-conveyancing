@@ -1,0 +1,186 @@
+from typing import Optional
+from fastapi import APIRouter, UploadFile, File, Request, HTTPException
+from starlette.responses import JSONResponse, Response, PlainTextResponse
+import httpx, uuid
+
+router = APIRouter()
+
+@router.post("/api/matters")
+async def create_matter(request: Request):
+    """
+    Create a matter; return {"matter":{"id","ref"}}.
+    1) Try LA ingest and return its id directly.
+    2) If LA ingest fails OR returns no id, fallback to direct DB create.
+    """
+    # parse inbound body
+    try:
+        body = await request.json()
+        if not isinstance(body, dict):
+            body = {}
+    except Exception:
+        body = {}
+
+    payload = {
+        "address_text": (body.get("address_text") or body.get("address") or "").strip(),
+        "title_no": (body.get("title_no") or "").strip(),
+        "uprn": (body.get("uprn") or "").strip(),
+        "postcode": (body.get("postcode") or "").strip(),
+        "council": (body.get("council") or body.get("authority") or "").strip(),
+    }
+    payload = {k: v for k,v in payload.items() if v}
+    headers = {"X-Api-Key": request.headers.get("X-Api-Key","")}
+
+    # --- Preferred path: LA ingest
+    la_err = None
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.post("http://localhost:8000/la/matters/ingest", headers=headers, json=payload, timeout=15)
+        j = {}
+        try:
+            j = r.json()
+        except Exception:
+            j = {}
+        if r.status_code // 100 == 2:
+            mid = (j.get("matter") or {}).get("id") or j.get("id")
+            if mid:
+                mid = int(mid)
+                return JSONResponse({"matter": {"id": mid, "ref": f"MAT-{mid:06d}"}}, status_code=200)
+        la_err = {"status": r.status_code, "body": j if j else r.text}
+    except Exception as e:
+        la_err = {"exc": str(e)}
+
+    # --- Fallback: direct DB create WITH TEMP REF ---
+    try:
+        from db import SessionLocal
+        from models import Matters
+        db = SessionLocal()
+        try:
+            m = Matter()
+            # temp unique ref to satisfy NOT NULL (and UNIQUE) constraint
+            temp_ref = f"MAT-TEMP-{uuid.uuid4().hex[:10]}"
+            if hasattr(m, "ref"):
+                m.ref = temp_ref
+
+            # set safe defaults
+            try:
+                if hasattr(m, "status") and not getattr(m, "status", None):
+                    m.status = "draft"
+            except Exception:
+                pass
+
+            try:
+                if hasattr(m, "council"):
+                    m.council = payload.get("council") or "Unknown"
+            except Exception:
+                pass
+
+            # optional Property
+            try:
+                from models import Property
+                if any(payload.get(k) for k in ("address_text","uprn","title_no","postcode")):
+                    p = Property(
+                        uprn=payload.get("uprn") or None,
+                        title_no=payload.get("title_no") or None,
+                        address_text=payload.get("address_text") or None,
+                        postcode=payload.get("postcode") or None,
+                    )
+                    db.add(p); db.flush()
+                    if hasattr(m, "property_id"):
+                        m.property_id = p.id
+            except Exception:
+                # property creation is optional
+                pass
+
+            # insert, get id
+            db.add(m); db.flush()   # now m.id exists, ref was non-null
+            # set final ref
+            if hasattr(m, "ref"):
+                m.ref = f"MAT-{m.id:06d}"
+            db.commit(); db.refresh(m)
+            mid = int(m.id)
+            return JSONResponse({"matter": {"id": mid, "ref": f"MAT-{mid:06d}"}}, status_code=200)
+        finally:
+            db.close()
+    except Exception as e:
+        return JSONResponse(
+            {"detail": "Create matter failed (DB fallback)", "la_error": la_err, "error": str(e)},
+            status_code=500
+        )
+
+
+@router.post("/api/matters/{mid}/upload")
+async def upload(mid: int, request: Request, file: UploadFile = File(...), kind: str = "search", async_ocr: bool = False):
+    """Proxy to LA upload, pass-through response."""
+    if not file:
+        raise HTTPException(400, "file required")
+    async with httpx.AsyncClient() as client:
+        headers = {"X-Api-Key": request.headers.get("X-Api-Key","")}
+        url = f"http://localhost:8000/la/matters/{mid}/upload?async_ocr={'1' if async_ocr else '0'}"
+        files = {"file": (file.filename, await file.read(), file.content_type or "application/pdf")}
+        data = {"kind": kind}
+        r = await client.post(url, headers=headers, data=data, files=files)
+        try:
+            return JSONResponse(r.json(), status_code=r.status_code)
+        except Exception:
+            return Response(content=r.text, status_code=r.status_code, media_type=r.headers.get("content-type","text/plain"))
+
+
+@router.post("/api/matters/{mid}/risk-scan")
+async def risk_scan(mid: int, request: Request, file: UploadFile = File(None)):
+    """Upload + trigger scan (multipart PDF enforced)."""
+    if file is None:
+        raise HTTPException(400, "PDF required: send multipart/form-data with field 'file'")
+    if (file.content_type or "").lower() != "application/pdf":
+        raise HTTPException(400, "Only PDF supported")
+
+    async with httpx.AsyncClient() as client:
+        headers = {"X-Api-Key": request.headers.get("X-Api-Key","")}
+        url_up = f"http://localhost:8000/la/matters/{mid}/upload?async_ocr=0"
+        files = {"file": (file.filename, await file.read(), "application/pdf")}
+        r1 = await client.post(url_up, headers=headers, data={"kind":"search"}, files=files)
+        try:
+            j1 = r1.json()
+        except Exception:
+            j1 = {}
+        if r1.status_code // 100 != 2:
+            return JSONResponse(j1 or {"detail":"upload failed"}, status_code=r1.status_code)
+        return JSONResponse(j1 or {"ok": True}, status_code=200)
+
+
+@router.get("/api/searches.csv")
+async def searches_csv():
+    """CSV of recent matters with property + status + simple SLA (hours)."""
+    from io import StringIO
+    import csv
+    try:
+        from db import SessionLocal
+        from models import Matters
+    except Exception:
+        return PlainTextResponse("id,ref,status,council,address,postcode,sla_hours,created_at\n",
+                                 media_type="text/csv; charset=utf-8")
+
+    db = SessionLocal()
+    try:
+        out = StringIO(); w = csv.writer(out)
+        w.writerow(["id","ref","status","council","address","postcode","sla_hours","created_at"])
+        rows = db.query(Matter).order_by(Matter.id.desc()).limit(200).all()
+        for m in rows:
+            p = getattr(m, "property", None)
+            addr = getattr(p, "address_text", "") if p else ""
+            pc = getattr(p, "postcode", "") if p else ""
+            council = getattr(m, "council", "") if hasattr(m, "council") else ""
+            created = getattr(m, "created_at", None)
+            approved = getattr(m, "approved_at", None)
+            sla_h = ""
+            try:
+                if approved and created:
+                    delta = (approved - created).total_seconds() / 3600.0
+                    sla_h = f"{delta:.2f}"
+            except Exception:
+                sla_h = ""
+            ref = getattr(m, "ref", f"MAT-{m.id:06d}") if getattr(m, "id", None) else ""
+            w.writerow([m.id, ref, getattr(m,"status",""), council, addr, pc, sla_h,
+                        created.isoformat() if created else ""])
+        return PlainTextResponse(out.getvalue(), media_type="text/csv; charset=utf-8")
+    finally:
+        db.close()

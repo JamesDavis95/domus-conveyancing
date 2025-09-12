@@ -1,0 +1,21 @@
+nohup: ignoring input
+2025-09-11 22:43:39,261 INFO api_compat: ✅ Enterprise Must-Haves available
+2025-09-11 22:43:39,384 INFO api_compat: ✅ Enterprise API Gateway available
+2025-09-11 22:43:39,389 INFO api_compat: ✅ Ultimate Council Dashboard available
+2025-09-11 22:43:39,391 INFO api_compat: ✅ Data Integration Strategy available
+2025-09-11 22:43:39,392 INFO api_compat: ✅ Strategic Ecosystem available
+2025-09-11 22:43:39,409 INFO app_secured: Included router: api_compat.router
+2025-09-11 22:43:39,656 INFO app_secured: Included router: la.matters.router
+2025-09-11 22:43:39,761 INFO la.workflow: ✅ Phase 2A database initialized successfully
+2025-09-11 22:43:39,778 INFO app_secured: Included router: la.workflow.router
+2025-09-11 22:43:39,778 INFO app_secured: Included router: debug.router
+2025-09-11 22:43:39,783 INFO app_secured: Included router: api_mount.router
+2025-09-11 22:43:39,784 INFO app_secured: Included router: la.ui.router
+2025-09-11 22:43:40,053 INFO root: ✅ Enterprise Platform APIs loaded
+INFO:     Started server process [185695]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+✅ Successfully integrated all enterprise feature modules

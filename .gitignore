@@ -25,3 +25,8 @@ node_modules/
 
 # Docker
 **/.cache
+.aider*
+.env
+.env
+.env
+.env

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://domus.local/schemas/passport.v1.schema.json",
+  "type": "object",
+  "required": ["version","matter","documents","findings","risks","counts","links"],
+  "properties": {
+    "version": { "const": "v1" },
+    "matter": {
+      "type": "object",
+      "required": ["id","ref"],
+      "properties": {
+        "id": { "type": "integer" },
+        "ref": { "type": "string" },
+        "council": { "type": ["string","null"] },
+        "created_at": { "type": ["string","null"], "format": "date-time" }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id","kind","filename"],
+        "properties": {
+          "id": { "type": "integer" },
+          "kind": { "type": "string" },
+          "filename": { "type": "string" },
+          "mime": { "type": ["string","null"] },
+          "path": { "type": ["string","null"] }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id","type"],
+        "properties": {
+          "id": { "type": "integer" },
+          "type": { "type": "string" },
+          "value": { "type": ["string","null"] },
+          "source_ref": { "type": ["string","null"] }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id","code","severity"],
+        "properties": {
+          "id": { "type": "integer" },
+          "code": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low","medium","high"] },
+          "explanation": { "type": ["string","null"] },
+          "evidence_ref": { "type": ["string","null"] }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": ["documents","enquiries","risks"],
+      "properties": {
+        "documents": { "type": "integer" },
+        "enquiries": { "type": "integer" },
+        "risks": { "type": "integer" }
+      }
+    },
+    "links": {
+      "type": "object",
+      "required": ["docx","export_json"],
+      "properties": {
+        "docx": { "type": "string" },
+        "export_json": { "type": "string" }
+      }
+    }
+  }
+}
