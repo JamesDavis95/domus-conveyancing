@@ -32,7 +32,7 @@ PyPDF2
 aiohttp
 geopy
 shapely
-opencv-python
 numpy
 Pillow
 geoalchemy2
+opencv-python-headless

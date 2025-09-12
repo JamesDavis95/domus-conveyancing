@@ -104,8 +104,12 @@ from la.matters import router as la_router
 app.include_router(la_router)
 
 # NEW: Add spatial API endpoints
-from la.spatial import router as spatial_router
-app.include_router(spatial_router)
+try:
+    from la.spatial import router as spatial_router
+    app.include_router(spatial_router)
+    logger.info("Included router: la.spatial.router")
+except (ImportError, OSError) as e:
+    logger.warning(f"Optional router la.spatial not loaded: {e}")
 
 # NEW: Phase 2A - Complete LA workflow system
 from la.workflow import router as workflow_router
