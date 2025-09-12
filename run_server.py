@@ -15,7 +15,7 @@ except ValueError:
 # Run uvicorn with the correct port
 cmd = [
     sys.executable, '-m', 'uvicorn', 
-    'main:app', 
+    'app_secured:app', 
     '--host', '0.0.0.0', 
     '--port', str(port_int)
 ]
