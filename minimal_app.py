@@ -30,7 +30,7 @@ except Exception as e:
 # Health check endpoint
 @app.get("/")
 async def root():
-    return {"message": "Domus Global Platform is running!", "status": "healthy"}
+    return {"message": "Domus Global Platform is running!", "status": "healthy", "version": "1.0"}
 
 @app.get("/health")
 async def health_check():
