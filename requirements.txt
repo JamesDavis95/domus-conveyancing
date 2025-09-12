@@ -31,3 +31,8 @@ redis==5.0.7
 PyPDF2
 aiohttp
 geopy
+shapely
+opencv-python
+numpy
+Pillow
+geoalchemy2
