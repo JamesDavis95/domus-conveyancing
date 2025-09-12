@@ -2,17 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "run_server.py",
+      "src": "ultra_minimal.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "run_server.py"
+      "dest": "ultra_minimal.py"
     }
-  ],
-  "env": {
-    "PYTHONPATH": "."
-  }
+  ]
 }
