@@ -84,8 +84,14 @@ app.mount("/static", StaticFiles(directory="frontend"), name="static")
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve the main planning platform interface"""
-    with open('frontend/platform_clean.html', 'r') as f:
-        return f.read()
+    try:
+        with open('frontend/platform_clean.html', 'r', encoding='utf-8') as f:
+            content = f.read()
+            print(f"✅ Serving platform_clean.html - Title: {content[content.find('<title>')+7:content.find('</title>')]}")
+            return content
+    except Exception as e:
+        print(f"❌ Error loading platform_clean.html: {e}")
+        return f"<html><body><h1>Error loading platform</h1><p>{e}</p></body></html>"
 
 @app.get("/health")
 async def health_check():
