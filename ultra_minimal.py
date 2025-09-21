@@ -11,7 +11,7 @@ async def root():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Domus Global - Conveyancing Platform</title>
+        <title>Domus Planning Platform - Integrated Planning Services</title>
         <style>
             body { font-family: Arial, sans-serif; margin: 40px; background: #1e1e1e; color: white; }
             .container { max-width: 800px; margin: 0 auto; text-align: center; }
@@ -21,20 +21,20 @@ async def root():
     </head>
     <body>
         <div class="container">
-            <h1>🏢 Domus Global</h1>
-            <h2>Enterprise Conveyancing Platform</h2>
+            <h1>🏢 Domus Planning Platform</h1>
+            <h2>Integrated Planning & Building Control</h2>
             <div class="status">
                 <h3>✅ Platform Status: ONLINE</h3>
-                <p>Your AI-enhanced conveyancing platform is now live!</p>
+                <p>Your comprehensive planning, building control & land charges platform is now live!</p>
             </div>
             <div class="status">
                 <h3>🚀 Features Available</h3>
                 <ul style="text-align: left;">
-                    <li>Document Processing & Analysis</li>
-                    <li>AI-Powered Property Intelligence</li>
-                    <li>Automated Workflow Management</li>
-                    <li>Real-time Case Tracking</li>
-                    <li>Professional Dashboard Interface</li>
+                    <li>Planning Application Management</li>
+                    <li>Building Control Integration</li>
+                    <li>Land Charges Search Processing</li>
+                    <li>Policy Compliance Checking</li>
+                    <li>Council Dashboard & Analytics</li>
                 </ul>
             </div>
             <p><strong>Platform successfully deployed and ready for use!</strong></p>

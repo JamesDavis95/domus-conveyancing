@@ -1,13 +1,17 @@
-app = "domus-rescue-1757430156"
+app = "domus-planning-platform"
 primary_region = "lhr"
+
+[build]
+dockerfile = "Dockerfile.fly"
+
 [env]
-PORT = "8080"
+PORT = "8000"
 [[services]]
 
 source = "data"
 destination = "/data"
 
-internal_port = 8080
+internal_port = 8000
 protocol = "tcp"
 processes = ["app"]
   [services.concurrency]

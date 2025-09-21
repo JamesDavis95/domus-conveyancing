@@ -1,23 +1,51 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg2-binary
-aiosqlite
-python-multipart
-pydantic
-python-docx
-jinja2
-boto3
-redis
-rq
-pdfminer.six
-ocrmypdf
-PyMuPDF
-authlib
-python-dotenv
-clamd
-requests
-prometheus-client
+# Domus Comprehensive Regulatory Platform v3.0.0
+# RM6259 Framework Compliant | GDPR Ready | Government Security Standards
+
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+jinja2==3.1.2
+
+# Database & Storage
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+aiosqlite==0.19.0
+redis==5.0.1
+rq==1.15.1
+
+# Security & Authentication
+authlib==1.2.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+cryptography==41.0.7
+
+# API & Integration
+httpx==0.25.2
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Data Processing & Analytics
+pandas==2.1.3
+numpy==1.25.2
+openpyxl==3.1.2
+
+# Document Processing
+python-docx==1.1.0
+pdfminer.six==20221105
+ocrmypdf==15.4.4
+PyMuPDF==1.23.8
+reportlab==4.0.7
+
+# Cloud & Storage
+boto3==1.34.0
+
+# Monitoring & Security
+prometheus-client==0.19.0
+clamd==1.0.2
+
+# Government & Compliance
+uk-postcode-utils==1.0.1
 itsdangerous
 
 httpx

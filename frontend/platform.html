@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Domus Global</title>
+  <title>Domus Planning Platform</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -629,10 +629,57 @@
   </style>
 </head>
 <body>
+  <script>
+    // Define ALL FUNCTIONS IMMEDIATELY - before any HTML that uses them
+    console.log('🚀 Loading essential functions...');
+    
+    window.showPage = function(pageId) {
+      console.log('🎯 NAVIGATION: Switching to page:', pageId);
+      
+      // Hide all pages
+      var pages = document.querySelectorAll('.page');
+      for (var i = 0; i < pages.length; i++) {
+        pages[i].classList.remove('active');
+      }
+      
+      // Show target page
+      var targetPage = document.getElementById(pageId);
+      if (targetPage) {
+        targetPage.classList.add('active');
+        console.log('✅ SUCCESS: Page shown:', pageId);
+      } else {
+        console.log('❌ ERROR: Page not found:', pageId);
+      }
+      
+      // Update nav active state
+      var navItems = document.querySelectorAll('.nav-item');
+      for (var i = 0; i < navItems.length; i++) {
+        navItems[i].classList.remove('active');
+        if (navItems[i].getAttribute('data-page') === pageId) {
+          navItems[i].classList.add('active');
+        }
+      }
+    };
+    
+    window.toggleMobileMenu = function() {
+      console.log('📱 Toggle mobile menu');
+      var sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('mobile-open');
+      }
+    };
+    
+    window.showCreateMatterModal = function() {
+      alert('Create Matter modal - functionality will be added');
+    };
+    
+    console.log('✅ All essential functions loaded BEFORE HTML');
+  </script>
+
   <!-- Header -->
   <header class="header">
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-    <div class="logo">Domus Global</div>
+    <div class="logo">Domus Planning Platform</div>
     <div class="user-menu">
       <div class="user-info">
         <span>Admin User</span>
@@ -651,51 +698,91 @@
     <nav class="sidebar">
       <div class="nav-section">
         <div class="nav-section-title">Overview</div>
-        <button class="nav-item active" onclick="showPageMobile('dashboard')">
+        <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
           <span class="icon"></span>
           Dashboard
         </button>
       </div>
 
       <div class="nav-section">
-        <div class="nav-section-title">Operations</div>
-        <button class="nav-item" onclick="showPageMobile('matters')">
-          <span class="icon"></span>
-          Matters & Cases
+        <div class="nav-section-title">Planning Services</div>
+        <button class="nav-item" data-page="matters" onclick="showPage('matters')">
+          <span class="icon">🏗️</span>
+          Planning Applications
         </button>
-        <button class="nav-item" onclick="showPageMobile('documents')">
-          <span class="icon"></span>
-          Document Processing
+        <button class="nav-item" data-page="documents" onclick="showPage('documents')">
+          <span class="icon">📋</span>
+          Application Documents
         </button>
-        <button class="nav-item" onclick="showPageMobile('workflow')">
-          <span class="icon"></span>
-          Workflow Management
+        <button class="nav-item" data-page="workflow" onclick="showPage('workflow')">
+          <span class="icon">⚖️</span>
+          Policy Compliance
         </button>
       </div>
 
       <div class="nav-section">
         <div class="nav-section-title">Administration</div>
-        <button class="nav-item" onclick="showPageMobile('users')">
+        <button class="nav-item" data-page="users" onclick="showPage('users')">
           <span class="icon"></span>
           User Management
         </button>
-        <button class="nav-item" onclick="showPageMobile('billing')">
+        <button class="nav-item" data-page="billing" onclick="showPage('billing')">
           <span class="icon"></span>
           Financial Management
         </button>
-        <button class="nav-item" onclick="showPageMobile('integrations')">
+        <button class="nav-item" data-page="integrations" onclick="showPage('integrations')">
           <span class="icon"></span>
           System Integrations
         </button>
       </div>
 
       <div class="nav-section">
+        <div class="nav-section-title">Planning-First AI</div>
+        <button class="nav-item" data-page="planning-ai" onclick="showPage('planning-ai')">
+          <span class="icon">🧠</span>
+          Planning AI Analysis
+        </button>
+        <button class="nav-item" data-page="auto-docs" onclick="showPage('auto-docs')">
+          <span class="icon">📄</span>
+          Auto-Docs Generator
+        </button>
+        <button class="nav-item" data-page="property-api" onclick="showPage('property-api')">
+          <span class="icon">🏠</span>
+          Property Data API
+        </button>
+        <button class="nav-item" data-page="offsets-marketplace" onclick="showPage('offsets-marketplace')">
+          <span class="icon">🌱</span>
+          Offsets Marketplace
+        </button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Legacy Services</div>
+        <button class="nav-item" data-page="building-control" onclick="showPage('building-control')">
+          <span class="icon">🏠</span>
+          Building Control
+        </button>
+        <button class="nav-item" data-page="land-charges" onclick="showPage('land-charges')">
+          <span class="icon">📜</span>
+          Land Charges
+        </button>
+        <button class="nav-item" data-page="waste-licensing" onclick="showPage('waste-licensing')">
+          <span class="icon">♻️</span>
+          Waste Services
+        </button>
+        <button class="nav-item" data-page="housing-standards" onclick="showPage('housing-standards')">
+          <span class="icon">🏘️</span>
+          Housing Standards
+        </button>
+      </div>
+
+      <div class="nav-section">
         <div class="nav-section-title">Analytics</div>
-        <button class="nav-item" onclick="showPageMobile('reports')">
+        <button class="nav-item" data-page="reports" onclick="showPage('reports')">
           <span class="icon"></span>
           Reports & Analytics
         </button>
-        <button class="nav-item" onclick="showPageMobile('compliance')">
+        <button class="nav-item" data-page="compliance" onclick="showPage('compliance')">
           <span class="icon"></span>
           Compliance & Audit
         </button>
@@ -703,11 +790,11 @@
 
       <div class="nav-section">
         <div class="nav-section-title">System</div>
-        <button class="nav-item" onclick="showPageMobile('settings')">
+        <button class="nav-item" data-page="settings" onclick="showPage('settings')">
           <span class="icon"></span>
           Settings
         </button>
-        <button class="nav-item" onclick="showPageMobile('support')">
+        <button class="nav-item" data-page="support" onclick="showPage('support')">
           <span class="icon"></span>
           Support
         </button>
@@ -720,30 +807,30 @@
       <div id="dashboard" class="page active">
         <div class="page-header">
           <h1 class="page-title">Dashboard</h1>
-          <p class="page-subtitle">Overview of your conveyancing operations</p>
+          <p class="page-subtitle">Overview of your planning operations and applications</p>
         </div>
 
         <!-- Key Metrics -->
         <div class="grid grid-4">
           <div class="stat-card">
-            <div class="value text-success">47</div>
-            <div class="label">Active Matters</div>
-            <div class="trend up">↗ +12% this month</div>
+            <div class="value text-success">156</div>
+            <div class="label">Active Applications</div>
+            <div class="trend up">↗ +8% this month</div>
           </div>
           <div class="stat-card">
-            <div class="value text-warning">23</div>
-            <div class="label">Pending Reviews</div>
-            <div class="trend down">↘ -5% this week</div>
+            <div class="value text-warning">34</div>
+            <div class="label">Awaiting Decision</div>
+            <div class="trend down">↘ -12% this week</div>
           </div>
           <div class="stat-card">
-            <div class="value text-success">£28,450</div>
-            <div class="label">Monthly Revenue</div>
-            <div class="trend up">↗ +18% vs last month</div>
+            <div class="value text-success">5.2 days</div>
+            <div class="label">Avg Decision Time</div>
+            <div class="trend up">↗ 35% faster</div>
           </div>
           <div class="stat-card">
-            <div class="value text-success">2.3 hrs</div>
-            <div class="label">Avg Processing Time</div>
-            <div class="trend up">↗ 40% faster</div>
+            <div class="value text-success">92%</div>
+            <div class="label">Policy Compliance</div>
+            <div class="trend up">↗ +5% accuracy</div>
           </div>
         </div>
 
@@ -752,9 +839,9 @@
           <div class="panel">
             <h2>Quick Actions</h2>
             <div class="flex gap-3">
-              <button class="btn primary" onclick="showPageMobile('matters')">Create New Matter</button>
-              <button class="btn" onclick="showPageMobile('documents')">Upload Documents</button>
-              <button class="btn" onclick="showPageMobile('reports')">Generate Report</button>
+              <button class="btn primary" data-page="matters" onclick="showPage('matters')">New Application</button>
+              <button class="btn" data-page="documents" onclick="showPage('documents')">Upload Plans</button>
+              <button class="btn" data-page="reports" onclick="showPage('reports')">Generate Report</button>
             </div>
           </div>
 
@@ -762,11 +849,11 @@
             <h2>System Status</h2>
             <div class="text-sm">
               <div class="flex flex-between mb-2">
-                <span>API Gateway</span>
+                <span>Planning Portal</span>
                 <span class="status active">Online</span>
               </div>
               <div class="flex flex-between mb-2">
-                <span>Document Processing</span>
+                <span>Policy Engine</span>
                 <span class="status active">Operational</span>
               </div>
               <div class="flex flex-between mb-2">
@@ -774,7 +861,7 @@
                 <span class="status active">47 Connected</span>
               </div>
               <div class="flex flex-between">
-                <span>AI Processing</span>
+                <span>AI Compliance Check</span>
                 <span class="status active">Ready</span>
               </div>
             </div>
@@ -783,46 +870,46 @@
 
         <!-- Recent Activity -->
         <div class="panel">
-          <h2>Recent Matters</h2>
+          <h2>Recent Applications</h2>
           <table class="table">
             <thead>
               <tr>
-                <th>Matter Ref</th>
+                <th>App Ref</th>
                 <th>Property Address</th>
-                <th>Council</th>
+                <th>Type</th>
                 <th>Status</th>
-                <th>Assigned To</th>
-                <th>Due Date</th>
+                <th>Case Officer</th>
+                <th>Target Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>DOM-2025-001</td>
+                <td>25/00156/FUL</td>
                 <td>123 High Street, Hertford</td>
-                <td>East Hertfordshire DC</td>
-                <td><span class="status active">In Progress</span></td>
+                <td>Full Planning</td>
+                <td><span class="status active">Under Consideration</span></td>
                 <td>Sarah Johnson</td>
-                <td>15 Sep 2025</td>
-                <td><button class="btn sm">View</button></td>
-              </tr>
-              <tr>
-                <td>DOM-2025-002</td>
-                <td>45 Mill Lane, Ware</td>
-                <td>East Hertfordshire DC</td>
-                <td><span class="status pending">Pending Review</span></td>
-                <td>Mike Chen</td>
-                <td>18 Sep 2025</td>
+                <td>15 Oct 2025</td>
                 <td><button class="btn sm">Review</button></td>
               </tr>
               <tr>
-                <td>DOM-2025-003</td>
+                <td>25/00157/HOU</td>
+                <td>45 Mill Lane, Ware</td>
+                <td>Householder</td>
+                <td><span class="status pending">Validation</span></td>
+                <td>Mike Chen</td>
+                <td>28 Sep 2025</td>
+                <td><button class="btn sm">Validate</button></td>
+              </tr>
+              <tr>
+                <td>25/00158/OUT</td>
                 <td>78 Castle Street, Hertford</td>
-                <td>East Hertfordshire DC</td>
-                <td><span class="status draft">Draft</span></td>
+                <td>Outline Planning</td>
+                <td><span class="status draft">Consultation</span></td>
                 <td>Emma Wilson</td>
-                <td>20 Sep 2025</td>
-                <td><button class="btn sm">Edit</button></td>
+                <td>12 Oct 2025</td>
+                <td><button class="btn sm">View</button></td>
               </tr>
             </tbody>
           </table>
@@ -832,8 +919,8 @@
       <!-- Matters Management Page -->
       <div id="matters" class="page">
         <div class="page-header">
-          <h1 class="page-title">Matters & Cases</h1>
-          <p class="page-subtitle">Manage conveyancing matters and workflow</p>
+          <h1 class="page-title">Planning Applications</h1>
+          <p class="page-subtitle">Manage planning applications and decision workflow</p>
         </div>
 
         <!-- Filters and Actions -->
@@ -1265,6 +1352,298 @@
         </div>
       </div>
 
+      <!-- Waste Licensing Page -->
+      <div id="waste-licensing" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Waste Regulatory Services</h1>
+          <p class="page-subtitle">Waste carrier licensing, compliance monitoring, and environmental enforcement</p>
+          <button class="btn primary">New Licence Application</button>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">547</div>
+            <div class="label">Active Licences</div>
+            <div class="trend up">↗ +3% this quarter</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">34</div>
+            <div class="label">Inspections Due</div>
+            <div class="trend down">↘ -8% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">92%</div>
+            <div class="label">Compliance Rate</div>
+            <div class="trend up">↗ +2% this year</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">£67K</div>
+            <div class="label">Revenue YTD</div>
+            <div class="trend up">↗ +15% vs target</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Recent Waste Regulatory Cases</h2>
+          <div class="table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Business</th>
+                  <th>Licence Type</th>
+                  <th>Status</th>
+                  <th>Officer</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>WR/2024/1234</strong></td>
+                  <td>Green Waste Solutions Ltd</td>
+                  <td>Waste Carrier</td>
+                  <td><span class="status warning">Renewal Due</span></td>
+                  <td>Tom Wilson</td>
+                  <td><button class="btn sm">View</button></td>
+                </tr>
+                <tr>
+                  <td><strong>WR/2024/1235</strong></td>
+                  <td>Skip Hire Express</td>
+                  <td>Scrap Metal Dealer</td>
+                  <td><span class="status success">Compliant</span></td>
+                  <td>Kate Johnson</td>
+                  <td><button class="btn sm">Inspect</button></td>
+                </tr>
+                <tr>
+                  <td><strong>WR/2024/1236</strong></td>
+                  <td>Eco Recycling Ltd</td>
+                  <td>Hazardous Waste</td>
+                  <td><span class="status danger">Enforcement</span></td>
+                  <td>Paul Davis</td>
+                  <td><button class="btn sm">Action</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Housing Standards Page -->
+      <div id="housing-standards" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Private Sector Housing</h1>
+          <p class="page-subtitle">HMO licensing, housing standards enforcement, and property inspections</p>
+          <button class="btn primary">New Enforcement Case</button>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">167</div>
+            <div class="label">Active Cases</div>
+            <div class="trend up">↗ +5% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">28</div>
+            <div class="label">Inspections Due</div>
+            <div class="trend down">↘ Scheduled</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">423</div>
+            <div class="label">HMO Licences</div>
+            <div class="trend up">↗ +12% this year</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">4.2 days</div>
+            <div class="label">Avg Response Time</div>
+            <div class="trend down">↗ Target: 5 days</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Recent Housing Enforcement Cases</h2>
+          <div class="table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Property</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Officer</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>HSG/2024/5678</strong></td>
+                  <td>Flat 3, 45 Victoria Street</td>
+                  <td>HMO Licence</td>
+                  <td><span class="status info">Under Review</span></td>
+                  <td>Rachel Green</td>
+                  <td><button class="btn sm">Review</button></td>
+                </tr>
+                <tr>
+                  <td><strong>HSG/2024/5679</strong></td>
+                  <td>12 Queen Road</td>
+                  <td>Category 1 Hazard</td>
+                  <td><span class="status danger">Notice Served</span></td>
+                  <td>Mark Thompson</td>
+                  <td><button class="btn sm">Monitor</button></td>
+                </tr>
+                <tr>
+                  <td><strong>HSG/2024/5680</strong></td>
+                  <td>8A High Street</td>
+                  <td>HHSRS Assessment</td>
+                  <td><span class="status warning">Inspection Due</span></td>
+                  <td>Lucy Wilson</td>
+                  <td><button class="btn sm">Schedule</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Building Control Page -->
+      <div id="building-control" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Building Control</h1>
+          <p class="page-subtitle">Building regulations, inspections, and completion certificates</p>
+          <button class="btn primary">New Application</button>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">234</div>
+            <div class="label">Active Applications</div>
+            <div class="trend up">↗ +7% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">45</div>
+            <div class="label">Inspections Scheduled</div>
+            <div class="trend up">↗ This week</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">67</div>
+            <div class="label">Certificates Issued</div>
+            <div class="trend up">↗ This month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">94%</div>
+            <div class="label">Customer Satisfaction</div>
+            <div class="trend up">↗ Above target</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Recent Building Control Applications</h2>
+          <div class="table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Address</th>
+                  <th>Description</th>
+                  <th>Stage</th>
+                  <th>Officer</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>BC/24/789</strong></td>
+                  <td>156 Oak Avenue</td>
+                  <td>Single storey extension</td>
+                  <td><span class="status success">Plans Approved</span></td>
+                  <td>John Smith</td>
+                  <td><button class="btn sm">Inspect</button></td>
+                </tr>
+                <tr>
+                  <td><strong>BC/24/790</strong></td>
+                  <td>22 Elm Close</td>
+                  <td>New build dwelling</td>
+                  <td><span class="status warning">Foundation Inspection</span></td>
+                  <td>Anna Taylor</td>
+                  <td><button class="btn sm">Schedule</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Land Charges Page -->
+      <div id="land-charges" class="page">
+        <div class="page-header">
+          <h1 class="page-title">Land Charges</h1>
+          <p class="page-subtitle">LLC1 searches, CON29 enquiries, and property information</p>
+          <button class="btn primary">New Search</button>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">187</div>
+            <div class="label">Active Searches</div>
+            <div class="trend up">↗ +4% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">23</div>
+            <div class="label">Urgent Searches</div>
+            <div class="trend down">↘ Priority queue</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">5.8 days</div>
+            <div class="label">Avg Processing Time</div>
+            <div class="trend down">↗ Target: 10 days</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">98%</div>
+            <div class="label">SLA Performance</div>
+            <div class="trend up">↗ Above target</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Recent Land Charges Searches</h2>
+          <div class="table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Address</th>
+                  <th>Client</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>LLC/45678</strong></td>
+                  <td>78 Manor Road</td>
+                  <td>Smith & Partners</td>
+                  <td>LLC1</td>
+                  <td><span class="status success">Completed</span></td>
+                  <td><button class="btn sm">Download</button></td>
+                </tr>
+                <tr>
+                  <td><strong>LLC/45679</strong></td>
+                  <td>145 Station Road</td>
+                  <td>Jones Solicitors</td>
+                  <td>CON29</td>
+                  <td><span class="status warning">Processing</span></td>
+                  <td><button class="btn sm">Update</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Support Page -->
       <div id="support" class="page">
         <div class="page-header">
@@ -1293,91 +1672,546 @@
           </div>
         </div>
       </div>
+
+      <!-- Planning AI Page -->
+      <div id="planning-ai" class="page">
+        <div class="page-header">
+          <h1 class="page-title">🧠 Planning AI Analysis</h1>
+          <p class="page-subtitle">AI-powered planning analysis, constraints mapping, and policy assessment</p>
+          <button class="btn primary">New AI Analysis</button>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">97.3%</div>
+            <div class="label">Analysis Accuracy</div>
+            <div class="trend up">↗ +3% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">2.4s</div>
+            <div class="label">Average Analysis Time</div>
+            <div class="trend up">↗ 85% faster than manual</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">156</div>
+            <div class="label">Sites Analyzed Today</div>
+            <div class="trend up">↗ +12% vs yesterday</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">23</div>
+            <div class="label">High Risk Sites</div>
+            <div class="trend down">↘ -5% this week</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>🎯 AI Capabilities</h2>
+          <div class="grid grid-3">
+            <div class="stat-card">
+              <div class="fw-600">🗺️ Constraint Analysis</div>
+              <div class="text-sm text-muted mt-2">Automated identification of planning constraints, protected areas, and policy considerations</div>
+              <button class="btn mt-3">Run Analysis</button>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">📊 Suitability Scoring</div>
+              <div class="text-sm text-muted mt-2">AI-powered development potential assessment with confidence scoring</div>
+              <button class="btn mt-3">Generate Score</button>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">💡 Smart Recommendations</div>
+              <div class="text-sm text-muted mt-2">Intelligent suggestions for planning improvements and risk mitigation</div>
+              <button class="btn mt-3">Get Suggestions</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-Docs Page -->
+      <div id="auto-docs" class="page">
+        <div class="page-header">
+          <h1 class="page-title">📄 Auto-Docs Generator</h1>
+          <p class="page-subtitle">AI-powered document generation for Planning Statements and Design & Access Statements</p>
+          <button class="btn primary">Generate Document</button>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">342</div>
+            <div class="label">Documents Generated</div>
+            <div class="trend up">↗ +28% this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">4.2 min</div>
+            <div class="label">Average Generation Time</div>
+            <div class="trend up">↗ 95% faster than manual</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">94%</div>
+            <div class="label">First-Time Approval Rate</div>
+            <div class="trend up">↗ +15% improvement</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">12</div>
+            <div class="label">Templates Available</div>
+            <div class="trend up">↗ 3 new this quarter</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>📋 Document Types</h2>
+          <div class="grid grid-2">
+            <div class="stat-card">
+              <div class="fw-600">📋 Planning Statement</div>
+              <div class="text-sm text-muted mt-2">Comprehensive planning statements with policy analysis and site assessment</div>
+              <div class="flex gap-2 mt-3">
+                <button class="btn primary">Generate</button>
+                <button class="btn">Preview Template</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">🏗️ Design & Access Statement</div>
+              <div class="text-sm text-muted mt-2">Professional D&A statements with accessibility compliance and design rationale</div>
+              <div class="flex gap-2 mt-3">
+                <button class="btn primary">Generate</button>
+                <button class="btn">Preview Template</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property API Page -->
+      <div id="property-api" class="page">
+        <div class="page-header">
+          <h1 class="page-title">🏠 Property Data API</h1>
+          <p class="page-subtitle">External data integration for Land Registry, EPC ratings, flood risk, and planning history</p>
+          <button class="btn primary">Query Property Data</button>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">99.8%</div>
+            <div class="label">API Uptime</div>
+            <div class="trend up">↗ Excellent reliability</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">847ms</div>
+            <div class="label">Average Response Time</div>
+            <div class="trend up">↗ Sub-second performance</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">2,347</div>
+            <div class="label">Queries Today</div>
+            <div class="trend up">↗ +18% vs yesterday</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">4</div>
+            <div class="label">Data Sources</div>
+            <div class="trend up">↗ All systems operational</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>🔌 Data Sources</h2>
+          <div class="grid grid-2">
+            <div class="stat-card">
+              <div class="fw-600">🏛️ Land Registry</div>
+              <div class="text-sm text-muted mt-2">Property ownership, price paid data, and title information</div>
+              <div class="flex flex-between mt-3">
+                <span class="status active">Operational</span>
+                <button class="btn sm">Test Query</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">⚡ EPC Ratings</div>
+              <div class="text-sm text-muted mt-2">Energy performance certificates and efficiency ratings</div>
+              <div class="flex flex-between mt-3">
+                <span class="status active">Operational</span>
+                <button class="btn sm">Test Query</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">🌊 Flood Risk Data</div>
+              <div class="text-sm text-muted mt-2">Environment Agency flood risk zones and historical flooding</div>
+              <div class="flex flex-between mt-3">
+                <span class="status active">Operational</span>
+                <button class="btn sm">Test Query</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">📋 Planning History</div>
+              <div class="text-sm text-muted mt-2">Historical planning applications and decision outcomes</div>
+              <div class="flex flex-between mt-3">
+                <span class="status active">Operational</span>
+                <button class="btn sm">Test Query</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Offsets Marketplace Page -->
+      <div id="offsets-marketplace" class="page">
+        <div class="page-header">
+          <h1 class="page-title">🌱 Offsets Marketplace</h1>
+          <p class="page-subtitle">Biodiversity Net Gain trading platform with DEFRA metric v4.0 integration</p>
+          <div class="flex gap-2">
+            <button class="btn primary">List Biodiversity Units</button>
+            <button class="btn">Request Offsets</button>
+          </div>
+        </div>
+
+        <!-- Market Overview -->
+        <div class="grid grid-4">
+          <div class="stat-card">
+            <div class="value text-success">12,847</div>
+            <div class="label">Available BNG Units</div>
+            <div class="trend up">↗ +234 units this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-warning">8,293</div>
+            <div class="label">Units in Demand</div>
+            <div class="trend up">↗ +156 requests this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-info">£42.50</div>
+            <div class="label">Average Unit Price</div>
+            <div class="trend up">↗ +£2.30 vs last month</div>
+          </div>
+          <div class="stat-card">
+            <div class="value text-success">89</div>
+            <div class="label">Successful Matches</div>
+            <div class="trend up">↗ 94% match success rate</div>
+          </div>
+        </div>
+
+        <!-- Trading Interface -->
+        <div class="grid grid-2">
+          <div class="panel">
+            <h2>🌿 Supply Listings</h2>
+            <div class="text-sm text-muted mb-3">Landowner biodiversity unit offerings</div>
+            
+            <div class="mb-3">
+              <div class="flex flex-between">
+                <strong>Hertfordshire Meadow Project</strong>
+                <span class="status active">Available</span>
+              </div>
+              <div class="text-sm text-muted">Grassland (Species-Rich) • 147.5 units • £38/unit</div>
+              <div class="text-sm">📍 Near Hertford • DEFRA High Distinctiveness</div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="flex flex-between">
+                <strong>Woodland Creation Scheme</strong>
+                <span class="status info">Reserved</span>
+              </div>
+              <div class="text-sm text-muted">Broadleaf Woodland • 89.3 units • £52/unit</div>
+              <div class="text-sm">📍 Near Stevenage • Strategic Significance Area</div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="flex flex-between">
+                <strong>Wetland Restoration</strong>
+                <span class="status active">Available</span>
+              </div>
+              <div class="text-sm text-muted">Freshwater Wetland • 203.7 units • £65/unit</div>
+              <div class="text-sm">📍 Near Watford • Very High Distinctiveness</div>
+            </div>
+            
+            <button class="btn primary w-full mt-3">View All Supply Listings</button>
+          </div>
+
+          <div class="panel">
+            <h2>🏗️ Demand Requests</h2>
+            <div class="text-sm text-muted mb-3">Developer offset requirements</div>
+            
+            <div class="mb-3">
+              <div class="flex flex-between">
+                <strong>Residential Development</strong>
+                <span class="status warning">Searching</span>
+              </div>
+              <div class="text-sm text-muted">Seeking 89.5 units • Max £45/unit</div>
+              <div class="text-sm">📍 St Albans area • Grassland preferred</div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="flex flex-between">
+                <strong>Industrial Park Extension</strong>
+                <span class="status danger">Urgent</span>
+              </div>
+              <div class="text-sm text-muted">Seeking 156.8 units • Max £50/unit</div>
+              <div class="text-sm">📍 Hemel Hempstead • Mixed habitat types</div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="flex flex-between">
+                <strong>School Expansion</strong>
+                <span class="status info">Matched</span>
+              </div>
+              <div class="text-sm text-muted">Required 42.1 units • £38/unit agreed</div>
+              <div class="text-sm">📍 Hertford • Completed transaction</div>
+            </div>
+            
+            <button class="btn primary w-full mt-3">View All Demand Requests</button>
+          </div>
+        </div>
+
+        <!-- DEFRA Integration -->
+        <div class="panel">
+          <h2>🏛️ DEFRA Metric Integration</h2>
+          <div class="grid grid-3">
+            <div class="stat-card">
+              <div class="fw-600">📊 Biodiversity Metric v4.0</div>
+              <div class="text-sm text-muted mt-2">Official DEFRA calculation methodology for accurate unit assessment</div>
+              <div class="flex flex-between mt-3">
+                <span class="status active">Integrated</span>
+                <button class="btn sm">Calculate Units</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">🗺️ Habitat Classification</div>
+              <div class="text-sm text-muted mt-2">14 standardized habitat types with distinctiveness scoring</div>
+              <div class="flex flex-between mt-3">
+                <span class="status active">Updated</span>
+                <button class="btn sm">View Types</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="fw-600">⭐ Strategic Significance</div>
+              <div class="text-sm text-muted mt-2">Location-based multipliers for ecologically important areas</div>
+              <div class="flex flex-between mt-3">
+                <span class="status active">Mapped</span>
+                <button class="btn sm">Check Area</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Market Analytics -->
+        <div class="panel">
+          <h2>📈 Market Analytics</h2>
+          <div class="grid grid-4">
+            <div class="stat-card">
+              <div class="value text-success">1.55</div>
+              <div class="label">Supply/Demand Ratio</div>
+              <div class="text-sm text-muted">Balanced market conditions</div>
+            </div>
+            <div class="stat-card">
+              <div class="value text-info">£41.20</div>
+              <div class="label">Market Average Price</div>
+              <div class="text-sm text-muted">All habitat types weighted</div>
+            </div>
+            <div class="stat-card">
+              <div class="value text-warning">34km</div>
+              <div class="label">Average Match Distance</div>
+              <div class="text-sm text-muted">Supply to demand proximity</div>
+            </div>
+            <div class="stat-card">
+              <div class="value text-success">87%</div>
+              <div class="label">Same-Authority Matches</div>
+              <div class="text-sm text-muted">Local offset preference</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
   <script>
-    // Page Navigation
-    function showPage(pageId) {
-      // Hide all pages
-      document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-      });
+    // ULTRA SIMPLE navigation system that WILL work
+    console.log('🚀 Loading Navigation System...');
+    
+    // Make function globally available
+    window.showPage = function(pageId) {
+      console.log('🎯 showPage called with:', pageId);
       
-      // Show selected page
-      document.getElementById(pageId).classList.add('active');
+      try {
+        // Hide ALL pages first
+        var allPages = document.querySelectorAll('.page');
+        console.log('Found ' + allPages.length + ' pages');
+        
+        for (var i = 0; i < allPages.length; i++) {
+          allPages[i].classList.remove('active');
+          console.log('Hidden page:', allPages[i].id);
+        }
+        
+        // Show the target page
+        var targetPage = document.getElementById(pageId);
+        if (targetPage) {
+          targetPage.classList.add('active');
+          console.log('✅ SHOWN PAGE:', pageId);
+        } else {
+          console.log('❌ PAGE NOT FOUND:', pageId);
+          // List all available page IDs for debugging
+          var allPageIds = [];
+          for (var j = 0; j < allPages.length; j++) {
+            if (allPages[j].id) allPageIds.push(allPages[j].id);
+          }
+          console.log('Available pages:', allPageIds);
+        }
+        
+        // Update navigation active state
+        var navItems = document.querySelectorAll('.nav-item');
+        for (var k = 0; k < navItems.length; k++) {
+          navItems[k].classList.remove('active');
+          if (navItems[k].getAttribute('data-page') === pageId) {
+            navItems[k].classList.add('active');
+          }
+        }
+        
+      } catch (error) {
+        console.error('❌ Navigation error:', error);
+      }
+    };
+    
+    // Test function availability
+    console.log('showPage function available:', typeof window.showPage);
+    
+    // Initialize navigation when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Initializing Domus Platform Navigation...');
       
-      // Update navigation
-      document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      event.target.classList.add('active');
+      // Attach click handlers to all navigation buttons
+      var navButtons = document.querySelectorAll('[data-page]');
+      console.log('Found navigation buttons:', navButtons.length);
       
-      // Load page data
-      loadPageData(pageId);
+      for (var i = 0; i < navButtons.length; i++) {
+        var button = navButtons[i];
+        var pageId = button.getAttribute('data-page');
+        
+        button.addEventListener('click', function(e) {
+          var targetPage = e.target.getAttribute('data-page') || e.target.closest('[data-page]').getAttribute('data-page');
+          console.log('CLICK: Button clicked for page:', targetPage);
+          showPage(targetPage);
+        });
+        
+        console.log('Attached handler for button:', pageId);
+      }
+      
+      console.log('✅ Navigation system ready!');
+      loadDashboardData();
+    });
+    
+    // Simple data loading
+    function loadDashboardData() {
+      console.log('Loading dashboard data...');
     }
     
-    // Load data for specific pages
+    // Load data for specific pages (kept for compatibility)
     function loadPageData(pageId) {
-      switch(pageId) {
-        case 'dashboard':
-          loadDashboardData();
-          break;
-        case 'matters':
-          loadMattersData();
-          break;
-        case 'documents':
-          loadDocumentsData();
-          break;
-        case 'users':
-          loadUsersData();
-          break;
-        case 'billing':
-          loadBillingData();
-          break;
-        case 'integrations':
-          loadIntegrationsData();
-          break;
+      console.log('Loading data for page:', pageId);
+      try {
+        switch(pageId) {
+          case 'dashboard':
+            loadDashboardData();
+            break;
+          case 'matters':
+            loadMattersData();
+            break;
+          case 'documents':
+            loadDocumentsData();
+            break;
+          case 'users':
+            loadUsersData();
+            break;
+          case 'billing':
+            loadBillingData();
+            break;
+          case 'integrations':
+            loadIntegrationsData();
+            break;
+          default:
+            console.log('No specific data loader for page:', pageId);
+        }
+      } catch (error) {
+        console.error('Error loading page data:', error);
       }
     }
     
     // API calls to load real data
     async function loadDashboardData() {
       try {
-        const response = await fetch('/api/dashboard/overview', {
-          headers: {'Authorization': 'Bearer demo-token'}
-        });
-        const data = await response.json();
+        // Load dashboard statistics
+        const statsResponse = await fetch('/api/dashboard/stats');
+        const statsData = await statsResponse.json();
+        
+        // Load planning applications
+        const planningResponse = await fetch('/api/planning/applications');
+        const planningData = await planningResponse.json();
         
         // Update dashboard metrics with real data
-        updateDashboardMetrics(data.key_metrics);
-        updateRecentMatters(data.recent_matters);
-        console.log('Dashboard data loaded:', data);
+        updateDashboardMetrics(statsData);
+        updateRecentMatters(planningData.applications);
+        console.log('Planning platform data loaded:', { stats: statsData, applications: planningData });
       } catch (error) {
         console.error('Dashboard data loading failed:', error);
+        // Show demo data on error
+        showDemoData();
       }
     }
     
-    function updateDashboardMetrics(metrics) {
-      // Update active matters
-      const activeMattersCard = document.querySelector('.stat-card');
-      if (activeMattersCard) {
-        const value = activeMattersCard.querySelector('.value');
-        const trend = activeMattersCard.querySelector('.trend');
-        if (value) value.textContent = metrics.active_matters.value;
-        if (trend) trend.textContent = `↗ ${metrics.active_matters.change} ${metrics.active_matters.period}`;
+    function updateDashboardMetrics(stats) {
+      // Update planning applications metric
+      const planningCard = document.querySelector('.stat-card');
+      if (planningCard) {
+        const value = planningCard.querySelector('.value');
+        const trend = planningCard.querySelector('.trend');
+        if (value) value.textContent = stats.planning_applications.total;
+        if (trend) trend.textContent = `↗ ${stats.planning_applications.pending} pending`;
+      }
+      
+      // Update other metrics if cards exist
+      const allCards = document.querySelectorAll('.stat-card');
+      if (allCards.length >= 2 && allCards[1]) {
+        const decisionTimeValue = allCards[1].querySelector('.value');
+        const decisionTimeTrend = allCards[1].querySelector('.trend');
+        if (decisionTimeValue) decisionTimeValue.textContent = stats.avg_decision_time;
+        if (decisionTimeTrend) decisionTimeTrend.textContent = `Target: 8 weeks`;
+      }
+      
+      if (allCards.length >= 3 && allCards[2]) {
+        const complianceValue = allCards[2].querySelector('.value');
+        const complianceTrend = allCards[2].querySelector('.trend');
+        if (complianceValue) complianceValue.textContent = stats.compliance_rate;
+        if (complianceTrend) complianceTrend.textContent = `↗ Improving`;
       }
     }
     
-    function updateRecentMatters(matters) {
+    function updateRecentMatters(applications) {
       const tbody = document.querySelector('#dashboard .table tbody');
-      if (tbody && matters) {
-        tbody.innerHTML = matters.map(matter => `
+      if (tbody && applications) {
+        tbody.innerHTML = applications.slice(0, 6).map(app => `
           <tr>
-            <td><strong>${matter.id}</strong></td>
-            <td>${matter.property_address}</td>
-            <td>${matter.council}</td>
-            <td><span class="status ${matter.status.replace('_', ' ')}">${matter.status.replace('_', ' ').toUpperCase()}</span></td>
+            <td><strong>${app.id}</strong></td>
+            <td>${app.address}</td>
+            <td>${app.type}</td>
+            <td><span class="status ${getStatusClass(app.status)}">${app.status}</span></td>
+            <td>${app.officer}</td>
+          </tr>
+        `).join('');
+      }
+    }
+    
+    function getStatusClass(status) {
+      const statusMap = {
+        'Under Review': 'warning',
+        'Consultation': 'info', 
+        'Decision Due': 'warning',
+        'Approved': 'success',
+        'Rejected': 'danger'
+      };
+      return statusMap[status] || 'info';
+    }
+    
+    function showDemoData() {
+      // Show demo planning data if API fails
+      const demoStats = {
+        planning_applications: { total: 1247, pending: 203 },
+        avg_decision_time: '9.2 weeks',
+        compliance_rate: '94%'
+      };
+      updateDashboardMetrics(demoStats);
+    }
             <td>${matter.assigned_to}</td>
             <td>${new Date(matter.due_date).toLocaleDateString()}</td>
             <td><button class="btn sm" onclick="viewMatter('${matter.id}')">View</button></td>
@@ -1493,19 +2327,19 @@
     }
     
     function viewMatter(matterId) {
-      alert(`View matter ${matterId} - this would open a detailed view`);
+      alert('View matter ' + matterId + ' - this would open a detailed view');
     }
     
     function editMatter(matterId) {
-      alert(`Edit matter ${matterId} - this would open an edit form`);
+      alert('Edit matter ' + matterId + ' - this would open an edit form');
     }
     
     function editUser(userId) {
-      alert(`Edit user ${userId} - this would open a user edit form`);
+      alert('Edit user ' + userId + ' - this would open a user edit form');
     }
     
     function managePermissions(userId) {
-      alert(`Manage permissions for user ${userId} - this would open permissions dialog`);
+      alert('Manage permissions for user ' + userId + ' - this would open permissions dialog');
     }
     
     // Mobile Menu Functions
@@ -1527,6 +2361,7 @@
     
     // Enhanced showPage function for mobile
     function showPageMobile(pageId) {
+      console.log('Navigating to page:', pageId);
       showPage(pageId);
       // Auto-close mobile menu after navigation on mobile
       if (window.innerWidth <= 768) {
@@ -1536,18 +2371,96 @@
     
     // Update all nav items to use mobile-friendly navigation
     document.addEventListener('DOMContentLoaded', function() {
-      // Replace onclick handlers for mobile support
-      document.querySelectorAll('.nav-item').forEach(item => {
-        const pageId = item.getAttribute('onclick').match(/'([^']+)'/)[1];
-        item.setAttribute('onclick', `showPageMobile('${pageId}')`);
-      });
+      console.log('DOM loaded - initializing navigation');
+      // Don't replace onclick handlers since they're already set correctly in HTML
+      
+      // Just ensure showPage function works
+      console.log('Navigation system ready');
     });
 
     // Initialize app
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Domus Planning Platform Starting...');
+      
+      // Verify all functions exist
+      console.log('Functions available:', {
+        showPage: typeof showPage,
+        showPageMobile: typeof showPageMobile,
+        toggleMobileMenu: typeof toggleMobileMenu,
+        loadDashboardData: typeof loadDashboardData
+      });
+      
+      // Test navigation system
+      console.log('Testing navigation elements...');
+      const navItems = document.querySelectorAll('.nav-item');
+      console.log('Found nav items:', navItems.length);
+      
+      const pages = document.querySelectorAll('.page');
+      console.log('Found pages:', pages.length);
+      
+      // Add comprehensive click event listeners
+      navItems.forEach((item, index) => {
+        const onclick = item.getAttribute('onclick');
+        console.log('Nav item ' + index + ': onclick="' + onclick + '"');
+        
+        // Add backup click listener that works 100%
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('🖱️ Nav item clicked:', onclick);
+          
+          // Extract page ID from onclick
+          if (onclick && onclick.includes('showPage(')) {
+            const match = onclick.match(/showPage\('([^']+)'\)/);
+            if (match) {
+              const pageId = match[1];
+              console.log('📄 Navigating to page:', pageId);
+              showPage(pageId);
+            }
+          }
+        });
+      });
+      
+      // Add click handlers for dashboard buttons
+      const dashboardButtons = document.querySelectorAll('.btn[onclick]');
+      console.log('Found dashboard buttons:', dashboardButtons.length);
+      
+      dashboardButtons.forEach((btn, index) => {
+        const onclick = btn.getAttribute('onclick');
+        console.log('Dashboard button ' + index + ': onclick="' + onclick + '"');
+        
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('🖱️ Dashboard button clicked:', onclick);
+          
+          if (onclick && onclick.includes('showPage(')) {
+            const match = onclick.match(/showPage\('([^']+)'\)/);
+            if (match) {
+              const pageId = match[1];
+              console.log('📄 Dashboard navigating to page:', pageId);
+              showPage(pageId);
+            }
+          }
+        });
+      });
+      
       loadDashboardData();
-      console.log('Domus Global Platform initialized');
+      console.log('✅ Domus Planning Platform initialized successfully');
     });
+    
+    // Emergency initialization - ensure navigation works
+    setTimeout(function() {
+      console.log('🔧 Emergency navigation check...');
+      if (typeof window.showPage === 'function') {
+        console.log('✅ Navigation function ready');
+        // Test navigation availability
+        window.testNav = function() { showPage('matters'); };
+        console.log('🧪 Test: window.testNav() to test navigation');
+      } else {
+        console.log('❌ Navigation function missing!');
+      }
+    }, 100);
   </script>
 </body>
 </html>

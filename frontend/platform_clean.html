@@ -1,0 +1,2552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus Planning Platform - AI Operating System for Planning and Land Use</title>
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --surface: #1a1f2e;
+            --panel: #232a3d;
+            --border: #2d3748;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.5;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+        }
+        
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px 0;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .logo p {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        
+        .nav-section {
+            margin-bottom: 32px;
+        }
+        
+        .nav-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 0 24px;
+            margin-bottom: 8px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--text);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-item:hover {
+            background: var(--panel);
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .nav-item .icon {
+            width: 20px;
+            margin-right: 12px;
+        }
+        
+        .main-content {
+            padding: 32px;
+            overflow-y: auto;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 18px;
+            margin-bottom: 24px;
+        }
+        
+        .workflow-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .step-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -12px;
+            left: 24px;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .step-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-top: 8px;
+        }
+        
+        .step-description {
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .btn.outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        
+        .btn.outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .grid {
+            display: grid;
+            gap: 24px;
+        }
+        
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value.success { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-value.primary { color: var(--primary); }
+        
+        .stat-label {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .panel h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        
+        .demo-section {
+            margin-bottom: 32px;
+        }
+        
+        .site-input {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .site-input input {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        .site-input input::placeholder {
+            color: var(--muted);
+        }
+        
+        .results {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .approval-score {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--success) 73%, var(--border) 73%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        
+        .score-inner {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .score-percentage {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--success);
+        }
+        
+        .constraints-list {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+        
+        .constraint-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .constraint-item:last-child {
+            border-bottom: none;
+        }
+        
+        .severity-low { color: var(--success); }
+        .severity-medium { color: var(--warning); }
+        .severity-high { color: var(--danger); }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                padding: 16px;
+            }
+            
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+            
+            .workflow-steps {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>🧠 Domus</h1>
+                <p>Planning Intelligence Workspace</p>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+                    <span class="icon">�</span>
+                    Dashboard
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Planning Services</div>
+                <button class="nav-item" data-page="planning-analysis" onclick="showPage('planning-analysis')">
+                    <span class="icon">🧠</span>
+                    Planning AI Analysis
+                </button>
+                <button class="nav-item" data-page="auto-docs" onclick="showPage('auto-docs')">
+                    <span class="icon">�</span>
+                    Auto-Docs Generator
+                </button>
+                <button class="nav-item" data-page="property-api" onclick="showPage('property-api')">
+                    <span class="icon">🏠</span>
+                    Property Data API
+                </button>
+                <button class="nav-item" data-page="offsets-marketplace" onclick="showPage('offsets-marketplace')">
+                    <span class="icon">🌱</span>
+                    Offsets Marketplace
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Offsets Marketplace</div>
+                <button class="nav-item" data-page="offsets-supply" onclick="showPage('offsets-supply')">
+                    <span class="icon">�</span>
+                    Supply Listings
+                </button>
+                <button class="nav-item" data-page="offsets-demand" onclick="showPage('offsets-demand')">
+                    <span class="icon">🏗️</span>
+                    Demand Listings
+                </button>
+                <button class="nav-item" data-page="offsets-matching" onclick="showPage('offsets-matching')">
+                    <span class="icon">🤖</span>
+                    AI Matching
+                </button>
+                <button class="nav-item" data-page="contracts-payments" onclick="showPage('contracts-payments')">
+                    <span class="icon">💰</span>
+                    Contracts & Payments
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Analytics & Insights</div>
+                <button class="nav-item" data-page="planning-trends" onclick="showPage('planning-trends')">
+                    <span class="icon">�</span>
+                    Planning Trends
+                </button>
+                <button class="nav-item" data-page="offsets-reports" onclick="showPage('offsets-reports')">
+                    <span class="icon">🌿</span>
+                    Offsets Reports
+                </button>
+                <button class="nav-item" data-page="api-usage" onclick="showPage('api-usage')">
+                    <span class="icon">🔌</span>
+                    API Usage
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Administration</div>
+                <button class="nav-item" data-page="user-management" onclick="showPage('user-management')">
+                    <span class="icon">👥</span>
+                    User Management
+                </button>
+                <button class="nav-item" data-page="billing-subscriptions" onclick="showPage('billing-subscriptions')">
+                    <span class="icon">�</span>
+                    Billing & Subscriptions
+                </button>
+                <button class="nav-item" data-page="settings" onclick="showPage('settings')">
+                    <span class="icon">⚙️</span>
+                    Settings
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <div class="page-header">
+                    <h1 class="page-title">📊 Planning Intelligence Dashboard</h1>
+                    <p class="page-subtitle">Key metrics for developers, consultants, and planning professionals</p>
+                </div>
+
+                <!-- Key Stats Grid -->
+                <div class="grid grid-4" style="margin-bottom: 32px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">247</div>
+                        <div class="stat-label">Sites Analysed This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">73%</div>
+                        <div class="stat-label">Average Approval Odds</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">189</div>
+                        <div class="stat-label">Documents Generated</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">42</div>
+                        <div class="stat-label">Offsets Matched</div>
+                    </div>
+                </div>
+
+                <!-- Workflow Steps -->
+                <div class="workflow-steps">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">🏠 Property Data</h3>
+                        <p class="step-description">Input site details and automatically pull unified UK property data (Land Registry, EPC, flood risk, planning history)</p>
+                        <button class="btn" onclick="showPage('property-api')">Explore Property API</button>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">🧠 Planning AI</h3>
+                        <p class="step-description">Analyze constraints and policies to instantly predict approval probability with AI-powered recommendations</p>
+                        <button class="btn" onclick="showPage('planning-ai')">See AI Analysis</button>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">📄 Auto-Docs</h3>
+                        <p class="step-description">Generate professional planning documents automatically (Planning Statements, Design & Access Statements)</p>
+                        <button class="btn" onclick="showPage('auto-docs')">Generate Documents</button>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h3 class="step-title">🌱 Offsets Marketplace</h3>
+                        <p class="step-description">If land isn't viable for development, monetize through biodiversity net gain trading</p>
+                        <button class="btn" onclick="showPage('offsets-marketplace')">Explore Marketplace</button>
+                    </div>
+                </div>
+
+                <!-- Value Proposition -->
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>💰 The Planning Problem</h2>
+                        <div class="grid grid-2">
+                            <div class="stat-card">
+                                <div class="stat-value warning">£20k+</div>
+                                <div class="stat-label">Average consultant costs per application</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value warning">12 weeks</div>
+                                <div class="stat-label">Average decision time</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value warning">65%</div>
+                                <div class="stat-label">Approval rate (highly uncertain)</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value warning">£Billions</div>
+                                <div class="stat-label">Undevelopable land sitting idle</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>🎯 The Domus Solution</h2>
+                        <div class="grid grid-2">
+                            <div class="stat-card">
+                                <div class="stat-value success">90%</div>
+                                <div class="stat-label">Cost reduction via AI automation</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value success">80%</div>
+                                <div class="stat-label">Faster analysis & document generation</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value success">85%+</div>
+                                <div class="stat-label">Approval probability prediction accuracy</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value success">New Revenue</div>
+                                <div class="stat-label">Biodiversity offsets for failed land</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Demo -->
+                <div class="demo-section">
+                    <h2>🚀 Try It Now</h2>
+                    <div class="site-input">
+                        <input type="text" placeholder="Enter site address or postcode (e.g. 'OX1 1AA' or '123 High Street, Oxford')" id="site-address">
+                    </div>
+                    <button class="btn" onclick="runDemo()">Analyze Site with Planning AI</button>
+                    
+                    <div id="demo-results" class="results">
+                        <div class="approval-score">
+                            <div class="score-circle">
+                                <div class="score-inner">
+                                    <div class="score-percentage">73%</div>
+                                    <div style="font-size: 12px;">Approval</div>
+                                </div>
+                            </div>
+                            <p>High confidence prediction based on AI analysis</p>
+                        </div>
+                        
+                        <h3>Key Constraints Found:</h3>
+                        <ul class="constraints-list">
+                            <li class="constraint-item">
+                                <span>Conservation Area</span>
+                                <span class="severity-medium">Medium Impact</span>
+                            </li>
+                            <li class="constraint-item">
+                                <span>Flood Zone 2</span>
+                                <span class="severity-low">Low Impact</span>
+                            </li>
+                            <li class="constraint-item">
+                                <span>Tree Preservation Order</span>
+                                <span class="severity-low">Low Impact</span>
+                            </li>
+                        </ul>
+                        
+                        <h3>AI Recommendations:</h3>
+                        <ul style="color: var(--muted); font-size: 14px; line-height: 1.6;">
+                            <li>• Consider heritage impact assessment for Conservation Area compliance</li>
+                            <li>• Reduce building footprint by 10% to mitigate flood risk concerns</li>
+                            <li>• Retain existing mature trees in landscape design</li>
+                        </ul>
+                        
+                        <div style="margin-top: 16px; display: flex; gap: 12px;">
+                            <button class="btn">Generate Planning Statement</button>
+                            <button class="btn outline">View Full Analysis</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning AI Page -->
+            <div id="planning-ai" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🧠 Planning AI Analysis</h1>
+                    <p class="page-subtitle">Instant approval probability prediction with constraint analysis and AI recommendations</p>
+                </div>
+
+                <div class="grid grid-3">
+                    <div class="stat-card">
+                        <div class="stat-value success">97.3%</div>
+                        <div class="stat-label">AI Analysis Accuracy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">2.4s</div>
+                        <div class="stat-label">Average Analysis Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">85%</div>
+                        <div class="stat-label">Faster than manual analysis</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🎯 AI Capabilities</h2>
+                    <div class="grid grid-3">
+                        <div class="stat-card">
+                            <h3>🗺️ Constraint Detection</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Automatically identify Green Belt, flood zones, conservation areas, heritage assets, and 20+ other planning constraints</p>
+                            <button class="btn">Run Analysis</button>
+                        </div>
+                        <div class="stat-card">
+                            <h3>📊 Approval Probability</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">AI-powered prediction model trained on 50,000+ UK planning decisions with confidence scoring</p>
+                            <button class="btn">Get Prediction</button>
+                        </div>
+                        <div class="stat-card">
+                            <h3>💡 Smart Recommendations</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Actionable suggestions to improve approval chances - design changes, policy compliance, mitigation measures</p>
+                            <button class="btn">View Suggestions</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-Docs Page -->
+            <div id="auto-docs" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📄 Auto-Docs Generator</h1>
+                    <p class="page-subtitle">Professional planning documents generated automatically with AI-powered policy integration</p>
+                </div>
+
+                <div class="grid grid-4">
+                    <div class="stat-card">
+                        <div class="stat-value success">342</div>
+                        <div class="stat-label">Documents Generated This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">4.2 min</div>
+                        <div class="stat-label">Average Generation Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">94%</div>
+                        <div class="stat-label">First-Time Approval Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">95%</div>
+                        <div class="stat-label">Faster than manual drafting</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>📋 Document Types</h2>
+                    <div class="grid grid-2">
+                        <div class="stat-card">
+                            <h3>📋 Planning Statement</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Comprehensive planning statements with automatic policy referencing, site assessment, and compliance analysis</p>
+                            <button class="btn">Generate Planning Statement</button>
+                            <button class="btn outline" style="margin-left: 8px;">View Sample</button>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🏗️ Design & Access Statement</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Professional D&A statements with accessibility compliance, design rationale, and planning policy alignment</p>
+                            <button class="btn">Generate D&A Statement</button>
+                            <button class="btn outline" style="margin-left: 8px;">View Sample</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property API Page -->
+            <div id="property-api" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🏠 Property Data API</h1>
+                    <p class="page-subtitle">Unified access to fragmented UK property datasets - the data foundation for AI analysis</p>
+                </div>
+
+                <div class="grid grid-4">
+                    <div class="stat-card">
+                        <div class="stat-value success">99.8%</div>
+                        <div class="stat-label">API Uptime</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">847ms</div>
+                        <div class="stat-label">Average Response Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">2,347</div>
+                        <div class="stat-label">Queries Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">4</div>
+                        <div class="stat-label">Integrated Data Sources</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🔌 Unified Data Sources</h2>
+                    <div class="grid grid-2">
+                        <div class="stat-card">
+                            <h3>🏛️ Land Registry</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Property ownership, price paid data, title boundaries, and legal interests</p>
+                            <span style="color: var(--success); font-size: 12px;">✓ Operational</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>⚡ EPC Ratings</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Energy performance certificates, efficiency ratings, and improvement recommendations</p>
+                            <span style="color: var(--success); font-size: 12px;">✓ Operational</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🌊 Flood Risk Data</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Environment Agency flood zones, historical flooding, and climate projections</p>
+                            <span style="color: var(--success); font-size: 12px;">✓ Operational</span>
+                        </div>
+                        <div class="stat-card">
+                            <h3>📋 Planning History</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Historical planning applications, decisions, appeals, and enforcement actions</p>
+                            <span style="color: var(--success); font-size: 12px;">✓ Operational</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offsets Supply Listings Page -->
+            <div id="offsets-supply" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🌱 Supply Listings</h1>
+                    <p class="page-subtitle">Landowner biodiversity units available for purchase</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">347</div>
+                        <div class="stat-label">Active Listings</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">12,847</div>
+                        <div class="stat-label">Available Units</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">£42.50</div>
+                        <div class="stat-label">Average Price/Unit</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">15km</div>
+                        <div class="stat-label">Average Distance</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 16px;">
+                        <h2>🏞️ Available Supply</h2>
+                        <button class="btn">+ List Your Land</button>
+                    </div>
+                    
+                    <div class="supply-listing" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Oxfordshire Meadow Enhancement</h4>
+                                <p style="color: var(--muted); font-size: 12px;">📍 Witney, Oxfordshire • 23.4 hectares</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">347.2 units available</div>
+                                <div style="color: var(--muted); font-size: 12px;">Grassland - Medium distinctiveness</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--primary);">£48.50/unit</div>
+                                <div style="color: var(--muted); font-size: 12px;">30-year maintenance included</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="margin-bottom: 4px;">View Details</button>
+                                <button class="btn">Make Offer</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
+                            ✅ Baseline survey complete • ✅ Planning permission secured • ✅ DEFRA approved • ⏰ Available Q2 2025
+                        </div>
+                    </div>
+
+                    <div class="supply-listing" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Thames Valley Woodland Creation</h4>
+                                <p style="color: var(--muted); font-size: 12px;">📍 Reading, Berkshire • 12.1 hectares</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">892.7 units available</div>
+                                <div style="color: var(--muted); font-size: 12px;">Woodland - High distinctiveness</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--primary);">£67.20/unit</div>
+                                <div style="color: var(--muted); font-size: 12px;">Premium location multiplier</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="margin-bottom: 4px;">View Details</button>
+                                <button class="btn">Make Offer</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
+                            ✅ Baseline survey complete • 🕒 Planning pending • ⏰ Available Q4 2025
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offsets Demand Listings Page -->
+            <div id="offsets-demand" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🏗️ Demand Listings</h1>
+                    <p class="page-subtitle">Developer requirements for biodiversity net gain units</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value warning">127</div>
+                        <div class="stat-label">Active Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">8,293</div>
+                        <div class="stat-label">Units Required</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">£2.1M</div>
+                        <div class="stat-label">Total Budget Available</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">6 months</div>
+                        <div class="stat-label">Average Timeline</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 16px;">
+                        <h2>🎯 Developer Requirements</h2>
+                        <button class="btn">+ Post Requirement</button>
+                    </div>
+                    
+                    <div class="demand-listing" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Central London Mixed Use</h4>
+                                <p style="color: var(--muted); font-size: 12px;">📍 Camden, London • 200-unit residential + retail</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--danger);">124.7 units needed</div>
+                                <div style="color: var(--muted); font-size: 12px;">Any habitat type acceptable</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">£55.00/unit budget</div>
+                                <div style="color: var(--muted); font-size: 12px;">Total budget: £6,859</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="margin-bottom: 4px;">View Details</button>
+                                <button class="btn">Submit Proposal</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
+                            ⏰ Required by: July 2025 • 📍 Preferred within 50km of site • 💰 Payment: 50% upfront, 50% on delivery
+                        </div>
+                    </div>
+
+                    <div class="demand-listing" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Oxfordshire Housing Development</h4>
+                                <p style="color: var(--muted); font-size: 12px;">📍 Bicester, Oxfordshire • 450-home estate</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--danger);">892.3 units needed</div>
+                                <div style="color: var(--muted); font-size: 12px;">Grassland or woodland preferred</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">£42.00/unit budget</div>
+                                <div style="color: var(--muted); font-size: 12px;">Total budget: £37,477</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="margin-bottom: 4px;">View Details</button>
+                                <button class="btn">Submit Proposal</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
+                            ⏰ Required by: Dec 2025 • 📍 Within Oxfordshire preferred • 💰 Payment: Escrow on contract signature
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Matching Page -->
+            <div id="offsets-matching" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🤖 AI Matching Engine</h1>
+                    <p class="page-subtitle">Intelligent pairing of supply and demand with compatibility scoring</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">23</div>
+                        <div class="stat-label">Matches Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">94%</div>
+                        <div class="stat-label">Match Quality Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">£1.8M</div>
+                        <div class="stat-label">Contracts Pending</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">4.2 days</div>
+                        <div class="stat-label">Average Match Time</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🎯 Suggested Matches</h2>
+                    
+                    <div style="background: var(--surface); border: 1px solid var(--success); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="color: var(--success);">🌟 Perfect Match (97% compatibility)</h3>
+                            <div style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">HIGH PRIORITY</div>
+                        </div>
+                        
+                        <div class="grid grid-2">
+                            <div>
+                                <h4>📊 Supply: Thames Valley Woodland</h4>
+                                <p style="color: var(--muted); font-size: 14px;">🌳 892.7 woodland units • £67.20/unit • Reading, Berkshire</p>
+                                <p style="color: var(--muted); font-size: 12px;">Available Q4 2025</p>
+                            </div>
+                            <div>
+                                <h4>🏗️ Demand: Central London Mixed Use</h4>
+                                <p style="color: var(--muted); font-size: 14px;">Needs 124.7 units • £55.00/unit budget • Camden, London</p>
+                                <p style="color: var(--muted); font-size: 12px;">Required by July 2025</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 16px 0; padding: 12px; background: var(--panel); border-radius: 6px;">
+                            <h4 style="margin-bottom: 8px;">🤖 AI Match Analysis:</h4>
+                            <div style="color: var(--muted); font-size: 14px; line-height: 1.6;">
+                                ✅ <strong>Location:</strong> 42km distance (within 50km preference)<br>
+                                ✅ <strong>Timeline:</strong> Q4 2025 supply vs July 2025 requirement - workable<br>
+                                ⚠️ <strong>Price:</strong> £67.20 supply vs £55.00 budget - negotiation needed<br>
+                                ✅ <strong>Volume:</strong> 892.7 available vs 124.7 needed - sufficient supply<br>
+                                ✅ <strong>Habitat:</strong> High-value woodland meets any-type requirement
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <button class="btn" style="margin-right: 8px;">🤝 Initiate Match</button>
+                            <button class="btn outline" style="margin-right: 8px;">📄 Generate Contract</button>
+                            <button class="btn outline">📧 Notify Parties</button>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border: 1px solid var(--warning); border-radius: 8px; padding: 16px;">
+                        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="color: var(--warning);">⚡ Good Match (78% compatibility)</h3>
+                            <div style="background: var(--warning); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">MEDIUM PRIORITY</div>
+                        </div>
+                        
+                        <div class="grid grid-2">
+                            <div>
+                                <h4>📊 Supply: Oxfordshire Meadow</h4>
+                                <p style="color: var(--muted); font-size: 14px;">🌱 347.2 grassland units • £48.50/unit • Witney, Oxfordshire</p>
+                                <p style="color: var(--muted); font-size: 12px;">Available Q2 2025</p>
+                            </div>
+                            <div>
+                                <h4>🏗️ Demand: Oxfordshire Housing</h4>
+                                <p style="color: var(--muted); font-size: 14px;">Needs 892.3 units • £42.00/unit budget • Bicester, Oxfordshire</p>
+                                <p style="color: var(--muted); font-size: 12px;">Required by Dec 2025</p>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 16px;">
+                            <button class="btn outline" style="margin-right: 8px;">🔍 Analyze Match</button>
+                            <button class="btn outline">📝 Request Details</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contracts & Payments Page -->
+            <div id="contracts-payments" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">💰 Contracts & Payments</h1>
+                    <p class="page-subtitle">Secure escrow system with automated contract generation</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">89</div>
+                        <div class="stat-label">Active Contracts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">£3.2M</div>
+                        <div class="stat-label">In Escrow</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">£890k</div>
+                        <div class="stat-label">Settled This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">12</div>
+                        <div class="stat-label">Pending Completion</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>📄 Recent Contracts</h2>
+                    
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Contract #BNG-2025-001</h4>
+                                <p style="color: var(--muted); font-size: 12px;">Thames Valley Woodland → Camden Development</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">124.7 units</div>
+                                <div style="color: var(--muted); font-size: 12px;">£63.85/unit (negotiated)</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">£7,962 total</div>
+                                <div style="color: var(--muted); font-size: 12px;">50% in escrow</div>
+                            </div>
+                            <div>
+                                <div style="background: var(--warning); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center;">IN PROGRESS</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                            <div class="grid grid-3">
+                                <div style="font-size: 12px; color: var(--muted);">
+                                    <strong>Delivery:</strong> Q4 2025
+                                </div>
+                                <div style="font-size: 12px; color: var(--muted);">
+                                    <strong>Monitoring:</strong> 30 years
+                                </div>
+                                <div style="text-align: right;">
+                                    <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">View Contract</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border: 1px solid var(--success); border-radius: 8px; padding: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Contract #BNG-2024-087</h4>
+                                <p style="color: var(--muted); font-size: 12px;">Kent Wetland Restoration → Surrey Housing</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">298.3 units</div>
+                                <div style="color: var(--muted); font-size: 12px;">£39.20/unit</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">£11,693 total</div>
+                                <div style="color: var(--muted); font-size: 12px;">Fully settled</div>
+                            </div>
+                            <div>
+                                <div style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center;">COMPLETED</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                            <div style="font-size: 12px; color: var(--success);">
+                                ✅ Units delivered successfully • ✅ Monitoring agreement active • ✅ Payment complete
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🔒 Escrow Protection</h2>
+                    <div class="grid grid-3">
+                        <div class="stat-card">
+                            <h3>🛡️ Secure Payments</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Funds held in escrow until biodiversity units are delivered and verified by independent ecologists</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>📋 Auto-Generated Contracts</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Legal agreements automatically generated using AI with DEFRA-compliant terms and monitoring requirements</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🔍 Progress Tracking</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Real-time monitoring of habitat creation with satellite imagery and on-ground verification</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property API Explorer Page -->
+            <div id="property-explorer" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🔍 Property API Explorer</h1>
+                    <p class="page-subtitle">Unified UK property data lookup - the foundation for all AI analysis</p>
+                </div>
+
+                <div class="demo-section">
+                    <h2>🏠 Site Lookup</h2>
+                    <div class="site-input">
+                        <input type="text" placeholder="Enter property address, postcode, or UPRN" id="property-lookup-input" value="123 Oxford Street, London, W1D 2HX">
+                    </div>
+                    <button class="btn" onclick="lookupProperty()">Lookup Property Data</button>
+                    
+                    <div id="property-results" class="results">
+                        <div class="grid grid-2">
+                            <div class="panel">
+                                <h3>🏛️ Land Registry Data</h3>
+                                <div style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+                                    <p><strong>Title Number:</strong> LN12345</p>
+                                    <p><strong>Tenure:</strong> Freehold</p>
+                                    <p><strong>Last Sale:</strong> £2,100,000 (March 2019)</p>
+                                    <p><strong>Owner:</strong> Oxford Properties Ltd</p>
+                                    <p><strong>Restrictions:</strong> None recorded</p>
+                                </div>
+                                <button class="btn outline" style="margin-top: 12px;">View Full Title</button>
+                            </div>
+                            
+                            <div class="panel">
+                                <h3>⚡ Energy Performance</h3>
+                                <div style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+                                    <p><strong>Current Rating:</strong> <span style="color: var(--warning);">C (72/100)</span></p>
+                                    <p><strong>Potential Rating:</strong> B (81/100)</p>
+                                    <p><strong>CO2 Emissions:</strong> 28 tonnes/year</p>
+                                    <p><strong>Certificate Date:</strong> Jan 2021</p>
+                                    <p><strong>Recommendations:</strong> LED lighting, insulation</p>
+                                </div>
+                                <button class="btn outline" style="margin-top: 12px;">View EPC Report</button>
+                            </div>
+                            
+                            <div class="panel">
+                                <h3>🌊 Flood Risk Assessment</h3>
+                                <div style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+                                    <p><strong>Flood Zone:</strong> <span style="color: var(--success);">Zone 1 (Low Risk)</span></p>
+                                    <p><strong>Surface Water Risk:</strong> Very Low</p>
+                                    <p><strong>Historical Flooding:</strong> No records</p>
+                                    <p><strong>Climate Projection:</strong> Low increase by 2080</p>
+                                    <p><strong>Defences:</strong> None required</p>
+                                </div>
+                                <button class="btn outline" style="margin-top: 12px;">View Flood Map</button>
+                            </div>
+                            
+                            <div class="panel">
+                                <h3>📋 Planning History</h3>
+                                <div style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+                                    <p><strong>Applications:</strong> 3 in last 5 years</p>
+                                    <p><strong>Success Rate:</strong> <span style="color: var(--warning);">67% (2 approved, 1 refused)</span></p>
+                                    <p><strong>Last Decision:</strong> Approved (Oct 2023)</p>
+                                    <p><strong>Appeals:</strong> None</p>
+                                    <p><strong>Enforcement:</strong> None</p>
+                                </div>
+                                <button class="btn outline" style="margin-top: 12px;">View Applications</button>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
+                            <h3>Next Steps</h3>
+                            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px;">
+                                <button class="btn" onclick="showPage('planning-analysis')">🧠 Send to Planning AI</button>
+                                <button class="btn" onclick="showPage('auto-docs')">📄 Generate Documents</button>
+                                <button class="btn outline" onclick="downloadPropertyReport()">📄 Download Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning AI Analysis Page -->
+            <div id="planning-analysis" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🧠 Planning AI Analysis</h1>
+                    <p class="page-subtitle">Intelligent constraint detection and approval probability prediction</p>
+                </div>
+
+                <div class="demo-section">
+                    <h2>🎯 Site Analysis Input</h2>
+                    <div class="grid grid-2">
+                        <div class="site-input">
+                            <input type="text" placeholder="Property address or coordinates" id="planning-ai-input" value="123 Oxford Street, London, W1D 2HX">
+                        </div>
+                        <div class="site-input">
+                            <select style="background: transparent; border: none; color: var(--text); width: 100%;">
+                                <option>Residential Development</option>
+                                <option>Commercial Development</option>
+                                <option>Mixed Use</option>
+                                <option>Change of Use</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="runPlanningAnalysis()">Run AI Analysis</button>
+                    
+                    <div id="planning-ai-results" class="results">
+                        <div class="grid grid-3">
+                            <div class="approval-score">
+                                <div class="score-circle">
+                                    <div class="score-inner">
+                                        <div class="score-percentage">68%</div>
+                                        <div style="font-size: 12px;">Approval</div>
+                                    </div>
+                                </div>
+                                <p><strong>Moderate Prospects</strong></p>
+                                <p style="color: var(--muted); font-size: 12px;">Confidence: 94%</p>
+                            </div>
+                            
+                            <div class="panel">
+                                <h3>🚨 Key Constraints</h3>
+                                <ul class="constraints-list">
+                                    <li class="constraint-item">
+                                        <span>Conservation Area</span>
+                                        <span class="severity-high">High Impact</span>
+                                    </li>
+                                    <li class="constraint-item">
+                                        <span>Article 4 Direction</span>
+                                        <span class="severity-medium">Medium Impact</span>
+                                    </li>
+                                    <li class="constraint-item">
+                                        <span>Tree Preservation</span>
+                                        <span class="severity-low">Low Impact</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="panel">
+                                <h3>🎯 Risk Factors</h3>
+                                <div style="margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="font-size: 14px;">Heritage Impact</span>
+                                        <span style="color: var(--danger); font-weight: 600;">85%</span>
+                                    </div>
+                                    <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                        <div style="background: var(--danger); width: 85%; height: 100%; border-radius: 2px;"></div>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="font-size: 14px;">Design Policy</span>
+                                        <span style="color: var(--warning); font-weight: 600;">45%</span>
+                                    </div>
+                                    <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                        <div style="background: var(--warning); width: 45%; height: 100%; border-radius: 2px;"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span style="font-size: 14px;">Neighbour Objections</span>
+                                        <span style="color: var(--success); font-weight: 600;">25%</span>
+                                    </div>
+                                    <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                        <div style="background: var(--success); width: 25%; height: 100%; border-radius: 2px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="panel" style="margin-top: 24px;">
+                            <h3>💡 AI Recommendations</h3>
+                            <div class="grid grid-2">
+                                <div>
+                                    <h4 style="color: var(--success); margin-bottom: 8px;">✅ Strengthen Application</h4>
+                                    <ul style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+                                        <li>• Commission Heritage Impact Assessment early</li>
+                                        <li>• Engage conservation officer pre-application</li>
+                                        <li>• Use local materials and traditional design</li>
+                                        <li>• Provide detailed landscape proposals</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 style="color: var(--warning); margin-bottom: 8px;">⚠️ Mitigation Required</h4>
+                                    <ul style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+                                        <li>• Reduce building height by 1-2 storeys</li>
+                                        <li>• Increase setback from conservation boundary</li>
+                                        <li>• Consider phased development approach</li>
+                                        <li>• Budget for extended consultation period</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
+                            <h3>Next Steps</h3>
+                            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px;">
+                                <button class="btn" onclick="showPage('auto-docs')">📄 Generate Planning Statement</button>
+                                <button class="btn" onclick="showPage('auto-docs')">📄 Generate D&A Statement</button>
+                                <button class="btn outline" onclick="viewSimilarCases()">📊 View Similar Cases</button>
+                                <button class="btn outline" onclick="showPage('offsets-supply')">🌱 Check Offset Options</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Analysis Demo Page -->
+            <div id="site-analysis" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📍 Site Analysis Demo</h1>
+                    <p class="page-subtitle">See the full Planning AI system in action with a real site analysis</p>
+                </div>
+
+                <div class="demo-section">
+                    <div class="site-input">
+                        <input type="text" placeholder="Enter site address, postcode, or UPRN" id="demo-site-input" value="123 Oxford Street, London, W1D 2HX">
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                        <button class="btn" onclick="runFullDemo()">Run Full Analysis</button>
+                        <button class="btn outline" onclick="generateDocs()">Generate Documents</button>
+                        <button class="btn outline" onclick="checkOffsets()">Check Offset Options</button>
+                    </div>
+                    
+                    <div id="full-demo-results" class="results">
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+                            <div class="approval-score">
+                                <div class="score-circle">
+                                    <div class="score-inner">
+                                        <div class="score-percentage">68%</div>
+                                        <div style="font-size: 12px;">Approval</div>
+                                    </div>
+                                </div>
+                                <p><strong>Moderate approval prospects</strong></p>
+                                <p style="color: var(--muted); font-size: 14px;">Analysis confidence: 92%</p>
+                            </div>
+                            
+                            <div>
+                                <h3>Property Data Retrieved:</h3>
+                                <ul style="color: var(--muted); font-size: 14px; line-height: 1.8; margin-bottom: 16px;">
+                                    <li>✓ Land Registry: Freehold title, last sold £2.1M (2019)</li>
+                                    <li>✓ EPC Rating: C (72/100) - Above average efficiency</li>
+                                    <li>✓ Flood Risk: Zone 1 (Low probability)</li>
+                                    <li>✓ Planning History: 3 applications (2 approved, 1 refused)</li>
+                                </ul>
+                                
+                                <h3>AI Recommendations:</h3>
+                                <ul style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+                                    <li>• Reduce building height by 1-2 storeys to address conservation concerns</li>
+                                    <li>• Include heritage impact assessment due to Grade II proximity</li>
+                                    <li>• Pre-application advice recommended for this site</li>
+                                    <li>• Consider affordable housing provision to strengthen case</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+                            <h3>Next Steps:</h3>
+                            <div style="display: flex; gap: 12px; margin-top: 12px;">
+                                <button class="btn">Generate Planning Statement</button>
+                                <button class="btn">Generate D&A Statement</button>
+                                <button class="btn outline">Download Full Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning Analytics Page -->
+            <div id="planning-analytics" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📊 Planning Analytics</h1>
+                    <p class="page-subtitle">Approval probability insights and benchmark reports by Local Planning Authority</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">847</div>
+                        <div class="stat-label">Applications Analyzed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">74%</div>
+                        <div class="stat-label">Average Approval Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">328</div>
+                        <div class="stat-label">LPAs Covered</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">89%</div>
+                        <div class="stat-label">Prediction Accuracy</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>🏆 Top Performing LPAs</h2>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>South Cambridgeshire</span>
+                                <span style="color: var(--success); font-weight: 600;">94%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 94%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Elmbridge Borough</span>
+                                <span style="color: var(--success); font-weight: 600;">91%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 91%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Test Valley Borough</span>
+                                <span style="color: var(--success); font-weight: 600;">88%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 88%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>⚠️ Challenging LPAs</h2>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Brighton & Hove</span>
+                                <span style="color: var(--danger); font-weight: 600;">42%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--danger); width: 42%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Camden Council</span>
+                                <span style="color: var(--danger); font-weight: 600;">38%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--danger); width: 38%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Islington Council</span>
+                                <span style="color: var(--danger); font-weight: 600;">35%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--danger); width: 35%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>📈 Approval Trends by Development Type</h2>
+                    <div class="grid grid-4">
+                        <div class="stat-card">
+                            <div class="stat-value success">87%</div>
+                            <div class="stat-label">Single Dwelling Extensions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value warning">68%</div>
+                            <div class="stat-label">New Build Housing</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value warning">54%</div>
+                            <div class="stat-label">Commercial Development</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value danger">41%</div>
+                            <div class="stat-label">Change of Use</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Sites / Projects Page -->
+            <div id="my-sites" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🏗️ My Sites / Projects</h1>
+                    <p class="page-subtitle">Manage your active developments and land assessments</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value primary">23</div>
+                        <div class="stat-label">Active Projects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">7</div>
+                        <div class="stat-label">Pending Decisions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">15</div>
+                        <div class="stat-label">Approved This Year</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value danger">3</div>
+                        <div class="stat-label">Requiring Action</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 16px;">
+                        <h2>🎯 Recent Projects</h2>
+                        <button class="btn">+ New Project</button>
+                    </div>
+                    
+                    <div style="background: var(--surface); border: 1px solid var(--success); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Oxfordshire Mixed Use Development</h4>
+                                <p style="color: var(--muted); font-size: 12px;">📍 Bicester, OX26 6TD • 2.3 hectares</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">87% Approval Odds</div>
+                                <div style="color: var(--muted); font-size: 12px;">Analysis complete</div>
+                            </div>
+                            <div>
+                                <div style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center;">SUBMITTED</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px; margin-bottom: 4px;">View Details</button>
+                                <button class="btn" style="font-size: 12px; padding: 6px 12px;">Track Progress</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
+                            📄 Planning Statement • 📄 D&A Statement • 📄 Heritage Assessment • 🕒 Submitted 2 weeks ago
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border: 1px solid var(--warning); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Camden Office Conversion</h4>
+                                <p style="color: var(--muted); font-size: 12px;">📍 Camden, NW1 7BY • Change of Use</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--warning);">54% Approval Odds</div>
+                                <div style="color: var(--muted); font-size: 12px;">Needs optimization</div>
+                            </div>
+                            <div>
+                                <div style="background: var(--warning); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center;">IN PROGRESS</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px; margin-bottom: 4px;">Optimize Design</button>
+                                <button class="btn" style="font-size: 12px; padding: 6px 12px;">Generate Docs</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
+                            ⚠️ High heritage constraints detected • 💡 AI suggests design modifications • 🕒 Started 1 week ago
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Surrey Residential Extension</h4>
+                                <p style="color: var(--muted); font-size: 12px;">📍 Guildford, GU2 7XH • Single dwelling</p>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--success);">92% Approval Odds</div>
+                                <div style="color: var(--muted); font-size: 12px;">Ready to submit</div>
+                            </div>
+                            <div>
+                                <div style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center;">READY</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px; margin-bottom: 4px;">Review Docs</button>
+                                <button class="btn" style="font-size: 12px; padding: 6px 12px;">Submit Application</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
+                            ✅ All documents ready • ✅ No major constraints • 🕒 Analysis completed yesterday
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Page -->
+            <div id="documents" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📁 Documents</h1>
+                    <p class="page-subtitle">All generated planning documents with version control and collaboration</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">347</div>
+                        <div class="stat-label">Total Documents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">23</div>
+                        <div class="stat-label">Generated This Week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">7</div>
+                        <div class="stat-label">Pending Review</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">98%</div>
+                        <div class="stat-label">First-Time Approval Rate</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>📄 Recent Documents</h2>
+                    
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>📋 Planning Statement</h4>
+                                <p style="color: var(--muted); font-size: 12px;">Oxfordshire Mixed Use Development</p>
+                            </div>
+                            <div>
+                                <div style="color: var(--muted); font-size: 12px;">Version 2.1 • 14 pages</div>
+                                <div style="color: var(--success); font-size: 12px;">✅ Client approved</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--muted); font-size: 12px;">Generated: Sep 15, 2025</div>
+                                <div style="color: var(--muted); font-size: 12px;">AI Assistant</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px; margin-bottom: 4px;">Download PDF</button>
+                                <button class="btn" style="font-size: 12px; padding: 6px 12px;">Edit Document</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>🏛️ Heritage Impact Assessment</h4>
+                                <p style="color: var(--muted); font-size: 12px;">Camden Office Conversion</p>
+                            </div>
+                            <div>
+                                <div style="color: var(--muted); font-size: 12px;">Version 1.0 • 8 pages</div>
+                                <div style="color: var(--warning); font-size: 12px;">⏳ Under review</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--muted); font-size: 12px;">Generated: Sep 18, 2025</div>
+                                <div style="color: var(--muted); font-size: 12px;">AI Assistant</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px; margin-bottom: 4px;">Add Comments</button>
+                                <button class="btn" style="font-size: 12px; padding: 6px 12px;">Approve</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>🏠 Design & Access Statement</h4>
+                                <p style="color: var(--muted); font-size: 12px;">Surrey Residential Extension</p>
+                            </div>
+                            <div>
+                                <div style="color: var(--muted); font-size: 12px;">Version 1.0 • 12 pages</div>
+                                <div style="color: var(--success); font-size: 12px;">✅ Ready to submit</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--muted); font-size: 12px;">Generated: Sep 20, 2025</div>
+                                <div style="color: var(--muted); font-size: 12px;">AI Assistant</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px; margin-bottom: 4px;">Preview</button>
+                                <button class="btn" style="font-size: 12px; padding: 6px 12px;">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management Page -->
+            <div id="user-management" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">👥 User Management</h1>
+                    <p class="page-subtitle">Invite team members and manage access permissions</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value primary">12</div>
+                        <div class="stat-label">Team Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">3</div>
+                        <div class="stat-label">Admin Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">2</div>
+                        <div class="stat-label">Pending Invites</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">94%</div>
+                        <div class="stat-label">Active This Month</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 16px;">
+                        <h2>👤 Team Members</h2>
+                        <button class="btn">+ Invite User</button>
+                    </div>
+                    
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>James Davis</h4>
+                                <p style="color: var(--muted); font-size: 12px;">james@domusconsulting.co.uk</p>
+                            </div>
+                            <div>
+                                <div style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center; width: fit-content;">ADMIN</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--success); font-size: 12px;">✅ Active (2 min ago)</div>
+                                <div style="color: var(--muted); font-size: 12px;">Last: Planning AI Analysis</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">View Activity</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div class="grid grid-4">
+                            <div>
+                                <h4>Sarah Planning</h4>
+                                <p style="color: var(--muted); font-size: 12px;">sarah@consultancy.co.uk</p>
+                            </div>
+                            <div>
+                                <div style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center; width: fit-content;">CONSULTANT</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--success); font-size: 12px;">✅ Active (1 hour ago)</div>
+                                <div style="color: var(--muted); font-size: 12px;">Last: Document Generation</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">Edit Permissions</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing & Subscriptions Page -->
+            <div id="billing-subscriptions" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">💳 Billing & Subscriptions</h1>
+                    <p class="page-subtitle">Manage your SaaS plan, API usage, and offset marketplace fees</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">£1,247</div>
+                        <div class="stat-label">Current Month Usage</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">2,847</div>
+                        <div class="stat-label">API Calls This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">£890</div>
+                        <div class="stat-label">Offset Fees (5%)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">Pro Plan</div>
+                        <div class="stat-label">Current Subscription</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>📊 Subscription Plans</h2>
+                        <div style="border: 2px solid var(--primary); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                            <h3 style="color: var(--primary);">Pro Plan - £299/month</h3>
+                            <ul style="color: var(--muted); font-size: 14px; margin: 12px 0;">
+                                <li>• Unlimited AI analyses</li>
+                                <li>• 500 document generations/month</li>
+                                <li>• Full offsets marketplace access</li>
+                                <li>• API access (10,000 calls/month)</li>
+                                <li>• Team collaboration (up to 15 users)</li>
+                            </ul>
+                            <div style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; text-align: center; width: fit-content; margin-top: 12px;">CURRENT PLAN</div>
+                        </div>
+
+                        <div style="border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                            <h3>Enterprise Plan - £799/month</h3>
+                            <ul style="color: var(--muted); font-size: 14px; margin: 12px 0;">
+                                <li>• Everything in Pro</li>
+                                <li>• Unlimited document generations</li>
+                                <li>• White-label solutions</li>
+                                <li>• Priority support & training</li>
+                                <li>• Custom integrations</li>
+                            </ul>
+                            <button class="btn outline">Upgrade Plan</button>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>📈 Usage Analytics</h2>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Document Generations</span>
+                                <span>342/500</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--primary); width: 68%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>API Calls</span>
+                                <span>2,847/10,000</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 28%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Team Members</span>
+                                <span>12/15</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--warning); width: 80%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+
+                        <button class="btn">View Detailed Usage</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">⚙️ Settings</h1>
+                    <p class="page-subtitle">Configure API keys, integrations, and notification preferences</p>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>🔑 API Configuration</h2>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 4px;">API Key</label>
+                            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-family: monospace; font-size: 12px;">
+                                dk_live_••••••••••••••••••••••••
+                            </div>
+                            <button class="btn outline" style="margin-top: 8px; font-size: 12px;">Regenerate Key</button>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 4px;">Webhook URL</label>
+                            <input style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 8px; width: 100%; color: var(--text);" placeholder="https://yourapp.com/webhooks/domus" />
+                        </div>
+
+                        <h3>🔗 Integrations</h3>
+                        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 8px 0;">
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600;">Planning Portal</div>
+                                    <div style="color: var(--muted); font-size: 12px;">Auto-submit applications</div>
+                                </div>
+                                <div style="background: var(--success); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">CONNECTED</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>🔔 Notifications</h2>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <input type="checkbox" checked style="margin-right: 8px;" />
+                                <span>Planning decision updates</span>
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <input type="checkbox" checked style="margin-right: 8px;" />
+                                <span>Document generation complete</span>
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <input type="checkbox" style="margin-right: 8px;" />
+                                <span>Offset marketplace matches</span>
+                            </label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <input type="checkbox" checked style="margin-right: 8px;" />
+                                <span>Weekly usage reports</span>
+                            </label>
+                        </div>
+
+                        <h3>📧 Email Preferences</h3>
+                        <select style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 8px; width: 100%; color: var(--text); margin-bottom: 16px;">
+                            <option>Immediate notifications</option>
+                            <option>Daily digest</option>
+                            <option>Weekly summary</option>
+                        </select>
+
+                        <button class="btn">Save Preferences</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planning Trends Page -->
+            <div id="planning-trends" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📈 Planning Trends</h1>
+                    <p class="page-subtitle">Approval rates, policy analysis, and area benchmarks for strategic planning</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">847</div>
+                        <div class="stat-label">Applications Analyzed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">74%</div>
+                        <div class="stat-label">National Average Approval</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">328</div>
+                        <div class="stat-label">Local Authorities Tracked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">92%</div>
+                        <div class="stat-label">Prediction Accuracy</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>🏆 Best Performing Councils</h2>
+                        <p style="color: var(--muted); margin-bottom: 16px; font-size: 14px;">Highest approval rates for development applications</p>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>South Cambridgeshire</span>
+                                <span style="color: var(--success); font-weight: 600;">94%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 94%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Avg decision: 6.2 weeks • Pro-development policies</div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Elmbridge Borough</span>
+                                <span style="color: var(--success); font-weight: 600;">91%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 91%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Avg decision: 7.8 weeks • Streamlined process</div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Test Valley Borough</span>
+                                <span style="color: var(--success); font-weight: 600;">88%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 88%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Avg decision: 8.1 weeks • Developer-friendly approach</div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>⚠️ Challenging Councils</h2>
+                        <p style="color: var(--muted); margin-bottom: 16px; font-size: 14px;">Lower approval rates - require stronger applications</p>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Brighton & Hove</span>
+                                <span style="color: var(--danger); font-weight: 600;">42%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--danger); width: 42%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Avg decision: 14.2 weeks • Strict conservation policies</div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Camden Council</span>
+                                <span style="color: var(--danger); font-weight: 600;">38%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--danger); width: 38%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Avg decision: 16.7 weeks • High heritage constraints</div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Islington Council</span>
+                                <span style="color: var(--danger); font-weight: 600;">35%</span>
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--danger); width: 35%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Avg decision: 18.3 weeks • Complex consultation process</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>📊 Development Type Performance</h2>
+                    <div class="grid grid-4">
+                        <div class="stat-card">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">🏠 Single Dwelling</div>
+                            <div class="stat-value success">87%</div>
+                            <div class="stat-label">Average Approval Rate</div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 8px;">Extensions & alterations typically successful</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">🏘️ Residential</div>
+                            <div class="stat-value warning">68%</div>
+                            <div class="stat-label">Average Approval Rate</div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 8px;">Varies significantly by location & density</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">🏢 Commercial</div>
+                            <div class="stat-value warning">54%</div>
+                            <div class="stat-label">Average Approval Rate</div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 8px;">Town center locations perform better</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">🔄 Change of Use</div>
+                            <div class="stat-value danger">41%</div>
+                            <div class="stat-label">Average Approval Rate</div>
+                            <div style="color: var(--muted); font-size: 12px; margin-top: 8px;">Requires strong planning justification</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offsets Reports Page -->
+            <div id="offsets-reports" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🌿 Offsets Reports</h1>
+                    <p class="page-subtitle">Biodiversity marketplace performance and trading insights</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">£4.7M</div>
+                        <div class="stat-label">Total Market Value</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">12,847</div>
+                        <div class="stat-label">Units Traded</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">189</div>
+                        <div class="stat-label">Active Projects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">94%</div>
+                        <div class="stat-label">Delivery Success Rate</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>💰 Market Pricing Trends</h2>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="display: flex; align-items: center;"><span style="margin-right: 8px;">🌳</span> Woodland (High)</span>
+                                <span style="color: var(--success); font-weight: 600;">£67.20/unit</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                ↗️ +12% vs Q2 • High demand from urban developments • Limited supply
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="display: flex; align-items: center;"><span style="margin-right: 8px;">🌊</span> Wetland (High)</span>
+                                <span style="color: var(--success); font-weight: 600;">£58.90/unit</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                ↗️ +8% vs Q2 • Strategic significance premium • Complex creation process
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="display: flex; align-items: center;"><span style="margin-right: 8px;">🌱</span> Grassland (Medium)</span>
+                                <span style="color: var(--warning); font-weight: 600;">£42.50/unit</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px;">
+                                → Stable vs Q2 • Good supply/demand balance • Entry-level option
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>📍 Regional Performance</h2>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>South East England</span>
+                                <span style="color: var(--success); font-weight: 600;">£1.8M traded</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                3,247 units • £55.40 avg price • High development pressure
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>South West England</span>
+                                <span style="color: var(--success); font-weight: 600;">£980k traded</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                2,891 units • £33.90 avg price • Rural habitat focus
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>East of England</span>
+                                <span style="color: var(--warning); font-weight: 600;">£654k traded</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px;">
+                                1,789 units • £36.60 avg price • Growing market
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🎯 Market Insights & Opportunities</h2>
+                    <div class="grid grid-3">
+                        <div class="stat-card">
+                            <h3 style="color: var(--success);">📈 Supply Gap</h3>
+                            <p style="color: var(--muted); margin: 12px 0; font-size: 14px;">Current 23% supply shortage driving 15% average price increases. Major opportunity for landowners to enter market.</p>
+                            <div style="color: var(--success); font-size: 12px; font-weight: 600;">High profit potential</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3 style="color: var(--primary);">🌟 Premium Locations</h3>
+                            <p style="color: var(--muted); margin: 12px 0; font-size: 14px;">Sites within 50km of London, Birmingham, Manchester command 40%+ price premium due to strategic proximity.</p>
+                            <div style="color: var(--primary); font-size: 12px; font-weight: 600;">Location premium active</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3 style="color: var(--warning);">⏰ Delivery Timeline</h3>
+                            <p style="color: var(--muted); margin: 12px 0; font-size: 14px;">Average 18-month delivery from contract to habitat establishment. Early-stage projects command higher prices.</p>
+                            <div style="color: var(--warning); font-size: 12px; font-weight: 600;">Plan ahead for premium</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Usage Page -->
+            <div id="api-usage" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🔌 API Usage</h1>
+                    <p class="page-subtitle">Monitor external API usage and PropTech client metrics</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">2,847</div>
+                        <div class="stat-label">API Calls This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">94%</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">847ms</div>
+                        <div class="stat-label">Avg Response Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">12</div>
+                        <div class="stat-label">Active Integrations</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>🏢 PropTech Client Usage</h2>
+                        
+                        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h4>RightMove Property Intelligence</h4>
+                                <span style="color: var(--success); font-weight: 600;">1,247 calls</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">
+                                Primary usage: Planning AI API for property listings
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--success); width: 78%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h4>Zoopla Development Insights</h4>
+                                <span style="color: var(--primary); font-weight: 600;">894 calls</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">
+                                Primary usage: Property Data API integration
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--primary); width: 56%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h4>LendInvest Risk Assessment</h4>
+                                <span style="color: var(--warning); font-weight: 600;">342 calls</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">
+                                Primary usage: Approval probability scoring
+                            </div>
+                            <div style="background: var(--border); height: 4px; border-radius: 2px;">
+                                <div style="background: var(--warning); width: 34%; height: 100%; border-radius: 2px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>📊 Endpoint Performance</h2>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>/api/planning-ai/analyze</span>
+                                <span style="color: var(--success);">1,456 calls</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 11px;">Avg: 1.2s response • 99.8% success rate</div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>/api/property/lookup</span>
+                                <span style="color: var(--primary);">987 calls</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 11px;">Avg: 0.8s response • 99.9% success rate</div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>/api/auto-docs/generate</span>
+                                <span style="color: var(--warning);">234 calls</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 11px;">Avg: 4.7s response • 98.2% success rate</div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>/api/offsets/marketplace</span>
+                                <span style="color: var(--success);">170 calls</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 11px;">Avg: 0.6s response • 99.4% success rate</div>
+                        </div>
+
+                        <button class="btn" style="margin-top: 16px;">View Detailed Logs</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legacy pages for compatibility -->
+            <div id="property-api" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🏠 Property Data API</h1>
+                    <p class="page-subtitle">Unified access to UK property datasets - Land Registry, EPC, Flood Risk, Planning History</p>
+                </div>
+                
+                <div class="panel">
+                    <p style="text-align: center; color: var(--muted); margin: 40px 0;">
+                        Property API functionality has been integrated into the main Planning Services workflow.
+                    </p>
+                    <div style="text-align: center;">
+                        <button class="btn" onclick="showPage('planning-analysis')">🧠 Use Planning AI Analysis</button>
+                        <button class="btn outline" onclick="showPage('dashboard')" style="margin-left: 12px;">📊 Return to Dashboard</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="offsets-marketplace" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🌱 Offsets Marketplace</h1>
+                    <p class="page-subtitle">Biodiversity Net Gain trading platform overview</p>
+                </div>
+                
+                <div class="panel">
+                    <h2>🎯 Marketplace Services</h2>
+                    <div class="grid grid-2">
+                        <div class="stat-card">
+                            <h3>🏞️ For Landowners</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">List biodiversity units from habitat creation and enhancement projects</p>
+                            <button class="btn" onclick="alert('Landowner portal coming soon - contact our team for early access')">List Your Land</button>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🏗️ For Developers</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Find and purchase units to meet mandatory 10% net gain requirements</p>
+                            <button class="btn" onclick="alert('Developer portal coming soon - contact our team for early access')">Find Offsets</button>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 24px;">
+                        <button class="btn outline" onclick="showPage('offsets-reports')">📈 View Market Reports</button>
+                        <button class="btn outline" onclick="showPage('contracts-payments')" style="margin-left: 12px;">💰 Contract Management</button>
+                    </div>
+                </div>
+            </div>
+                <div class="page-header">
+                    <h1 class="page-title">📈 Marketplace Statistics</h1>
+                    <p class="page-subtitle">Biodiversity offsets market performance and trading insights</p>
+                </div>
+
+                <div class="grid grid-4" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value success">£4.7M</div>
+                        <div class="stat-label">Total GMV</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">12,847</div>
+                        <div class="stat-label">Units Traded</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">189</div>
+                        <div class="stat-label">Active Projects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">94%</div>
+                        <div class="stat-label">Delivery Success Rate</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="panel">
+                        <h2>💰 Price Trends by Habitat Type</h2>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>🌳 Woodland (High distinctiveness)</span>
+                                <span style="color: var(--success); font-weight: 600;">£67.20</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                ↗️ +12% vs last quarter • High demand from urban developments
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>🌊 Wetland (High distinctiveness)</span>
+                                <span style="color: var(--success); font-weight: 600;">£58.90</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                ↗️ +8% vs last quarter • Limited supply drives premium
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>🌱 Grassland (Medium distinctiveness)</span>
+                                <span style="color: var(--warning); font-weight: 600;">£42.50</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                → Stable vs last quarter • Good supply/demand balance
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>📍 Regional Activity Hotspots</h2>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>South East England</span>
+                                <span style="color: var(--success); font-weight: 600;">£1.8M</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                3,247 units traded • Average £55.40/unit
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>South West England</span>
+                                <span style="color: var(--success); font-weight: 600;">£980k</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                2,891 units traded • Average £33.90/unit
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>East of England</span>
+                                <span style="color: var(--warning); font-weight: 600;">£654k</span>
+                            </div>
+                            <div style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                                1,789 units traded • Average £36.60/unit
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🎯 Market Insights</h2>
+                    <div class="grid grid-3">
+                        <div class="stat-card">
+                            <h3>📈 Growth Trends</h3>
+                            <p style="color: var(--muted); margin: 12px 0; font-size: 14px;">Market grew 340% year-on-year as mandatory BNG requirements drive demand. Expect continued growth through 2025-2027.</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>⚖️ Supply vs Demand</h3>
+                            <p style="color: var(--muted); margin: 12px 0; font-size: 14px;">Current supply shortage of 23% driving price increases. New habitat creation projects coming online Q3-Q4 2025.</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🚀 Opportunities</h3>
+                            <p style="color: var(--muted); margin: 12px 0; font-size: 14px;">Highest returns on woodland and wetland creation. Strategic locations within 50km of major cities command premium pricing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Simple page navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Activate nav item
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+        }
+        
+        function runDemo() {
+            const siteAddress = document.getElementById('site-address').value;
+            if (!siteAddress.trim()) {
+                alert('Please enter a site address or postcode');
+                return;
+            }
+            
+            // Show loading state briefly
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Analyzing...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                document.getElementById('demo-results').classList.add('show');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 1500);
+        }
+        
+        function runFullDemo() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Analyzing Site...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                document.getElementById('full-demo-results').classList.add('show');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+        
+        function generateDocs() {
+            alert('🎉 Auto-Docs would generate:\n\n• Planning Statement (12 pages)\n• Design & Access Statement (8 pages)\n• Policy compliance matrix\n• Site assessment summary\n\nEstimated time: 3.2 minutes vs 2-3 days manual');
+        }
+        
+        function checkOffsets() {
+            alert('🌱 Offsets Marketplace Analysis:\n\n• Site unsuitable for development due to constraints\n• Could generate 23.4 biodiversity units through habitat enhancement\n• Estimated value: £1,170 (£50/unit)\n• 3 potential buyers in 15km radius\n\nWould you like to list this land for offsets?');
+        }
+        
+        function lookupProperty() {
+            const address = document.getElementById('property-lookup-input').value;
+            if (!address.trim()) {
+                alert('Please enter a property address');
+                return;
+            }
+            
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Looking up data...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                document.getElementById('property-results').classList.add('show');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+        
+        function runPlanningAnalysis() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Analyzing constraints...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                document.getElementById('planning-ai-results').classList.add('show');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2500);
+        }
+        
+        function downloadPropertyReport() {
+            alert('📄 Property Report Generated!\n\n• 12-page comprehensive property analysis\n• Land Registry title summary\n• Energy performance assessment\n• Flood risk analysis\n• Planning history overview\n• Constraint mapping\n• Recommended next steps\n\nReport would download as PDF');
+        }
+        
+        function viewSimilarCases() {
+            alert('📊 Similar Cases Analysis:\n\n• Found 23 similar applications within 5km\n• Average approval rate: 71%\n• Common success factors: Heritage assessment, community engagement\n• Typical objection points: Building height, parking provision\n• Average decision time: 14 weeks\n\nWould you like detailed case study analysis?');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Domus Planning Platform Loaded');
+            console.log('🎯 4-Pillar AI System Ready');
+            console.log('🌱 Offsets Marketplace Active');
+            console.log('📊 Analytics Dashboard Online');
+        });
+    </script>
+</body>
+</html>
