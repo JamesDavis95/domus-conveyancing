@@ -213,7 +213,7 @@ class EnterpriseAPIGateway:
     async def _setup_northgate_integrations(self):
         """Setup Northgate system integrations"""
         
-        # Northgate Planning & Building Control
+        # Northgate Planning Systems
         northgate_config = IntegrationEndpoint(
             council_id="northgate_template",
             system_name="Northgate Planning",

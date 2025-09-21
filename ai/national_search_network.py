@@ -42,7 +42,7 @@ class CouncilEndpoint:
     supports_llc1: bool = True
     supports_con29: bool = True
     supports_planning: bool = True
-    supports_building_control: bool = False
+    # Legacy building control support removed for planning focus
     supports_highways: bool = True
     
     # Performance Metrics
@@ -217,7 +217,7 @@ class NationalSearchNetwork:
                 api_version="v1",
                 auth_type="basic",
                 rate_limit=80,
-                supports_building_control=True,
+                # Building control integration removed - planning focus only
                 monthly_volume=380,
                 revenue_potential=35000
             ),
