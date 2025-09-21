@@ -490,9 +490,10 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Offsets Marketplace</div>
-                <button class="nav-item" data-page="offsets-supply" onclick="showPage('offsets-supply')">
+                <button class="nav-item" data-page="offsets-supply" data-roles="landowner" onclick="showPage('offsets-supply')">
                     <span class="icon">�</span>
                     Supply Listings
+                    <span class="role-indicator role-landowner">LAND</span>
                 </button>
                 <button class="nav-item" data-page="offsets-demand" data-roles="developer" onclick="showPage('offsets-demand')">
                     <span class="icon">🏗️</span>
@@ -1273,8 +1274,9 @@
                         <div class="stat-label">Available Units</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value warning">£42.50</div>
+                        <div class="stat-value warning">£42.50*</div>
                         <div class="stat-label">Average Price/Unit</div>
+                        <div style="font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.3;">*Advisory only. Past validation data.</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value success">15km</div>
@@ -1433,8 +1435,9 @@
                         <div class="stat-label">Matches Today</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value primary">94%</div>
+                        <div class="stat-value primary">94%*</div>
                         <div class="stat-label">Match Quality Score</div>
+                        <div style="font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.3;">*Advisory only. Past validation data.</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value warning">£1.8M</div>
@@ -3171,6 +3174,35 @@
                     <div class="stat-card">
                         <div class="stat-value success">Pro Plan</div>
                         <div class="stat-label">Current Subscription</div>
+                    </div>
+                </div>
+
+                <!-- Quick Fee Reference -->
+                <div class="panel" style="margin-bottom: 24px; border: 2px solid var(--primary); background: rgba(59, 130, 246, 0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2 style="color: var(--primary);">💡 Quick Fee Reference</h2>
+                        <div style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold;">TRANSPARENT PRICING</div>
+                    </div>
+                    
+                    <div class="grid grid-3" style="gap: 16px; font-size: 14px;">
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                            <h3 style="margin: 0 0 8px 0; color: var(--primary); font-size: 16px;">📊 SaaS Plans</h3>
+                            <div style="color: var(--text); margin-bottom: 4px;">Core: £800/month</div>
+                            <div style="color: var(--text); margin-bottom: 4px;">Professional: £2,500/month</div>
+                            <div style="color: var(--text);">Enterprise: £7,500/month</div>
+                        </div>
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                            <h3 style="margin: 0 0 8px 0; color: var(--success); font-size: 16px;">🌱 Marketplace Fees</h3>
+                            <div style="color: var(--text); margin-bottom: 4px;"><strong>Landowner listings:</strong> £750/year</div>
+                            <div style="color: var(--text); margin-bottom: 4px;"><strong>Commission:</strong> 7% on successful trades</div>
+                            <div style="color: var(--muted); font-size: 12px;">Developers pay no fees</div>
+                        </div>
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                            <h3 style="margin: 0 0 8px 0; color: var(--warning); font-size: 16px;">🔌 API Pricing</h3>
+                            <div style="color: var(--text); margin-bottom: 4px;">Developer: £250/month</div>
+                            <div style="color: var(--text); margin-bottom: 4px;">Business: £1,000/month</div>
+                            <div style="color: var(--text);">Enterprise: £25,000/year</div>
+                        </div>
                     </div>
                 </div>
 
@@ -5891,7 +5923,7 @@
                 <p style="margin-top: 8px;">
                     <a href="#" onclick="showPage('data-compliance')" style="color: var(--primary); cursor: pointer;" aria-label="Privacy Policy">Privacy Policy</a> • 
                     <a href="#" onclick="showPage('data-compliance')" style="color: var(--primary); cursor: pointer;" aria-label="Terms of Service">Terms of Service</a> • 
-                    <a href="#" onclick="showPage('data-compliance')" style="color: var(--primary); cursor: pointer;" aria-label="Data & Compliance">Data & Compliance</a> • 
+                    <a href="#" onclick="showPage('data-compliance')" style="background: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-weight: bold; cursor: pointer;" aria-label="Data & Compliance">🔒 Data & Compliance</a> • 
                     <a href="#" onclick="showPage('help-support')" style="color: var(--primary); cursor: pointer;" aria-label="Support Documentation">Support</a> • 
                     <a href="#" onclick="showPage('help-support')" style="color: var(--primary); cursor: pointer;" aria-label="API Documentation">API Docs</a>
                 </p>
