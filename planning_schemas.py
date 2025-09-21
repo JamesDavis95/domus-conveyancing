@@ -74,22 +74,6 @@ class PlanningApplication(BaseModel):
     documents: List[Evidence] = []
     consultation_responses: List[str] = []
 
-# ==================== BUILDING CONTROL MODELS ====================
-
-class BuildingApplication(BaseModel):
-    application_ref: str  # "BC/24/00456"
-    application_type: str  # "Full Plans", "Building Notice", "Regularisation"
-    property_address: str
-    description: str
-    submitted_date: datetime
-    status: str
-    
-    # Building Control specific
-    approved_inspector: Optional[str] = None
-    structural_engineer: Optional[str] = None
-    building_regs_compliance: List[str] = []
-    inspection_schedule: List[dict] = []
-
 # ==================== LAND CHARGES MODELS ====================
 
 class Charge(BaseModel):
@@ -107,26 +91,6 @@ class LLC1(BaseModel):
     local_authority: str
     property_description: str
 
-# ==================== REGULATORY SERVICES MODELS ====================
-
-class WasteApplication(BaseModel):
-    licence_ref: str
-    licence_type: str  # "Waste Carrier", "Waste Transfer", "Treatment Facility"
-    business_name: str
-    business_address: str
-    status: str
-    expiry_date: Optional[datetime] = None
-    conditions: List[str] = []
-
-class PrivateHousingCase(BaseModel):
-    case_ref: str
-    property_address: str
-    case_type: str  # "HMO Licence", "Selective Licence", "Housing Standards"
-    status: str
-    inspector: Optional[str] = None
-    compliance_issues: List[str] = []
-    enforcement_action: Optional[str] = None
-
 # ==================== INTEGRATED PLATFORM MODELS ====================
 
 class IntegratedCase(BaseModel):
@@ -140,10 +104,7 @@ class IntegratedCase(BaseModel):
     
     # Related applications across services
     planning_applications: List[PlanningApplication] = []
-    building_applications: List[BuildingApplication] = []
     land_charges: Optional[LLC1] = None
-    waste_licences: List[WasteApplication] = []
-    housing_cases: List[PrivateHousingCase] = []
     
     # Cross-service analytics
     compliance_overview: dict = {}

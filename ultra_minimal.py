@@ -22,16 +22,16 @@ async def root():
     <body>
         <div class="container">
             <h1>🏢 Domus Planning Platform</h1>
-            <h2>Integrated Planning & Building Control</h2>
+            <h2>Intelligent Planning & Development</h2>
             <div class="status">
                 <h3>✅ Platform Status: ONLINE</h3>
-                <p>Your comprehensive planning, building control & land charges platform is now live!</p>
+                <p>Your comprehensive planning intelligence and property development platform is now live!</p>
             </div>
             <div class="status">
                 <h3>🚀 Features Available</h3>
                 <ul style="text-align: left;">
                     <li>Planning Application Management</li>
-                    <li>Building Control Integration</li>
+                    <li>Development Intelligence</li>
                     <li>Land Charges Search Processing</li>
                     <li>Policy Compliance Checking</li>
                     <li>Council Dashboard & Analytics</li>

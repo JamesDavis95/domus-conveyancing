@@ -117,26 +117,6 @@ async def run_policy_compliance_check(app_ref: str):
     
     return compliance_results
 
-# ==================== BUILDING CONTROL ====================
-
-@router.post("/building-control/applications")
-async def create_building_application(
-    property_address: str = Form(...),
-    work_description: str = Form(...),
-    application_type: str = Form("Full Plans"),
-    plans: List[UploadFile] = File(...)
-):
-    """Create new building control application"""
-    
-    bc_ref = f"BC/25/{datetime.now().strftime('%m%d')}"
-    
-    return {
-        "success": True,
-        "application_ref": bc_ref,
-        "status": "Received",
-        "next_steps": ["Plan Check", "Site Inspection Scheduling"]
-    }
-
 # ==================== LAND CHARGES ====================
 
 @router.get("/land-charges/search/{uprn}")

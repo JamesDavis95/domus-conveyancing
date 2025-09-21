@@ -298,7 +298,7 @@ class DataIntegrationStrategy:
                 name="Environment Agency Data",
                 source_type=DataSourceType.ENVIRONMENTAL_AGENCY,
                 priority=IntegrationPriority.CRITICAL,
-                data_value="Flood risk, contaminated land, pollution incidents, waste sites",
+                data_value="Flood risk, contaminated land, pollution incidents",
                 competitive_advantage="Official environmental risk assessment for properties",
                 revenue_potential="£70k-140k/year - environmental risk premium service",
                 integration_complexity="Medium - some APIs available, some data scraping required",

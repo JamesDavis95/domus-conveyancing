@@ -726,7 +726,7 @@ async def get_integration_capabilities():
                     "integration_type": "Database Direct + Webhooks",
                     "real_time_sync": True,
                     "success_rate": 98.9,
-                    "data_types": ["planning_applications", "building_control", "enforcement"]
+                    "data_types": ["planning_applications", "enforcement"]
                 },
                 
                 "legacy_systems": {
