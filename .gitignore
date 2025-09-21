@@ -30,3 +30,12 @@ node_modules/
 .env
 .env
 .env
+
+# Private research files - keep confidential
+research/
+*.md
+*council*
+*dpo*
+*email_template*
+*campaign*
+*contact*

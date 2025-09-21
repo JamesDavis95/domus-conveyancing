@@ -1,9 +1,12 @@
 services:
   - type: web
-    name: domus-global
+    name: domus-planning-platform
     env: python
     buildCommand: pip install -r requirements-minimal.txt
-    startCommand: python app.py
+    startCommand: python -m uvicorn app_clean:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
     envVars:
       - key: PORT
         sync: false
+      - key: ENVIRONMENT
+        value: production

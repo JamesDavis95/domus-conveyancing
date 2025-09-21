@@ -1,20 +1,41 @@
-## Auth toggle (optional)
+# Domus Planning Platform
+
+**AI-Powered Integrated Planning Services for Local Authorities**
+
+An integrated platform supporting Planning Applications, Building Control, Land Charges, and Regulatory Services with automated policy compliance checking and intelligent decision support.
+
+## 🎯 **Key Features**
+
+### **Planning Applications**
+- Automated policy compliance checking against local development plans
+- AI-powered application analysis and risk assessment
+- Streamlined officer decision workflows
+- Public consultation management
+
+### **Integrated Services**
+- **Building Control**: Application processing and inspection scheduling
+- **Land Charges**: LLC1 searches and charge management  
+- **Waste Licensing**: Regulatory compliance and permit tracking
+- **Housing Standards**: HMO licensing and enforcement
+
+### **AI & Automation**
+- Document parsing and data extraction
+- Policy rule engine with compliance scoring
+- Predictive processing timelines
+- Automated risk flagging and recommendations
+
+## 🚀 **Quick Start**
+
 ```bash
+# Set up authentication (optional)
 export AUTH_ENABLED=true
 export EXPECTED_API_KEY="demo-key"
-# Include this header on API calls:
-#   -H "X-Api-Key: demo-key"
+
+# Health check endpoints
+curl /health              # Basic health
+curl /ready              # Database connectivity  
+curl /health/policy      # Policy engine status
 ```
-
-## Risk scan variants
-- **Strict (PDF only)**: `POST /api/matters/{id}/risk-scan` (multipart field `file`). Returns 400 for JSON or non-PDF.
-- **UI mode (doc id)**: `POST /api/matters/{id}/risk-scan-json` with `{"doc_id": <int>}`.
-
-## Health endpoints
-- `/health` — basic
-- `/ready` — DB ping (503 if DB down)
-- `/health/av` — whether AV is enabled via env
-- `/health/storage` — storage mode + local write test
 ## OIDC (optional)
 Export the following and visit `/login`:
 ```bash
