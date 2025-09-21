@@ -5161,6 +5161,41 @@
         </main>
     </div>
 
+    <!-- Case Studies / Testimonials Page -->
+    <div id="case-studies" class="page" style="display:none; max-width: 900px; margin: 0 auto;">
+        <div class="page-header">
+            <h1 class="page-title">🌟 Case Studies & Testimonials</h1>
+            <p class="page-subtitle">Real results from real clients. See how Domus delivers value.</p>
+        </div>
+        <div class="grid grid-3" style="gap: 24px;">
+            <div class="panel" style="background: var(--surface); border-left: 4px solid var(--success);">
+                <h3 style="color: var(--success);">Riverside Development</h3>
+                <p style="font-size: 13px; color: var(--muted);">Major residential scheme, Thames Valley</p>
+                <ul style="font-size: 13px; margin: 12px 0 0 0; padding-left: 18px;">
+                    <li>Saved £18,500 in consultant fees</li>
+                    <li>Approved 8 days ahead of schedule</li>
+                    <li>“Domus gave us instant clarity on constraints and policy”</li>
+                </ul>
+            </div>
+            <div class="panel" style="background: var(--surface); border-left: 4px solid var(--primary);">
+                <h3 style="color: var(--primary);">Greenfields Landowners</h3>
+                <p style="font-size: 13px; color: var(--muted);">Habitat offset supplier, Kent</p>
+                <ul style="font-size: 13px; margin: 12px 0 0 0; padding-left: 18px;">
+                    <li>Secured £220,000 in new offset trades</li>
+                    <li>“The platform made listing and compliance effortless”</li>
+                </ul>
+            </div>
+            <div class="panel" style="background: var(--surface); border-left: 4px solid var(--warning);">
+                <h3 style="color: var(--warning);">UrbanEdge Consultants</h3>
+                <p style="font-size: 13px; color: var(--muted);">Planning consultancy, Manchester</p>
+                <ul style="font-size: 13px; margin: 12px 0 0 0; padding-left: 18px;">
+                    <li>Reduced project risk by 32%</li>
+                    <li>“AI-powered Auto-Docs cut our drafting time in half”</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Onboarding Functions
         function startDemoProject() {
@@ -5932,6 +5967,91 @@
     </footer>
 
     <script>
+        // Add navigation for case studies
+        document.addEventListener('DOMContentLoaded', function() {
+            const nav = document.querySelector('.nav-section');
+            if (nav && !document.getElementById('case-studies-nav')) {
+                const btn = document.createElement('button');
+                btn.className = 'nav-item';
+                btn.id = 'case-studies-nav';
+                btn.innerHTML = '<span class="icon">🌟</span> Case Studies';
+                btn.onclick = function() { showPage('case-studies'); };
+                nav.appendChild(btn);
+            }
+        });
+
+        // Footer Policy Links Enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            const footerLinks = document.querySelector('footer p[style*="margin-top"]');
+            if (footerLinks) {
+                footerLinks.innerHTML = `
+                    <a href="#" onclick="showPage('privacy-policy')" style="color: var(--primary); cursor: pointer;" aria-label="Privacy Policy">Privacy Policy</a> • 
+                    <a href="#" onclick="showPage('terms-of-service')" style="color: var(--primary); cursor: pointer;" aria-label="Terms of Service">Terms of Service</a> • 
+                    <a href="#" onclick="showPage('data-compliance')" style="background: var(--primary); color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-weight: bold; cursor: pointer;" aria-label="Data & Compliance">🔒 Data & Compliance</a> • 
+                    <a href="#" onclick="showPage('help-support')" style="color: var(--primary); cursor: pointer;" aria-label="Support Documentation">Support</a> • 
+                    <a href="#" onclick="showPage('help-support')" style="color: var(--primary); cursor: pointer;" aria-label="API Documentation">API Docs</a>
+                `;
+            }
+        });
+
+        // Privacy Policy & Terms Pages
+        // (These are hidden by default, shown via showPage)
+        // Privacy Policy
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!document.getElementById('privacy-policy')) {
+                const div = document.createElement('div');
+                div.id = 'privacy-policy';
+                div.className = 'page';
+                div.style.display = 'none';
+                div.style.maxWidth = '900px';
+                div.style.margin = '0 auto';
+                div.innerHTML = `
+                    <div class="page-header">
+                        <h1 class="page-title">🔒 Privacy Policy</h1>
+                        <p class="page-subtitle">How we protect your data and privacy as an enterprise client.</p>
+                    </div>
+                    <div class="panel" style="background: var(--surface);">
+                        <h3>1. Data Collection & Use</h3>
+                        <p>We collect only the minimum data required to deliver our services. All data is processed in accordance with GDPR and UK data protection law.</p>
+                        <h3>2. Data Security</h3>
+                        <p>All client data is encrypted at rest and in transit. We use SOC 2 Type II certified infrastructure and conduct regular security audits.</p>
+                        <h3>3. Data Sharing</h3>
+                        <p>We never sell or share your data with third parties except as required for legal compliance or with your explicit consent.</p>
+                        <h3>4. Your Rights</h3>
+                        <p>You may request access, correction, or deletion of your data at any time. Contact our DPO at privacy@domus.ai.</p>
+                    </div>
+                `;
+                document.body.appendChild(div);
+            }
+            if (!document.getElementById('terms-of-service')) {
+                const div = document.createElement('div');
+                div.id = 'terms-of-service';
+                div.className = 'page';
+                div.style.display = 'none';
+                div.style.maxWidth = '900px';
+                div.style.margin = '0 auto';
+                div.innerHTML = `
+                    <div class="page-header">
+                        <h1 class="page-title">📜 Terms of Service</h1>
+                        <p class="page-subtitle">The legal terms for using the Domus Planning Platform.</p>
+                    </div>
+                    <div class="panel" style="background: var(--surface);">
+                        <h3>1. Service Scope</h3>
+                        <p>Domus provides planning intelligence, document automation, and marketplace services for professional use only.</p>
+                        <h3>2. User Responsibilities</h3>
+                        <p>Users must provide accurate information and comply with all applicable laws. Use of the platform for unlawful purposes is strictly prohibited.</p>
+                        <h3>3. Fees & Payment</h3>
+                        <p>All fees are clearly stated in the billing section. Payment terms are net 30 days unless otherwise agreed.</p>
+                        <h3>4. Liability & Disclaimers</h3>
+                        <p>AI outputs are advisory only. Domus is not liable for planning outcomes. See full disclaimers in the platform footer.</p>
+                        <h3>5. Termination</h3>
+                        <p>Accounts may be terminated for breach of terms or misuse of the platform. Data will be retained as required by law.</p>
+                    </div>
+                `;
+                document.body.appendChild(div);
+            }
+        });
+
         // Live Marketplace Analytics Updates
         function updateLiveMarketplaceData() {
             // Simulate real-time price fluctuations (within ±2%)
