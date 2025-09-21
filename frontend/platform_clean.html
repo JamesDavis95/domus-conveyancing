@@ -57,6 +57,38 @@
             color: var(--muted);
             margin-top: 4px;
         }
+
+        .role-selector {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 0 24px 24px;
+        }
+
+        .role-selector select {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 8px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .role-indicator {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .role-landowner { background: #10b981; color: white; }
+        .role-developer { background: #3b82f6; color: white; }
+        .role-consultant { background: #f59e0b; color: white; }
         
         .nav-section {
             margin-bottom: 32px;
@@ -403,6 +435,17 @@
                 <h1>🧠 Domus</h1>
                 <p>Planning Intelligence Workspace</p>
             </div>
+
+            <!-- Role-based UX Selector -->
+            <div class="role-selector">
+                <label style="font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px;">Your Role</label>
+                <select id="userRole" onchange="updateRoleBasedUI()" style="margin-bottom: 8px;">
+                    <option value="developer">Developer</option>
+                    <option value="landowner">Landowner</option>
+                    <option value="consultant">Consultant</option>
+                </select>
+                <div id="roleDescription" style="font-size: 11px; color: var(--muted);">Access developer-focused planning tools</div>
+            </div>
             
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
@@ -414,21 +457,24 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Planning Services</div>
-                <button class="nav-item" data-page="planning-analysis" onclick="showPage('planning-analysis')">
+                <button class="nav-item" data-page="planning-analysis" data-roles="developer,consultant" onclick="showPage('planning-analysis')">
                     <span class="icon">🧠</span>
                     Planning AI Analysis
+                    <span class="role-indicator role-developer">DEV</span>
                 </button>
-                <button class="nav-item" data-page="auto-docs" onclick="showPage('auto-docs')">
+                <button class="nav-item" data-page="auto-docs" data-roles="developer,consultant" onclick="showPage('auto-docs')">
                     <span class="icon">�</span>
                     Auto-Docs Generator
+                    <span class="role-indicator role-consultant">CON</span>
                 </button>
-                <button class="nav-item" data-page="property-api" onclick="showPage('property-api')">
+                <button class="nav-item" data-page="property-api" data-roles="developer,landowner,consultant" onclick="showPage('property-api')">
                     <span class="icon">🏠</span>
                     Property Data API
                 </button>
-                <button class="nav-item" data-page="offsets-marketplace" onclick="showPage('offsets-marketplace')">
+                <button class="nav-item" data-page="offsets-marketplace" data-roles="landowner,developer" onclick="showPage('offsets-marketplace')">
                     <span class="icon">🌱</span>
                     Offsets Marketplace
+                    <span class="role-indicator role-landowner">LAND</span>
                 </button>
             </div>
 
@@ -438,25 +484,45 @@
                     <span class="icon">�</span>
                     Supply Listings
                 </button>
-                <button class="nav-item" data-page="offsets-demand" onclick="showPage('offsets-demand')">
+                <button class="nav-item" data-page="offsets-demand" data-roles="developer" onclick="showPage('offsets-demand')">
                     <span class="icon">🏗️</span>
                     Demand Listings
+                    <span class="role-indicator role-developer">DEV</span>
                 </button>
-                <button class="nav-item" data-page="offsets-matching" onclick="showPage('offsets-matching')">
+                <button class="nav-item" data-page="offsets-matching" data-roles="developer,landowner" onclick="showPage('offsets-matching')">
                     <span class="icon">🤖</span>
                     AI Matching
                 </button>
-                <button class="nav-item" data-page="contracts-payments" onclick="showPage('contracts-payments')">
+                <button class="nav-item" data-page="contracts-payments" data-roles="developer,landowner,consultant" onclick="showPage('contracts-payments')">
                     <span class="icon">💰</span>
                     Contracts & Payments
                 </button>
             </div>
 
             <div class="nav-section">
+                <div class="nav-section-title">Team Collaboration</div>
+                <button class="nav-item" data-page="team-workspace" data-roles="developer,consultant" onclick="showPage('team-workspace')">
+                    <span class="icon">👥</span>
+                    Team Workspace
+                    <span class="role-indicator role-consultant">TEAM</span>
+                </button>
+                <button class="nav-item" data-page="project-sharing" data-roles="developer,landowner,consultant" onclick="showPage('project-sharing')">
+                    <span class="icon">🔗</span>
+                    Project Sharing
+                </button>
+                <button class="nav-item" data-page="activity-feed" data-roles="developer,consultant" onclick="showPage('activity-feed')">
+                    <span class="icon">📱</span>
+                    Activity Feed
+                    <span style="background: var(--primary); color: white; border-radius: 12px; padding: 2px 6px; font-size: 10px; margin-left: 8px;">Live</span>
+                </button>
+            </div>
+
+            <div class="nav-section">
                 <div class="nav-section-title">Analytics & Insights</div>
-                <button class="nav-item" data-page="planning-trends" onclick="showPage('planning-trends')">
+                <button class="nav-item" data-page="planning-trends" data-roles="consultant,developer" onclick="showPage('planning-trends')">
                     <span class="icon">�</span>
                     Planning Trends
+                    <span class="role-indicator role-consultant">CON</span>
                 </button>
                 <button class="nav-item" data-page="offsets-reports" onclick="showPage('offsets-reports')">
                     <span class="icon">🌿</span>
@@ -845,6 +911,144 @@
                             <p style="color: var(--muted); margin: 12px 0;">Professional D&A statements with accessibility integration, design rationale, and strategic policy alignment</p>
                             <button class="btn">Generate D&A Statement</button>
                             <button class="btn outline" style="margin-left: 8px;">View Sample</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Bundles System -->
+                <div class="panel" style="margin-top: 24px; border: 1px solid var(--primary); background: rgba(59, 130, 246, 0.05);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 24px; margin-right: 12px;">📦</span>
+                            <div>
+                                <h2 style="margin: 0; color: var(--primary);">Planning Submission Bundles</h2>
+                                <p style="color: var(--muted); font-size: 14px; margin: 4px 0 0 0;">One-click ZIP packages ready for planning portal submission</p>
+                            </div>
+                        </div>
+                        <button class="btn primary" onclick="createSubmissionBundle()" style="padding: 8px 16px;">
+                            <span style="margin-right: 8px;">📦</span>Create Bundle
+                        </button>
+                    </div>
+
+                    <div class="grid grid-3" style="gap: 16px; margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <span style="font-size: 24px; margin-bottom: 8px; display: block;">🎯</span>
+                            <h4>Full Application Bundle</h4>
+                            <p style="color: var(--muted); font-size: 12px;">Complete package with all required documents, analysis, and forms</p>
+                        </div>
+                        <div class="stat-card">
+                            <span style="font-size: 24px; margin-bottom: 8px; display: block;">📋</span>
+                            <h4>Supporting Documents</h4>
+                            <p style="color: var(--muted); font-size: 12px;">AI analysis, design statements, and compliance reports</p>
+                        </div>
+                        <div class="stat-card">
+                            <span style="font-size: 24px; margin-bottom: 8px; display: block;">💼</span>
+                            <h4>Client Presentation</h4>
+                            <p style="color: var(--muted); font-size: 12px;">Professional package for client meetings and stakeholder reviews</p>
+                        </div>
+                    </div>
+
+                    <!-- Recent Export Bundles -->
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                        <h4 style="margin-bottom: 12px;">📁 Recent Export Bundles</h4>
+                        
+                        <div style="background: var(--panel); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <h5 style="margin: 0; font-size: 14px;">Surrey Office Development - Full Submission</h5>
+                                    <p style="color: var(--muted); font-size: 12px; margin: 4px 0;">Generated 2 hours ago • 47.3 MB • 23 documents</p>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn outline" style="font-size: 12px; padding: 4px 8px;">📥 Download</button>
+                                    <button class="btn outline" style="font-size: 12px; padding: 4px 8px;">🔗 Share</button>
+                                </div>
+                            </div>
+                            <div style="font-size: 11px; color: var(--muted);">
+                                <strong>Contents:</strong> Planning analysis report, Design & Access Statement, Heritage assessment, Viability appraisal, 
+                                Application forms, Site plans, Elevation drawings, Supporting calculations, Policy compliance checklist
+                            </div>
+                        </div>
+
+                        <div style="background: var(--panel); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <h5 style="margin: 0; font-size: 14px;">Camden Heritage Conversion - Supporting Docs</h5>
+                                    <p style="color: var(--muted); font-size: 12px; margin: 4px 0;">Generated 1 day ago • 18.7 MB • 12 documents</p>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn outline" style="font-size: 12px; padding: 4px 8px;">📥 Download</button>
+                                    <button class="btn outline" style="font-size: 12px; padding: 4px 8px;">🔗 Share</button>
+                                </div>
+                            </div>
+                            <div style="font-size: 11px; color: var(--muted);">
+                                <strong>Contents:</strong> Heritage impact assessment, Conservation area appraisal, Listed building analysis, 
+                                Material specifications, Structural survey, Archaeological desk study
+                            </div>
+                        </div>
+
+                        <div style="background: var(--panel); border-radius: 6px; padding: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                <div>
+                                    <h5 style="margin: 0; font-size: 14px;">Manchester Residential - Client Package</h5>
+                                    <p style="color: var(--muted); font-size: 12px; margin: 4px 0;">Generated 3 days ago • 31.2 MB • 18 documents</p>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn outline" style="font-size: 12px; padding: 4px 8px;">📥 Download</button>
+                                    <button class="btn outline" style="font-size: 12px; padding: 4px 8px;">🔗 Share</button>
+                                </div>
+                            </div>
+                            <div style="font-size: 11px; color: var(--muted);">
+                                <strong>Contents:</strong> Executive summary, Planning strategy presentation, Market analysis, 
+                                Financial projections, Risk assessment, Timeline and milestones
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bundle Configuration -->
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px; margin-top: 16px;">
+                        <h4 style="margin-bottom: 12px;">⚙️ Bundle Configuration</h4>
+                        <div class="grid grid-2" style="gap: 16px;">
+                            <div>
+                                <h5 style="font-size: 14px; margin-bottom: 8px;">📄 Document Selection</h5>
+                                <div style="font-size: 12px; color: var(--muted); line-height: 1.6;">
+                                    <label style="display: flex; align-items: center; margin-bottom: 4px;">
+                                        <input type="checkbox" checked style="margin-right: 8px;"> Planning AI Analysis Report
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin-bottom: 4px;">
+                                        <input type="checkbox" checked style="margin-right: 8px;"> Design & Access Statement
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin-bottom: 4px;">
+                                        <input type="checkbox" checked style="margin-right: 8px;"> Supporting Calculations
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin-bottom: 4px;">
+                                        <input type="checkbox" style="margin-right: 8px;"> Heritage Assessment
+                                    </label>
+                                    <label style="display: flex; align-items: center;">
+                                        <input type="checkbox" style="margin-right: 8px;"> Viability Appraisal
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <h5 style="font-size: 14px; margin-bottom: 8px;">🎯 Bundle Type</h5>
+                                <select style="width: 100%; padding: 8px; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; color: var(--text); margin-bottom: 12px;">
+                                    <option>Planning Portal Submission</option>
+                                    <option>Client Presentation Package</option>
+                                    <option>Internal Review Bundle</option>
+                                    <option>Stakeholder Consultation</option>
+                                </select>
+                                <h5 style="font-size: 14px; margin-bottom: 8px;">📋 Format Options</h5>
+                                <div style="font-size: 12px; color: var(--muted);">
+                                    <label style="display: flex; align-items: center; margin-bottom: 4px;">
+                                        <input type="radio" name="format" checked style="margin-right: 8px;"> Combined ZIP archive
+                                    </label>
+                                    <label style="display: flex; align-items: center; margin-bottom: 4px;">
+                                        <input type="radio" name="format" style="margin-right: 8px;"> Individual PDFs
+                                    </label>
+                                    <label style="display: flex; align-items: center;">
+                                        <input type="radio" name="format" style="margin-right: 8px;"> Structured folders
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1564,13 +1768,19 @@
                             </div>
                         </div>
                         
-                        <!-- AI Confidence & Transparency -->
+                        <!-- Enhanced AI Confidence & Transparency -->
                         <div class="panel" style="margin-top: 24px; border: 1px solid var(--warning); background: rgba(251, 191, 36, 0.05);">
                             <div style="display: flex; align-items: center; margin-bottom: 16px;">
-                                <span style="font-size: 24px; margin-right: 12px;">⚠️</span>
-                                <div>
-                                    <h3 style="color: var(--warning); margin: 0;">AI Analysis Disclaimer</h3>
-                                    <p style="color: var(--muted); font-size: 14px; margin: 4px 0 0 0;">Important information about this prediction</p>
+                                <span style="font-size: 24px; margin-right: 12px;">🔒</span>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <h3 style="color: var(--warning); margin: 0;">Trust & Transparency</h3>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="background: var(--success); padding: 4px 8px; border-radius: 12px; font-size: 10px; color: white; font-weight: 600;">94% ACCURATE</div>
+                                            <div style="background: var(--primary); padding: 4px 8px; border-radius: 12px; font-size: 10px; color: white; font-weight: 600;">HIGH CONFIDENCE</div>
+                                        </div>
+                                    </div>
+                                    <p style="color: var(--muted); font-size: 14px; margin: 4px 0 0 0;">Comprehensive analysis quality metrics and data transparency</p>
                                 </div>
                             </div>
                             
@@ -1602,32 +1812,68 @@
                             </div>
                         </div>
 
-                        <!-- Audit Trail -->
+                        <!-- Enhanced Audit Trail -->
                         <div class="panel" style="margin-top: 16px; background: var(--surface);">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                                <h3 style="font-size: 16px; margin: 0;">🕒 Analysis Audit Trail</h3>
-                                <button class="btn outline" style="font-size: 12px; padding: 6px 12px;" onclick="exportAuditTrail()">Export Report</button>
+                                <h3 style="font-size: 16px; margin: 0;">� Complete Audit Trail</h3>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn outline" style="font-size: 12px; padding: 6px 12px;" onclick="downloadAuditPDF()">📄 Download PDF</button>
+                                    <button class="btn primary" style="font-size: 12px; padding: 6px 12px;" onclick="shareAuditTrail()">🔗 Share Analysis</button>
+                                </div>
                             </div>
-                            <div style="font-size: 12px; color: var(--muted); line-height: 1.8;">
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-                                    <span>Analysis requested by:</span>
-                                    <span style="color: var(--text);">james.davis@example.com</span>
+                            
+                            <div style="background: var(--panel); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                                <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--primary);">📋 Analysis Metadata</h4>
+                                <div style="font-size: 12px; color: var(--muted); line-height: 1.6;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                        <div>Analyst: <span style="color: var(--text);">James Davis (Licensed)</span></div>
+                                        <div>Timestamp: <span style="color: var(--text);">2025-09-21 14:32:18 UTC</span></div>
+                                        <div>Model: <span style="color: var(--text);">PlanningAI-v2.4.1 (Certified)</span></div>
+                                        <div>Processing: <span style="color: var(--text);">2.34s • 847 data points</span></div>
+                                        <div>Session: <span style="color: var(--text); font-family: monospace;">PA-2025092114-7A3B</span></div>
+                                        <div>Compliance: <span style="color: var(--success);">ISO 27001 ✓</span></div>
+                                    </div>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-                                    <span>Timestamp:</span>
-                                    <span style="color: var(--text);">2025-09-21 14:32:18 UTC</span>
+                            </div>
+
+                            <div style="background: var(--panel); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+                                <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--success);">🔍 Data Processing Steps</h4>
+                                <div style="font-size: 11px; color: var(--muted); line-height: 1.8;">
+                                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border);">
+                                        <span>• Address geocoding & property identification</span>
+                                        <span style="color: var(--success);">✓ 0.12s</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border);">
+                                        <span>• Planning history & constraints analysis</span>
+                                        <span style="color: var(--success);">✓ 0.89s</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border);">
+                                        <span>• Heritage & conservation area assessment</span>
+                                        <span style="color: var(--success);">✓ 0.45s</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border);">
+                                        <span>• Policy compliance & risk modeling</span>
+                                        <span style="color: var(--success);">✓ 0.67s</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                                        <span>• Probability calculation & report generation</span>
+                                        <span style="color: var(--success);">✓ 0.21s</span>
+                                    </div>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-                                    <span>Model version:</span>
-                                    <span style="color: var(--text);">PlanningAI-v2.4.1</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
-                                    <span>Processing time:</span>
-                                    <span style="color: var(--text);">2.34 seconds</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-                                    <span>Session ID:</span>
-                                    <span style="color: var(--text); font-family: monospace;">PA-2025092114-7A3B</span>
+                            </div>
+
+                            <div style="background: var(--panel); border-radius: 6px; padding: 12px;">
+                                <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--warning);">⚖️ Legal & Compliance</h4>
+                                <div style="font-size: 11px; color: var(--muted); line-height: 1.6;">
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>Data Protection:</strong> GDPR compliant • Data encrypted in transit and at rest • 30-day retention policy
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <strong>Professional Indemnity:</strong> Analysis covered under £2M PI insurance (Policy: PI-2025-DOC-001)
+                                    </div>
+                                    <div>
+                                        <strong>Liability Notice:</strong> AI analysis for guidance only • Professional planning advice recommended • Terms of service apply
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2404,6 +2650,272 @@
                 </div>
             </div>
 
+            <!-- Team Workspace Page -->
+            <div id="team-workspace" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">👥 Team Workspace</h1>
+                    <p class="page-subtitle">Collaborate with teammates on planning projects and share insights</p>
+                </div>
+
+                <!-- Invite Team Members -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 16px;">
+                        <h2>👋 Invite Teammates</h2>
+                        <button class="btn primary" onclick="showInviteModal()">
+                            <span style="margin-right: 8px;">➕</span>Invite Member
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-3" style="margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <span style="font-size: 24px; margin-bottom: 8px; display: block;">🎯</span>
+                            <h4>Planning Consultants</h4>
+                            <p style="color: var(--muted); font-size: 12px;">Share analysis and collaborate on applications</p>
+                        </div>
+                        <div class="stat-card">
+                            <span style="font-size: 24px; margin-bottom: 8px; display: block;">🏗️</span>
+                            <h4>Development Partners</h4>
+                            <p style="color: var(--muted); font-size: 12px;">Joint ventures and shared project ownership</p>
+                        </div>
+                        <div class="stat-card">
+                            <span style="font-size: 24px; margin-bottom: 8px; display: block;">📋</span>
+                            <h4>Legal & Compliance</h4>
+                            <p style="color: var(--muted); font-size: 12px;">Review documents and ensure compliance</p>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                        <h4 style="margin-bottom: 12px;">Quick Invite</h4>
+                        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                            <input type="email" placeholder="colleague@company.com" style="flex: 1; padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; color: var(--text);">
+                            <select style="padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; color: var(--text);">
+                                <option>Viewer</option>
+                                <option>Collaborator</option>
+                                <option>Admin</option>
+                            </select>
+                            <button class="btn primary">Send Invite</button>
+                        </div>
+                        <p style="color: var(--muted); font-size: 12px;">Invite link valid for 7 days. They'll need to create an account to join your workspace.</p>
+                    </div>
+                </div>
+
+                <!-- Current Team Members -->
+                <div class="panel">
+                    <h2>👤 Current Team (4 members)</h2>
+                    
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin-right: 12px;">JD</div>
+                                <div>
+                                    <h4>James Davis</h4>
+                                    <p style="color: var(--muted); font-size: 12px;">james@domus.com • Owner • Online now</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px;">ADMIN</span>
+                                <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="width: 40px; height: 40px; background: var(--warning); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin-right: 12px;">SR</div>
+                                <div>
+                                    <h4>Sarah Roberts</h4>
+                                    <p style="color: var(--muted); font-size: 12px;">sarah@planningconsult.co.uk • Collaborator • Active 2h ago</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px;">CONSULTANT</span>
+                                <span style="width: 8px; height: 8px; background: var(--warning); border-radius: 50%;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="width: 40px; height: 40px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin-right: 12px;">MK</div>
+                                <div>
+                                    <h4>Michael Kim</h4>
+                                    <p style="color: var(--muted); font-size: 12px;">m.kim@devpartners.com • Collaborator • Active 1d ago</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px;">DEVELOPER</span>
+                                <span style="width: 8px; height: 8px; background: var(--muted); border-radius: 50%;"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Sharing Page -->
+            <div id="project-sharing" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🔗 Project Sharing</h1>
+                    <p class="page-subtitle">Share analysis, reports, and collaborate on planning applications</p>
+                </div>
+
+                <!-- Shared Projects -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 16px;">
+                        <h2>📁 Shared Projects</h2>
+                        <button class="btn outline" onclick="createSharedProject()">
+                            <span style="margin-right: 8px;">🆕</span>New Shared Project
+                        </button>
+                    </div>
+
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <h4>Surrey Office Development - Phase 2</h4>
+                                <p style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Mixed-use development with 120 units + retail space</p>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: var(--success); color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">ACTIVE</span>
+                                    <span style="color: var(--muted); font-size: 11px;">3 collaborators • Last updated 2h ago</span>
+                                </div>
+                            </div>
+                            <button class="btn primary" style="padding: 6px 12px; font-size: 12px;">Open Project</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: -4px; margin-bottom: 8px;">
+                            <div style="width: 24px; height: 24px; background: var(--primary); border-radius: 50%; border: 2px solid var(--surface); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">JD</div>
+                            <div style="width: 24px; height: 24px; background: var(--warning); border-radius: 50%; border: 2px solid var(--surface); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; margin-left: -4px;">SR</div>
+                            <div style="width: 24px; height: 24px; background: var(--success); border-radius: 50%; border: 2px solid var(--surface); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; margin-left: -4px;">MK</div>
+                        </div>
+                        <div style="background: var(--panel); border-radius: 4px; padding: 8px; font-size: 12px;">
+                            <strong>Recent Activity:</strong> Sarah added design statement draft • Michael updated viability analysis • 2 new comments
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <h4>Camden Heritage Assessment</h4>
+                                <p style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Listed building consent for boutique hotel conversion</p>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: var(--warning); color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">PENDING REVIEW</span>
+                                    <span style="color: var(--muted); font-size: 11px;">2 collaborators • Last updated 1d ago</span>
+                                </div>
+                            </div>
+                            <button class="btn outline" style="padding: 6px 12px; font-size: 12px;">View Project</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: -4px; margin-bottom: 8px;">
+                            <div style="width: 24px; height: 24px; background: var(--primary); border-radius: 50%; border: 2px solid var(--surface); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600;">JD</div>
+                            <div style="width: 24px; height: 24px; background: var(--warning); border-radius: 50%; border: 2px solid var(--surface); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; margin-left: -4px;">SR</div>
+                        </div>
+                        <div style="background: var(--panel); border-radius: 4px; padding: 8px; font-size: 12px;">
+                            <strong>Status:</strong> Awaiting heritage consultant review of archaeological findings and conservation officer feedback
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Share Options -->
+                <div class="panel">
+                    <h2>⚡ Quick Share</h2>
+                    <div class="grid grid-2" style="gap: 16px;">
+                        <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                            <h4 style="margin-bottom: 12px;">🎯 Share Analysis Results</h4>
+                            <p style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">Share planning AI analysis and recommendations with team members</p>
+                            <button class="btn outline" style="width: 100%; font-size: 12px;">Select Analysis to Share</button>
+                        </div>
+                        <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                            <h4 style="margin-bottom: 12px;">📋 Share Generated Documents</h4>
+                            <p style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">Share auto-generated planning documents and design statements</p>
+                            <button class="btn outline" style="width: 100%; font-size: 12px;">Select Documents</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed Page -->
+            <div id="activity-feed" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📱 Activity Feed</h1>
+                    <p class="page-subtitle">Real-time updates from your team and collaborative projects</p>
+                </div>
+
+                <!-- Live Activity Stream -->
+                <div class="panel">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 16px;">
+                        <h2>⚡ Live Activity</h2>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite;"></span>
+                            <span style="color: var(--success); font-size: 12px; font-weight: 600;">LIVE</span>
+                        </div>
+                    </div>
+
+                    <!-- Activity Items -->
+                    <div style="border-left: 2px solid var(--border); padding-left: 16px;">
+                        <div style="position: relative; margin-bottom: 24px;">
+                            <div style="position: absolute; left: -21px; width: 12px; height: 12px; background: var(--success); border-radius: 50%; border: 2px solid var(--bg);"></div>
+                            <div style="background: var(--surface); border-radius: 8px; padding: 12px;">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 8px;">
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="width: 24px; height: 24px; background: var(--warning); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; margin-right: 8px;">SR</div>
+                                        <span><strong>Sarah Roberts</strong> updated design statement</span>
+                                    </div>
+                                    <span style="color: var(--muted); font-size: 11px;">2 minutes ago</span>
+                                </div>
+                                <p style="color: var(--muted); font-size: 12px;">Added architectural heritage assessment section to Surrey Office Development project</p>
+                            </div>
+                        </div>
+
+                        <div style="position: relative; margin-bottom: 24px;">
+                            <div style="position: absolute; left: -21px; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; border: 2px solid var(--bg);"></div>
+                            <div style="background: var(--surface); border-radius: 8px; padding: 12px;">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 8px;">
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="width: 24px; height: 24px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; margin-right: 8px;">MK</div>
+                                        <span><strong>Michael Kim</strong> completed viability analysis</span>
+                                    </div>
+                                    <span style="color: var(--muted); font-size: 11px;">15 minutes ago</span>
+                                </div>
+                                <p style="color: var(--muted); font-size: 12px;">Financial viability study shows 18% IRR with current planning assumptions</p>
+                                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                    <button class="btn outline" style="font-size: 10px; padding: 4px 8px;">View Analysis</button>
+                                    <button class="btn outline" style="font-size: 10px; padding: 4px 8px;">Add Comment</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="position: relative; margin-bottom: 24px;">
+                            <div style="position: absolute; left: -21px; width: 12px; height: 12px; background: var(--warning); border-radius: 50%; border: 2px solid var(--bg);"></div>
+                            <div style="background: var(--surface); border-radius: 8px; padding: 12px;">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 8px;">
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="width: 24px; height: 24px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; margin-right: 8px;">🤖</div>
+                                        <span><strong>Domus AI</strong> generated planning report</span>
+                                    </div>
+                                    <span style="color: var(--muted); font-size: 11px;">1 hour ago</span>
+                                </div>
+                                <p style="color: var(--muted); font-size: 12px;">Automated compliance check completed for Camden Heritage project - 2 recommendations generated</p>
+                                <div style="background: var(--panel); border-radius: 4px; padding: 8px; font-size: 11px; margin-top: 8px;">
+                                    <strong>AI Confidence:</strong> 87% • <strong>Recommendations:</strong> Heritage impact statement required
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="position: relative;">
+                            <div style="position: absolute; left: -21px; width: 12px; height: 12px; background: var(--muted); border-radius: 50%; border: 2px solid var(--bg);"></div>
+                            <div style="background: var(--surface); border-radius: 8px; padding: 12px;">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 8px;">
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="width: 24px; height: 24px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; margin-right: 8px;">JD</div>
+                                        <span><strong>You</strong> created new project</span>
+                                    </div>
+                                    <span style="color: var(--muted); font-size: 11px;">3 hours ago</span>
+                                </div>
+                                <p style="color: var(--muted); font-size: 12px;">Created "Surrey Office Development - Phase 2" and invited Sarah Roberts and Michael Kim</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Billing & Subscriptions Page -->
             <div id="billing-subscriptions" class="page">
                 <div class="page-header">
@@ -3144,9 +3656,21 @@
                     </div>
                 </div>
 
-                <!-- Market Analytics Dashboard -->
+                <!-- Enhanced Market Analytics Dashboard -->
                 <div class="panel" style="margin-bottom: 24px; border: 1px solid var(--primary); background: rgba(59, 130, 246, 0.05);">
-                    <h2>📊 Live Market Intelligence</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2>📊 Market Intelligence & Analytics</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <select style="padding: 4px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px;">
+                                <option>Last 30 Days</option>
+                                <option>Last Quarter</option>
+                                <option>Last Year</option>
+                                <option>All Time</option>
+                            </select>
+                            <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">📈 Export Report</button>
+                        </div>
+                    </div>
+
                     <div class="grid grid-4" style="margin: 16px 0;">
                         <div class="stat-card">
                             <div class="stat-value success">£52.40</div>
@@ -3170,21 +3694,109 @@
                         </div>
                     </div>
                     
-                    <!-- Real-time Market Trends -->
+                    <!-- Interactive Market Charts -->
+                    <div class="grid grid-2" style="gap: 16px; margin: 16px 0;">
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px;">
+                            <h4 style="font-size: 14px; margin-bottom: 12px; display: flex; align-items: center;">
+                                📈 Unit Pricing Trends
+                                <span style="margin-left: auto; font-size: 10px; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 4px;">+12% YoY</span>
+                            </h4>
+                            <div style="height: 120px; background: var(--panel); border-radius: 4px; position: relative; overflow: hidden;">
+                                <!-- Simulated chart with CSS -->
+                                <svg width="100%" height="100%" style="position: absolute;">
+                                    <polyline points="0,100 50,85 100,90 150,75 200,80 250,65 300,70" stroke="var(--success)" stroke-width="2" fill="none"/>
+                                    <polyline points="0,110 50,95 100,100 150,85 200,90 250,75 300,80" stroke="var(--primary)" stroke-width="2" fill="none"/>
+                                    <polyline points="0,120 50,105 100,110 150,95 200,100 250,85 300,90" stroke="var(--warning)" stroke-width="2" fill="none"/>
+                                </svg>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 8px;">
+                                <div style="display: flex; align-items: center;"><span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; margin-right: 4px;"></span>Woodland</div>
+                                <div style="display: flex; align-items: center;"><span style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; margin-right: 4px;"></span>Grassland</div>
+                                <div style="display: flex; align-items: center;"><span style="width: 8px; height: 8px; background: var(--warning); border-radius: 50%; margin-right: 4px;"></span>Wetland</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px;">
+                            <h4 style="font-size: 14px; margin-bottom: 12px; display: flex; align-items: center;">
+                                ⚖️ Supply vs Demand
+                                <span style="margin-left: auto; font-size: 10px; color: var(--warning); background: rgba(251, 191, 36, 0.1); padding: 2px 6px; border-radius: 4px;">Tight Market</span>
+                            </h4>
+                            <div style="height: 120px; background: var(--panel); border-radius: 4px; display: flex; align-items: end; padding: 8px; gap: 4px;">
+                                <!-- Supply bars -->
+                                <div style="background: var(--success); width: 20px; height: 70%; border-radius: 2px 2px 0 0;" title="Supply: 70%"></div>
+                                <div style="background: var(--success); width: 20px; height: 85%; border-radius: 2px 2px 0 0;"></div>
+                                <div style="background: var(--success); width: 20px; height: 60%; border-radius: 2px 2px 0 0;"></div>
+                                <div style="background: var(--success); width: 20px; height: 75%; border-radius: 2px 2px 0 0;"></div>
+                                <!-- Demand bars -->
+                                <div style="background: var(--primary); width: 20px; height: 90%; border-radius: 2px 2px 0 0;" title="Demand: 90%"></div>
+                                <div style="background: var(--primary); width: 20px; height: 95%; border-radius: 2px 2px 0 0;"></div>
+                                <div style="background: var(--primary); width: 20px; height: 100%; border-radius: 2px 2px 0 0;"></div>
+                                <div style="background: var(--primary); width: 20px; height: 88%; border-radius: 2px 2px 0 0;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 8px;">
+                                <div style="display: flex; align-items: center;"><span style="width: 8px; height: 8px; background: var(--success); border-radius: 2px; margin-right: 4px;"></span>Supply Available</div>
+                                <div style="display: flex; align-items: center;"><span style="width: 8px; height: 8px; background: var(--primary); border-radius: 2px; margin-right: 4px;"></span>Market Demand</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regional Market Breakdown -->
                     <div style="background: var(--surface); padding: 16px; border-radius: 6px; margin-top: 16px;">
-                        <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--primary);">🎯 Market Trends (Last 30 Days)</h3>
+                        <h4 style="font-size: 14px; margin-bottom: 12px;">🗺️ Regional Market Analysis</h4>
+                        <div class="grid grid-4" style="gap: 12px; font-size: 12px;">
+                            <div style="background: var(--panel); padding: 12px; border-radius: 4px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <strong style="color: var(--text);">South East</strong>
+                                    <span style="background: var(--success); color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px;">HOT</span>
+                                </div>
+                                <div style="color: var(--muted); margin-bottom: 4px;">Avg: £65.20/unit</div>
+                                <div style="color: var(--success); font-size: 10px;">↗️ +15.2% vs national avg</div>
+                            </div>
+                            <div style="background: var(--panel); padding: 12px; border-radius: 4px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <strong style="color: var(--text);">South West</strong>
+                                    <span style="background: var(--primary); color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px;">STABLE</span>
+                                </div>
+                                <div style="color: var(--muted); margin-bottom: 4px;">Avg: £47.80/unit</div>
+                                <div style="color: var(--warning); font-size: 10px;">→ -2.1% vs national avg</div>
+                            </div>
+                            <div style="background: var(--panel); padding: 12px; border-radius: 4px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <strong style="color: var(--text);">North West</strong>
+                                    <span style="background: var(--warning); color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px;">OPPORTUNITY</span>
+                                </div>
+                                <div style="color: var(--muted); margin-bottom: 4px;">Avg: £38.60/unit</div>
+                                <div style="color: var(--danger); font-size: 10px;">↘️ -26.3% vs national avg</div>
+                            </div>
+                            <div style="background: var(--panel); padding: 12px; border-radius: 4px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <strong style="color: var(--text);">Scotland</strong>
+                                    <span style="background: var(--success); color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px;">EMERGING</span>
+                                </div>
+                                <div style="color: var(--muted); margin-bottom: 4px;">Avg: £42.10/unit</div>
+                                <div style="color: var(--success); font-size: 10px;">↗️ +28% growth rate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Market Intelligence Insights -->
+                    <div style="background: var(--surface); padding: 16px; border-radius: 6px; margin-top: 16px;">
+                        <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--primary);">🧠 AI Market Insights (Last 30 Days)</h3>
                         <div class="grid grid-3" style="gap: 16px; font-size: 12px;">
                             <div>
-                                <strong style="color: var(--success);">🔥 High Demand:</strong>
-                                <div style="color: var(--muted); margin-top: 4px;">Woodland units in Surrey, Kent, Essex. Premium pricing expected.</div>
+                                <strong style="color: var(--success);">🔥 High Demand Sectors:</strong>
+                                <div style="color: var(--muted); margin-top: 4px;">Ancient woodland units in Surrey, Kent, Essex commanding 40% premium. Limited supply creating seller's market.</div>
+                                <div style="margin-top: 8px; font-size: 10px; color: var(--success);">📊 Expected ROI: 18-25%</div>
                             </div>
                             <div>
-                                <strong style="color: var(--warning);">⚖️ Balanced Market:</strong>
-                                <div style="color: var(--muted); margin-top: 4px;">Grassland and scrubland units. Stable pricing across regions.</div>
+                                <strong style="color: var(--warning);">⚖️ Balanced Market Opportunities:</strong>
+                                <div style="color: var(--muted); margin-top: 4px;">Species-rich grassland and traditional orchards showing stable pricing. Good entry point for new suppliers.</div>
+                                <div style="margin-top: 8px; font-size: 10px; color: var(--primary);">📊 Expected ROI: 12-16%</div>
                             </div>
                             <div>
-                                <strong style="color: var(--primary);">📈 Emerging Opportunity:</strong>
-                                <div style="color: var(--muted); margin-top: 4px;">Marine habitats gaining traction. Early adopter advantage.</div>
+                                <strong style="color: var(--primary);">📈 Emerging Trends:</strong>
+                                <div style="color: var(--muted); margin-top: 4px;">Marine and coastal habitats gaining significant traction. Early positioning advantage for coastal landowners.</div>
+                                <div style="margin-top: 8px; font-size: 10px; color: var(--warning);">📊 Expected ROI: 22-35%</div>
                             </div>
                         </div>
                     </div>
@@ -3266,6 +3878,66 @@
                                 <li>• Legal compliance guarantee</li>
                                 <li>• Professional indemnity cover</li>
                             </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Competitive Landscape & Market Intelligence -->
+                <div class="panel" style="margin-bottom: 24px; border: 1px solid var(--warning); background: rgba(251, 191, 36, 0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h2>🏆 Competitive Market Intelligence</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <span style="background: var(--success); color: white; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">MARKET LEADER</span>
+                            <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">📊 Download Market Report</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-3" style="gap: 16px; margin-bottom: 16px;">
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px;">
+                            <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--primary);">🚀 Platform Performance vs Competition</h4>
+                            <div style="font-size: 12px; line-height: 1.8; color: var(--muted);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>Market Share:</span>
+                                    <span style="color: var(--success); font-weight: 600;">47.3% (#1)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>Avg. Match Time:</span>
+                                    <span style="color: var(--primary); font-weight: 600;">14 days (60% faster)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>Success Rate:</span>
+                                    <span style="color: var(--success); font-weight: 600;">94.2% (industry leading)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Commission:</span>
+                                    <span style="color: var(--success); font-weight: 600;">2.5% (lowest)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px;">
+                            <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--warning);">📊 Market Intelligence</h4>
+                            <div style="font-size: 11px; color: var(--muted); line-height: 1.6;">
+                                <div style="margin-bottom: 8px;">📈 <strong>Growth Trajectory:</strong> 300% YoY transaction volume</div>
+                                <div style="margin-bottom: 8px;">🎯 <strong>Market Size:</strong> £15M projected 2025 GMV</div>
+                                <div style="margin-bottom: 8px;">🏆 <strong>Competitive Moat:</strong> AI matching algorithms</div>
+                                <div style="margin-bottom: 8px;">🔒 <strong>Regulatory Edge:</strong> Pre-approved by EA & DEFRA</div>
+                                <div>💼 <strong>Enterprise Clients:</strong> 67% of UK top developers</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--surface); padding: 16px; border-radius: 8px;">
+                            <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--primary);">🎯 Investment Outlook</h4>
+                            <div style="background: var(--panel); padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                                <div style="font-size: 12px; color: var(--success); font-weight: 600; margin-bottom: 4px;">High Value Opportunities</div>
+                                <div style="font-size: 10px; color: var(--muted);">Ancient woodland (SE): £85-120/unit</div>
+                                <div style="font-size: 10px; color: var(--muted);">Marine habitats: £95-140/unit</div>
+                            </div>
+                            <div style="background: var(--panel); padding: 8px; border-radius: 4px;">
+                                <div style="font-size: 12px; color: var(--warning); font-weight: 600; margin-bottom: 4px;">Emerging Markets</div>
+                                <div style="font-size: 10px; color: var(--muted);">Carbon credit integration (2026)</div>
+                                <div style="font-size: 10px; color: var(--muted);">International expansion potential</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3400,6 +4072,60 @@
         }
         
         // Role-based UI customization
+        function updateRoleBasedUI() {
+            const selectedRole = document.getElementById('userRole').value;
+            const descriptions = {
+                'landowner': 'Focus on land asset optimization and offset opportunities',
+                'developer': 'Access developer-focused planning tools and analysis',
+                'consultant': 'Professional consulting toolkit and client collaboration'
+            };
+            
+            // Update role description
+            document.getElementById('roleDescription').textContent = descriptions[selectedRole];
+            
+            // Show/hide navigation items based on role
+            document.querySelectorAll('.nav-item[data-roles]').forEach(item => {
+                const itemRoles = item.getAttribute('data-roles').split(',');
+                if (itemRoles.includes(selectedRole)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Update dashboard content for role
+            updateDashboardForRole(selectedRole);
+        }
+        
+        function updateDashboardForRole(role) {
+            const dashboardTitle = document.querySelector('#dashboard .page-title');
+            const dashboardSubtitle = document.querySelector('#dashboard .page-subtitle');
+            
+            const roleConfigs = {
+                'landowner': {
+                    title: 'Landowner Dashboard',
+                    subtitle: 'Maximize your land asset value with planning intelligence and offset opportunities'
+                },
+                'developer': {
+                    title: 'Developer Dashboard', 
+                    subtitle: 'Streamline planning applications and development workflows with AI-powered insights'
+                },
+                'consultant': {
+                    title: 'Consultant Dashboard',
+                    subtitle: 'Professional planning consultancy toolkit with client collaboration features'
+                }
+            };
+            
+            if (dashboardTitle && dashboardSubtitle) {
+                dashboardTitle.textContent = roleConfigs[role].title;
+                dashboardSubtitle.textContent = roleConfigs[role].subtitle;
+            }
+        }
+        
+        // Initialize role-based UI on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRoleBasedUI();
+        });
         function updateRoleView() {
             const role = document.getElementById('user-role').value;
             const actions = document.getElementById('role-actions');
