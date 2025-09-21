@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Domus Planning Platform - AI Operating System for Planning and Land Use
-The 4-Pillar AI Planning System for Developers, Consultants, and Councils
+The 4-Pillar AI Planning System for Developers, Consultants, and Land Professionals
 
 🧠 Planning AI - Instant approval probability & constraint analysis
 📄 Auto-Docs - Professional planning document generation  
@@ -128,7 +128,7 @@ async def health_check():
         "value_proposition": {
             "for_developers": "Save months and £20k+ in consultancy costs",
             "for_consultants": "Scale output with AI co-pilot tools",
-            "for_councils": "Fewer poor applications, faster processing",
+            "for_landowners": "Unlock development value, streamline approvals",
             "for_landowners": "Monetise land through biodiversity offsets"
         }
     }
@@ -195,7 +195,7 @@ async def market_statistics():
             "uk_planning_applications_per_year": "500,000+",
             "sme_developers": "10,000+ potential users",
             "planning_consultants": "2,000+ potential users", 
-            "local_authorities": "400+ councils need digital transformation"
+            "market_opportunity": "£billions in development potential unlocked by AI"
         }
     }
 
