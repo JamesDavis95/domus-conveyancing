@@ -10,3 +10,5 @@ services:
         sync: false
       - key: ENVIRONMENT
         value: production
+      - key: FORCE_DEPLOY
+        value: "2025-09-21"
