@@ -439,6 +439,11 @@
                     <span class="icon">🔌</span>
                     API Usage
                 </button>
+                <button class="nav-item" data-page="notifications" onclick="showPage('notifications')">
+                    <span class="icon">🔔</span>
+                    Notifications & Alerts
+                    <span style="background: var(--danger); color: white; border-radius: 12px; padding: 2px 6px; font-size: 10px; margin-left: 8px;">3</span>
+                </button>
             </div>
 
             <div class="nav-section">
@@ -502,6 +507,74 @@
                     <div class="stat-card">
                         <div class="stat-value success">42</div>
                         <div class="stat-label">Offsets Matched</div>
+                    </div>
+                </div>
+
+                <!-- Onboarding Guide for New Users -->
+                <div id="onboarding-guide" class="panel" style="margin-bottom: 32px; border: 2px solid var(--primary); display: none;">
+                    <h2>🚀 Welcome to Domus Planning Platform</h2>
+                    <p style="color: var(--muted); margin-bottom: 24px;">Follow this guided journey to unlock the full power of AI-driven planning intelligence</p>
+                    
+                    <div class="grid grid-3" style="gap: 24px;">
+                        <div class="onboarding-step" style="padding: 20px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <div style="width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: bold;">1</div>
+                                <h3>🏠 Find Your Site</h3>
+                            </div>
+                            <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;">Start by entering any UK property address, postcode, or UPRN to instantly access comprehensive site data</p>
+                            <button class="btn primary" onclick="showPage('property-explorer')" style="width: 100%;">Start Property Lookup</button>
+                        </div>
+                        
+                        <div class="onboarding-step" style="padding: 20px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <div style="width: 32px; height: 32px; background: var(--warning); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: bold;">2</div>
+                                <h3>🧠 Analyze Constraints</h3>
+                            </div>
+                            <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;">Get instant AI-powered approval predictions and constraint analysis in under 5 seconds</p>
+                            <button class="btn outline" onclick="showPage('planning-analysis')" style="width: 100%;">Try Planning AI</button>
+                        </div>
+                        
+                        <div class="onboarding-step" style="padding: 20px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <div style="width: 32px; height: 32px; background: var(--success); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: bold;">3</div>
+                                <h3>📄 Generate Documents</h3>
+                            </div>
+                            <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;">Auto-generate professional planning statements and D&A statements in minutes, not weeks</p>
+                            <button class="btn outline" onclick="showPage('auto-docs')" style="width: 100%;">Generate First Doc</button>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 24px;">
+                        <button class="btn outline" onclick="hideOnboarding()">✕ Hide Guide</button>
+                        <span style="margin: 0 16px; color: var(--muted); font-size: 12px;">This guide can be shown again from Settings</span>
+                        <button class="btn primary" onclick="startTour()">🎯 Take Full Tour</button>
+                    </div>
+                </div>
+
+                <!-- User Performance vs Market Analytics -->
+                <div class="panel" style="margin-bottom: 32px;">
+                    <h2>📈 Your Performance vs Market</h2>
+                    <div class="grid grid-4" style="margin-top: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value success">87%</div>
+                            <div class="stat-label">Your Approval Rate</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">Market avg: 73% (+14%)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value primary">4.2 min</div>
+                            <div class="stat-label">Your Analysis Speed</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">Industry: 2-3 weeks</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value warning">£247k</div>
+                            <div class="stat-label">Cost Savings Generated</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">Vs traditional consultancy</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value success">23</div>
+                            <div class="stat-label">Offset Units Traded</div>
+                            <div style="font-size: 10px; color: var(--primary); margin-top: 4px;">£127k marketplace value</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1518,26 +1591,84 @@
             <!-- My Sites / Projects Page -->
             <div id="my-sites" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">🏗️ My Sites / Projects</h1>
-                    <p class="page-subtitle">Manage your active developments and land assessments</p>
+                    <h1 class="page-title">🏗️ My Sites / Projects Workspace</h1>
+                    <p class="page-subtitle">Your personal command center for all developments and land assessments</p>
+                    
+                    <!-- Quick Actions Bar -->
+                    <div style="display: flex; gap: 12px; margin-top: 16px; padding: 16px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+                        <button class="btn primary" onclick="showPage('planning-analysis')">🧠 Analyze New Site</button>
+                        <button class="btn outline" onclick="showPage('auto-docs')">📄 Generate Documents</button>
+                        <button class="btn outline" onclick="showPage('offsets-supply')">🌱 Find Offsets</button>
+                        <button class="btn outline" onclick="exportProjects()">📊 Export All Projects</button>
+                    </div>
                 </div>
 
-                <div class="grid grid-4" style="margin-bottom: 24px;">
-                    <div class="stat-card">
-                        <div class="stat-value primary">23</div>
-                        <div class="stat-label">Active Projects</div>
+                <!-- Personal Performance Metrics -->
+                <div class="panel" style="margin-bottom: 24px; border: 2px solid var(--primary);">
+                    <h2>🎯 Your Performance This Year</h2>
+                    <div class="grid grid-4" style="margin-top: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value success">87%</div>
+                            <div class="stat-label">Your Approval Rate</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">+12% vs last year</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value primary">£247k</div>
+                            <div class="stat-label">Cost Savings Generated</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">Vs traditional consultancy</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value warning">4.2 min</div>
+                            <div class="stat-label">Avg Analysis Time</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">Industry: 2-3 weeks</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value success">156</div>
+                            <div class="stat-label">Documents Generated</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">Save £39k in consultancy</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value warning">7</div>
-                        <div class="stat-label">Pending Decisions</div>
+                </div>
+
+                <!-- Project Filters and Search -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+                        <input type="text" placeholder="Search projects..." style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg);">
+                        <select style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg);">
+                            <option>All Statuses</option>
+                            <option>In Progress</option>
+                            <option>Submitted</option>
+                            <option>Approved</option>
+                            <option>Requires Action</option>
+                        </select>
+                        <select style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg);">
+                            <option>All Types</option>
+                            <option>Residential</option>
+                            <option>Commercial</option>
+                            <option>Mixed Use</option>
+                            <option>Change of Use</option>
+                        </select>
+                        <button class="btn outline">🔍 Filter</button>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value success">15</div>
-                        <div class="stat-label">Approved This Year</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value danger">3</div>
-                        <div class="stat-label">Requiring Action</div>
+                    
+                    <!-- Summary Stats -->
+                    <div class="grid grid-4">
+                        <div class="stat-card">
+                            <div class="stat-value primary">23</div>
+                            <div class="stat-label">Active Projects</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value warning">7</div>
+                            <div class="stat-label">Pending Decisions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value success">15</div>
+                            <div class="stat-label">Approved This Year</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value danger">3</div>
+                            <div class="stat-label">Requiring Action</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1618,29 +1749,86 @@
                 </div>
             </div>
 
-            <!-- Documents Page -->
+            <!-- Documents Hub Page -->
             <div id="documents" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">📁 Documents</h1>
-                    <p class="page-subtitle">All generated planning documents with version control and collaboration</p>
+                    <h1 class="page-title">📁 Document Hub</h1>
+                    <p class="page-subtitle">Your complete document library with AI-generated planning documents, templates, and collaboration tools</p>
+                    
+                    <!-- Document Actions -->
+                    <div style="display: flex; gap: 12px; margin-top: 16px; padding: 16px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+                        <button class="btn primary" onclick="showPage('auto-docs')">📄 Generate New Document</button>
+                        <button class="btn outline" onclick="bulkDownload()">📦 Download All</button>
+                        <button class="btn outline" onclick="shareFolder()">🔗 Share Folder</button>
+                        <button class="btn outline" onclick="exportLibrary()">📊 Export Library</button>
+                    </div>
                 </div>
 
-                <div class="grid grid-4" style="margin-bottom: 24px;">
-                    <div class="stat-card">
-                        <div class="stat-value success">347</div>
-                        <div class="stat-label">Total Documents</div>
+                <!-- Document Categories -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <h2>📚 Document Categories</h2>
+                    <div class="grid grid-4" style="margin-top: 16px;">
+                        <div class="stat-card" onclick="filterDocuments('planning-statements')" style="cursor: pointer;">
+                            <div class="stat-value primary">89</div>
+                            <div class="stat-label">Planning Statements</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">97% approval rate</div>
+                        </div>
+                        <div class="stat-card" onclick="filterDocuments('design-access')" style="cursor: pointer;">
+                            <div class="stat-value success">67</div>
+                            <div class="stat-label">Design & Access</div>
+                            <div style="font-size: 10px; color: var(--success); margin-top: 4px;">£15k avg savings</div>
+                        </div>
+                        <div class="stat-card" onclick="filterDocuments('heritage')" style="cursor: pointer;">
+                            <div class="stat-value warning">34</div>
+                            <div class="stat-label">Heritage Assessments</div>
+                            <div style="font-size: 10px; color: var(--warning); margin-top: 4px;">Specialist documents</div>
+                        </div>
+                        <div class="stat-card" onclick="filterDocuments('all')" style="cursor: pointer;">
+                            <div class="stat-value success">156</div>
+                            <div class="stat-label">Total Documents</div>
+                            <div style="font-size: 10px; color: var(--primary); margin-top: 4px;">This year</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value primary">23</div>
-                        <div class="stat-label">Generated This Week</div>
+                </div>
+
+                <!-- Document Search and Filters -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+                        <input type="text" placeholder="Search documents, projects, or content..." style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg);">
+                        <select style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg);">
+                            <option>All Document Types</option>
+                            <option>Planning Statements</option>
+                            <option>Design & Access</option>
+                            <option>Heritage Assessments</option>
+                            <option>Transport Assessments</option>
+                        </select>
+                        <select style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg);">
+                            <option>Last 30 Days</option>
+                            <option>Last 3 Months</option>
+                            <option>This Year</option>
+                            <option>All Time</option>
+                        </select>
+                        <button class="btn outline">🔍 Search</button>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value warning">7</div>
-                        <div class="stat-label">Pending Review</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value success">98%</div>
-                        <div class="stat-label">First-Time Approval Rate</div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="grid grid-4">
+                        <div class="stat-card">
+                            <div class="stat-value success">23</div>
+                            <div class="stat-label">Generated This Month</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value warning">7</div>
+                            <div class="stat-label">Pending Client Review</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value success">98%</div>
+                            <div class="stat-label">Your Approval Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value primary">£39k</div>
+                            <div class="stat-label">Consultancy Savings</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1779,6 +1967,121 @@
                             <div style="text-align: right;">
                                 <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">Edit Permissions</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications & Alerts Page -->
+            <div id="notifications" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🔔 Notifications & Alerts</h1>
+                    <p class="page-subtitle">Stay informed with intelligent alerts for planning policy updates, market opportunities, and project milestones</p>
+                    
+                    <!-- Notification Settings -->
+                    <div style="display: flex; gap: 12px; margin-top: 16px; padding: 16px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+                        <button class="btn primary" onclick="markAllRead()">✓ Mark All Read</button>
+                        <button class="btn outline" onclick="configureAlerts()">⚙️ Configure Alerts</button>
+                        <button class="btn outline" onclick="exportNotifications()">📊 Export History</button>
+                    </div>
+                </div>
+
+                <!-- Alert Categories -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <h2>🎯 Smart Alert Categories</h2>
+                    <div class="grid grid-3" style="margin-top: 16px;">
+                        <div class="stat-card">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 20px; margin-right: 8px;">🏛️</span>
+                                <h4>Policy Updates</h4>
+                            </div>
+                            <p style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Local planning policy changes affecting your active projects</p>
+                            <div style="background: var(--success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; width: fit-content;">ENABLED</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 20px; margin-right: 8px;">🌱</span>
+                                <h4>Offset Matching</h4>
+                            </div>
+                            <p style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Biodiversity units matching your supply/demand requirements</p>
+                            <div style="background: var(--success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; width: fit-content;">ENABLED</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 20px; margin-right: 8px;">📋</span>
+                                <h4>Decision Updates</h4>
+                            </div>
+                            <p style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Application decisions and milestone updates from planning authorities</p>
+                            <div style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; width: fit-content;">PAUSED</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Notifications -->
+                <div class="panel">
+                    <h2>📬 Recent Notifications</h2>
+                    
+                    <!-- High Priority Alert -->
+                    <div style="background: var(--surface); border-left: 4px solid var(--danger); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 16px; margin-right: 8px;">🚨</span>
+                                <h4>Urgent: Policy Change Affects Your Camden Project</h4>
+                            </div>
+                            <span style="color: var(--muted); font-size: 12px;">2 hours ago</span>
+                        </div>
+                        <p style="color: var(--muted); font-size: 14px; margin-bottom: 12px;">Camden Council has updated their heritage assessment requirements. Your office conversion project may need additional documentation.</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn primary" style="font-size: 12px; padding: 6px 12px;">Review Project</button>
+                            <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">View Policy Changes</button>
+                        </div>
+                    </div>
+
+                    <!-- Marketplace Match -->
+                    <div style="background: var(--surface); border-left: 4px solid var(--success); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 16px; margin-right: 8px;">🌱</span>
+                                <h4>Perfect Offset Match Found</h4>
+                            </div>
+                            <span style="color: var(--muted); font-size: 12px;">1 day ago</span>
+                        </div>
+                        <p style="color: var(--muted); font-size: 14px; margin-bottom: 12px;">124 biodiversity units available in Oxfordshire - matches your Surrey development requirements. Premium location, competitive pricing.</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn primary" style="font-size: 12px; padding: 6px 12px;">View Listing</button>
+                            <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">Contact Landowner</button>
+                        </div>
+                    </div>
+
+                    <!-- Planning Decision -->
+                    <div style="background: var(--surface); border-left: 4px solid var(--primary); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 16px; margin-right: 8px;">✅</span>
+                                <h4>Application Approved: Guildford Extension</h4>
+                            </div>
+                            <span style="color: var(--muted); font-size: 12px;">3 days ago</span>
+                        </div>
+                        <p style="color: var(--muted); font-size: 14px; margin-bottom: 12px;">Your Surrey residential extension has been approved! Decision issued with standard conditions. 92% approval probability was accurate.</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn primary" style="font-size: 12px; padding: 6px 12px;">View Decision</button>
+                            <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">Download Notice</button>
+                        </div>
+                    </div>
+
+                    <!-- Market Intelligence -->
+                    <div style="background: var(--surface); border-left: 4px solid var(--warning); border-radius: 8px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center;">
+                                <span style="font-size: 16px; margin-right: 8px;">📈</span>
+                                <h4>Market Intelligence: Office Conversions Trending</h4>
+                            </div>
+                            <span style="color: var(--muted); font-size: 12px;">1 week ago</span>
+                        </div>
+                        <p style="color: var(--muted); font-size: 14px; margin-bottom: 12px;">Office to residential conversions showing 15% higher approval rates in London boroughs this quarter. Consider expanding your portfolio.</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn primary" style="font-size: 12px; padding: 6px 12px;">View Market Report</button>
+                            <button class="btn outline" style="font-size: 12px; padding: 6px 12px;">Find Opportunities</button>
                         </div>
                     </div>
                 </div>
@@ -2622,6 +2925,51 @@
             alert('📊 Similar Cases Analysis:\n\n• Found 23 similar applications within 5km\n• Average approval rate: 71%\n• Common success factors: Heritage assessment, community engagement\n• Typical objection points: Building height, parking provision\n• Average decision time: 14 weeks\n\nWould you like detailed case study analysis?');
         }
         
+        // Personal Workspace Functions
+        function hideOnboarding() {
+            document.getElementById('onboarding-guide').style.display = 'none';
+        }
+
+        function startTour() {
+            alert('🎯 Interactive Tour Starting!\n\nThis guided tour will walk you through:\n\n1. Planning AI Analysis - Site assessment in 90 seconds\n2. Document Generation - Auto-create planning statements\n3. Offsets Marketplace - Find/list biodiversity units\n4. Performance Analytics - Track your success metrics\n\nReady to explore the 4-pillar system?');
+        }
+
+        function filterProjects(type) {
+            alert(`📋 Filtering Projects by: ${type}\n\nThis would show:\n• Active projects matching criteria\n• Status updates and deadlines\n• Performance metrics for category\n• Recommended actions\n\nPersonal workspace keeps everything organized by project type.`);
+        }
+
+        function exportProjects() {
+            alert('📊 Exporting Projects Data\n\nGenerating comprehensive report:\n\n• All active projects with status\n• Performance metrics vs market\n• Financial analysis and ROI\n• Timeline and milestone tracking\n• Success factors analysis\n\nReport would download as Excel/PDF');
+        }
+
+        // Document Hub Functions
+        function filterDocuments(category) {
+            alert(`📁 Filtering Documents by: ${category}\n\nShowing relevant documents:\n• Templates and examples\n• Generated content\n• Client-specific materials\n• Compliance documentation\n\nDocument Hub organizes everything by project and type.`);
+        }
+
+        function bulkDownload() {
+            alert('📦 Bulk Download Starting\n\nPackaging selected documents:\n• Planning statements\n• Design documents\n• Supporting evidence\n• Compliance certificates\n\nCreating ZIP archive for download...');
+        }
+
+        function uploadDocument() {
+            alert('📤 Document Upload Interface\n\nUpload options:\n• Drag & drop multiple files\n• Auto-categorization by type\n• OCR text extraction\n• Version control and collaboration\n\nAdds to your personal Document Hub library.');
+        }
+
+        // Notifications Functions
+        function markAllRead() {
+            const badge = document.querySelector('.notification-badge');
+            if (badge) badge.style.display = 'none';
+            alert('✅ All notifications marked as read.\n\nNotification badge cleared. You can configure alert preferences to customize what updates you receive.');
+        }
+
+        function configureAlerts() {
+            alert('⚙️ Alert Configuration Panel\n\nCustomize notifications for:\n\n• Policy updates affecting your projects\n• Biodiversity offset matching opportunities\n• Planning decision updates\n• Market intelligence alerts\n• Milestone and deadline reminders\n\nSet frequency and delivery preferences.');
+        }
+
+        function exportNotifications() {
+            alert('📊 Exporting Notification History\n\nGenerating comprehensive report:\n• All alerts received (last 90 days)\n• Response times and actions taken\n• Performance impact analysis\n• Trend identification\n\nReport includes ROI of alert-driven actions.');
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Domus Planning Platform Loaded');
