@@ -17,5 +17,5 @@ RUN echo '#!/bin/bash\nexec python server.py' > /app/start.sh && chmod +x /app/s
 EXPOSE 8000
 
 # Use the startup script
-# Test with minimal app
-CMD ["python", "-m", "uvicorn", "test_app:app", "--host", "0.0.0.0", "--port", "10000"]
+# Debug: Run debug script first, then app
+CMD ["sh", "-c", "python debug_deployment.py && python -m uvicorn test_app:app --host 0.0.0.0 --port 10000"]
