@@ -474,6 +474,16 @@
     </style>
 </head>
 <body>
+    <!-- Demo Authentication Switcher (HIDDEN IN PRODUCTION) -->
+    <div id="demoAuthSwitcher" style="display: none; position: fixed; top: 10px; right: 10px; z-index: 9999; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 12px;">
+        <div style="font-weight: 600; margin-bottom: 8px; color: var(--text);">Development Mode:</div>
+        <button onclick="loginAs('developer')" style="display: block; width: 100%; margin-bottom: 4px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Developer</button>
+        <button onclick="loginAs('landowner')" style="display: block; width: 100%; margin-bottom: 4px; padding: 6px 12px; background: var(--success); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Landowner</button>
+        <button onclick="loginAs('consultant')" style="display: block; width: 100%; margin-bottom: 4px; padding: 6px 12px; background: var(--warning); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Consultant</button>
+        <button onclick="loginAs('authority')" style="display: block; width: 100%; margin-bottom: 8px; padding: 6px 12px; background: var(--error); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Authority</button>
+        <div style="font-size: 10px; color: var(--muted); text-align: center;">Development Only</div>
+    </div>
+
     <div class="container">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
@@ -482,35 +492,37 @@
                 <p>Planning Intelligence Workspace</p>
             </div>
 
-            <!-- Role-based UX Selector -->
-            <div class="role-selector">
-                <label style="font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px;">Your Role</label>
-                <select id="userRole" onchange="updateRoleBasedUI()" style="margin-bottom: 8px;">
-                    <option value="developer">Developer</option>
-                    <option value="landowner">Landowner</option>
-                    <option value="consultant">Planning Consultant</option>
-                    <option value="authority">Local Authority</option>
-                </select>
-                <div id="roleDescription" style="font-size: 11px; color: var(--muted);">Access developer-focused planning tools</div>
+            <!-- User Authentication Display -->
+            <div class="user-auth-display">
+                <div style="display: flex; align-items: center; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px;">
+                    <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin-right: 12px;">
+                        <span id="userInitials">JD</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text);" id="userName">James Davis</div>
+                        <div style="font-size: 11px; color: var(--muted);" id="userRoleDisplay">Developer Account</div>
+                    </div>
+                    <button onclick="simulateLogout()" style="background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer;">Sign Out</button>
+                </div>
             </div>
             
-            <div class="nav-section">
+            <div class="nav-section" data-section="overview" data-roles="developer,consultant,landowner,authority">
                 <div class="nav-section-title">Overview</div>
                 <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-                    <span class="icon">📊</span>
+                    <span class="icon">■</span>
                     Dashboard
                 </button>
             </div>
 
             <!-- Developer/Consultant Only -->
-            <div class="nav-section" data-roles="developer,consultant">
+            <div class="nav-section" data-section="development-tools" data-roles="developer,consultant">
                 <div class="nav-section-title">Development Tools</div>
                 <button class="nav-item" data-page="projects" data-roles="developer,consultant" onclick="showPage('projects')">
-                    <span class="icon">🏗️</span>
+                    <span class="icon">▲</span>
                     My Projects
                 </button>
                 <button class="nav-item" data-page="planning-ai" data-roles="developer,consultant" onclick="showPage('planning-ai')">
-                    <span class="icon">🎯</span>
+                    <span class="icon">●</span>
                     Planning AI Analysis
                 </button>
                 <button class="nav-item" data-page="auto-docs" data-roles="developer,consultant" onclick="showPage('auto-docs')">
@@ -520,35 +532,35 @@
             </div>
 
             <!-- Landowner Only -->
-            <div class="nav-section" data-roles="landowner">
+            <div class="nav-section" data-section="marketplace-tools" data-roles="landowner">
                 <div class="nav-section-title">Landowner Services</div>
                 <button class="nav-item" data-page="marketplace" data-roles="landowner" onclick="showPage('marketplace')">
-                    <span class="icon">🌱</span>
+                    <span class="icon">◆</span>
                     BNG Marketplace
                 </button>
                 <button class="nav-item" data-page="land-portfolio" data-roles="landowner" onclick="showPage('land-portfolio')">
-                    <span class="icon">🏞️</span>
+                    <span class="icon">◇</span>
                     My Land Portfolio
                 </button>
                 <button class="nav-item" data-page="offset-contracts" data-roles="landowner" onclick="showPage('offset-contracts')">
-                    <span class="icon">📋</span>
+                    <span class="icon">▣</span>
                     Offset Contracts
                 </button>
             </div>
 
             <!-- Authority Only -->
-            <div class="nav-section" data-roles="authority">
+            <div class="nav-section" data-section="authority-tools" data-roles="authority">
                 <div class="nav-section-title">Authority Portal</div>
                 <button class="nav-item" data-page="application-review" data-roles="authority" onclick="showPage('application-review')">
-                    <span class="icon">📋</span>
+                    <span class="icon">▢</span>
                     Application Review
                 </button>
                 <button class="nav-item" data-page="local-development" data-roles="authority" onclick="showPage('local-development')">
-                    <span class="icon">🏘️</span>
+                    <span class="icon">▤</span>
                     Local Development
                 </button>
                 <button class="nav-item" data-page="policy-compliance" data-roles="authority" onclick="showPage('policy-compliance')">
-                    <span class="icon">⚖️</span>
+                    <span class="icon">▦</span>
                     Policy Compliance
                 </button>
             </div>
@@ -557,7 +569,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Data & Reports</div>
                 <button class="nav-item" data-page="property-api" data-roles="developer,landowner,consultant,authority" onclick="showPage('property-api')">
-                    <span class="icon">🗄️</span>
+                    <span class="icon">▧</span>
                     Property Data API
                 </button>
                 <button class="nav-item" data-page="planning-history" data-roles="developer,consultant" onclick="showPage('planning-history')">
@@ -1492,7 +1504,7 @@
                                     <button class="btn primary">View Details</button>
                                     <button class="btn outline">Contact Provider</button>
                                     <div style="flex: 1;"></div>
-                                    <span style="color: var(--warning); font-size: 12px; font-weight: 600;">⭐ Premium</span>
+                                    <span style="color: var(--warning); font-size: 12px; font-weight: 600;">Premium</span>
                                 </div>
                             </div>
                         </div>
@@ -5845,7 +5857,7 @@
     <!-- Offset Contracts Page (Landowner Role) -->
     <div id="offset-contracts" class="page">
         <div class="page-header">
-            <h1 class="page-title">📋 Offset Contracts</h1>
+            <h1 class="page-title">Offset Contracts</h1>
             <p class="page-subtitle">Active agreements, payments, and delivery milestones</p>
             <button class="btn primary">+ New Contract Request</button>
         </div>
@@ -5943,7 +5955,7 @@
     <!-- Application Review Page (Authority Role) -->
     <div id="application-review" class="page">
         <div class="page-header">
-            <h1 class="page-title">🏛️ Application Review Queue</h1>
+            <h1 class="page-title">Application Review Queue</h1>
             <p class="page-subtitle">Planning applications awaiting determination and review</p>
             <div style="display: flex; gap: 12px;">
                 <button class="btn outline">Filter Applications</button>
@@ -6067,6 +6079,245 @@
     </div>
 
     <script>
+        // ========================================
+        // AUTHENTICATION & ROLE-BASED ACCESS CONTROL
+        // ========================================
+        
+        // Simulated user session (in real app, this comes from server authentication)
+        window.currentUser = {
+            id: 'user_12847',
+            name: 'Sarah Johnson',
+            email: 'sarah.johnson@urbandev.co.uk',
+            role: 'developer', // This is the ONLY role this user has - assigned at signup
+            initials: 'SJ',
+            permissions: {
+                // Permissions are determined by role and cannot be changed
+                canViewProjects: true,
+                canViewMarketplace: false,
+                canViewLandPortfolio: false,
+                canViewApplicationReview: false,
+                canCreateDocuments: true,
+                canAccessPlanningAI: true
+            }
+        };
+
+        // Role-based page access - users can ONLY access pages for their assigned role
+        const ROLE_PERMISSIONS = {
+            'developer': {
+                allowedPages: ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api'],
+                dashboardTitle: 'Developer Dashboard',
+                dashboardSubtitle: 'Streamline planning applications and development workflows with AI-powered insights'
+            },
+            'consultant': {
+                allowedPages: ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api', 'team-workspace'],
+                dashboardTitle: 'Consultant Dashboard',
+                dashboardSubtitle: 'Professional planning consultancy toolkit with client collaboration features'
+            },
+            'landowner': {
+                allowedPages: ['dashboard', 'marketplace', 'land-portfolio', 'offset-contracts'],
+                dashboardTitle: '🌿 Landowner Dashboard',
+                dashboardSubtitle: 'Maximize your land asset value with planning intelligence and offset opportunities'
+            },
+            'authority': {
+                allowedPages: ['dashboard', 'application-review', 'policy-compliance', 'local-development'],
+                dashboardTitle: 'Planning Authority Dashboard',
+                dashboardSubtitle: 'Efficient application processing and policy compliance management tools'
+            }
+        };
+
+        // Initialize authentication and role-based access control on page load
+        function initializeAuthentication() {
+            console.log('Initializing authentication for user:', window.currentUser.name, 'Role:', window.currentUser.role);
+            
+            // Update user display
+            document.getElementById('userName').textContent = window.currentUser.name;
+            document.getElementById('userInitials').textContent = window.currentUser.initials;
+            document.getElementById('userRoleDisplay').textContent = capitalizeRole(window.currentUser.role) + ' Account';
+            
+            // Apply role-based restrictions
+            enforceRoleBasedAccess();
+            
+            // Initialize dashboard for user's role
+            updateDashboardForRole(window.currentUser.role);
+        }
+
+        function capitalizeRole(role) {
+            return role.charAt(0).toUpperCase() + role.slice(1);
+        }
+
+        function enforceRoleBasedAccess() {
+            const userRole = window.currentUser.role;
+            const permissions = ROLE_PERMISSIONS[userRole];
+            
+            if (!permissions) {
+                console.error('Invalid user role:', userRole);
+                return;
+            }
+
+            // Store allowed pages globally for security checks
+            window.userAllowedPages = permissions.allowedPages;
+            
+            // COMPLETELY REMOVE navigation sections not for this role
+            hideNavigationForOtherRoles(userRole);
+            
+            // COMPLETELY REMOVE pages not for this role from DOM
+            hidePagesForOtherRoles(permissions.allowedPages);
+            
+            console.log('Access control enforced. User can only access:', permissions.allowedPages);
+        }
+
+        function hideNavigationForOtherRoles(userRole) {
+            // Define which navigation sections are visible for each role
+            const roleNavSections = {
+                'developer': ['overview', 'development-tools'],
+                'consultant': ['overview', 'development-tools', 'collaboration'],
+                'landowner': ['overview', 'marketplace-tools'],
+                'authority': ['overview', 'authority-tools']
+            };
+
+            // Hide ALL navigation sections first
+            document.querySelectorAll('.nav-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Only show navigation sections for current user's role
+            const allowedSections = roleNavSections[userRole] || ['overview'];
+            allowedSections.forEach(sectionType => {
+                const section = document.querySelector(`.nav-section[data-section="${sectionType}"]`);
+                if (section) {
+                    section.style.display = 'block';
+                }
+            });
+
+            // Also check data-roles attributes
+            document.querySelectorAll('.nav-section[data-roles]').forEach(section => {
+                const sectionRoles = section.getAttribute('data-roles');
+                if (sectionRoles && sectionRoles.split(',').includes(userRole)) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        function hidePagesForOtherRoles(allowedPages) {
+            // Hide unauthorized pages (don't remove from DOM for demo switching)
+            document.querySelectorAll('.page').forEach(page => {
+                if (!allowedPages.includes(page.id)) {
+                    page.style.display = 'none'; // Hide instead of remove for demo
+                    page.classList.add('unauthorized-page');
+                    console.log('Hidden unauthorized page:', page.id);
+                } else {
+                    page.style.display = 'block';
+                    page.classList.remove('unauthorized-page');
+                    console.log('Authorized page available:', page.id);
+                }
+            });
+        }
+
+        function restoreAllPagesForDemo() {
+            // Restore all pages for demo switching (REMOVE IN PRODUCTION)
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'block';
+                page.classList.remove('unauthorized-page');
+            });
+        }
+
+        function simulateLogout() {
+            if (confirm('Are you sure you want to sign out of your account?')) {
+                // In production, this would clear authentication tokens and redirect to login
+                console.log('User logged out successfully');
+                // Simulate redirect to login page
+                document.body.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; flex-direction: column;"><h2>Signed Out Successfully</h2><p>You have been logged out of your account.</p><button onclick="window.location.reload()" style="padding: 8px 16px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer;">Return to Platform</button></div>';
+            }
+        }
+
+        // DEMO ONLY: Simulate logging in as different users (REMOVE IN PRODUCTION)
+        function loginAs(role) {
+            console.log(`Demo login as ${role}`);
+            
+            // Restore all pages for demo switching (REMOVE IN PRODUCTION)
+            restoreAllPagesForDemo();
+            
+            // Demo user profiles for different roles
+            const demoUsers = {
+                'developer': {
+                    id: 'dev_001',
+                    name: 'James Davis',
+                    email: 'james@devstudio.com',
+                    role: 'developer',
+                    initials: 'JD'
+                },
+                'landowner': {
+                    id: 'land_001', 
+                    name: 'Sarah Wilson',
+                    email: 'sarah@greenestate.co.uk',
+                    role: 'landowner',
+                    initials: 'SW'
+                },
+                'consultant': {
+                    id: 'cons_001',
+                    name: 'Michael Chen',
+                    email: 'michael@urbanplanning.com',
+                    role: 'consultant',
+                    initials: 'MC'
+                },
+                'authority': {
+                    id: 'auth_001',
+                    name: 'Emma Thompson',
+                    email: 'emma.thompson@camden.gov.uk',
+                    role: 'authority',
+                    initials: 'ET'
+                }
+            };
+
+            // Set current user to the selected demo user
+            window.currentUser = demoUsers[role];
+            
+            // Reinitialize authentication with new user
+            initializeAuthentication();
+            
+            // Return to dashboard
+            showPage('dashboard');
+            
+            // Highlight the current role in the demo switcher
+            document.querySelectorAll('#demoAuthSwitcher button').forEach(btn => {
+                btn.style.opacity = '0.7';
+            });
+            event.target.style.opacity = '1';
+            event.target.style.boxShadow = '0 0 0 2px var(--primary)';
+        }
+
+        // Override the old role-based UI function to use the authenticated user's role
+        function updateRoleBasedUI() {
+            // This function is now called only during authentication initialization
+            // Users cannot change their role - it's fixed based on their account
+            console.log('Role is fixed at account level. Cannot be changed by user.');
+        }
+
+        // Initialize authentication when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAuthentication();
+            
+            // Enable development mode with Ctrl+Shift+D
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.code === 'KeyD') {
+                    const switcher = document.getElementById('demoAuthSwitcher');
+                    if (switcher.style.display === 'none') {
+                        switcher.style.display = 'block';
+                        console.log('Development mode enabled');
+                    } else {
+                        switcher.style.display = 'none';
+                        console.log('Development mode disabled');
+                    }
+                }
+            });
+        });
+
+        // ========================================
+        // APPLICATION FUNCTIONS
+        // ========================================
+
         // Onboarding Functions
         function startanalysisProject() {
             // Show loading state
@@ -6560,100 +6811,31 @@
         
         // Role-based UI customization with strict access control
         function updateRoleBasedUI() {
-            const selectedRole = document.getElementById('userRole').value;
-            const descriptions = {
-                'landowner': 'Maximize land value through BNG offsets and development opportunities',
-                'developer': 'Streamline planning applications with AI-powered development tools',
-                'consultant': 'Professional planning consultancy toolkit with client collaboration',
-                'authority': 'Planning application review and local development oversight tools'
-            };
+            // This function is now called only during authentication initialization
+            // Users cannot change their role - it's fixed based on their account
+            console.log('🔒 Role is fixed at account level. Cannot be changed by user.');
             
-            // Update role description
-            document.getElementById('roleDescription').textContent = descriptions[selectedRole];
+            // Get role from authenticated user
+            const selectedRole = window.currentUser.role;
             
-            // Hide ALL navigation sections first
-            document.querySelectorAll('.nav-section[data-roles]').forEach(section => {
-                section.style.display = 'none';
-            });
-            
-            // Show/hide navigation sections based on role
-            document.querySelectorAll('.nav-section[data-roles]').forEach(section => {
-                const sectionRoles = section.getAttribute('data-roles');
-                if (sectionRoles && sectionRoles.split(',').includes(selectedRole)) {
-                    section.style.display = 'block';
-                } else {
-                    section.style.display = 'none';
-                }
-            });
-            
-            // Show/hide individual navigation items based on role
-            document.querySelectorAll('.nav-item[data-roles]').forEach(item => {
-                const itemRoles = item.getAttribute('data-roles');
-                if (itemRoles && itemRoles.split(',').includes(selectedRole)) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-            
-            // Hide ALL pages first for security
-            document.querySelectorAll('.page').forEach(page => {
-                if (page.id !== 'dashboard') {
-                    page.style.display = 'none';
-                }
-            });
-            
-            // Define role-specific page access
-            const rolePageAccess = {
-                'developer': ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api'],
-                'consultant': ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api'],
-                'landowner': ['dashboard', 'marketplace', 'land-portfolio', 'offset-contracts', 'property-api'],
-                'authority': ['dashboard', 'application-review', 'local-development', 'policy-compliance', 'property-api']
-            };
-            
-            // Store current user's allowed pages for navigation security
-            window.userAllowedPages = rolePageAccess[selectedRole] || ['dashboard'];
-            
-            // Force return to dashboard if current page is not allowed
-            const currentPage = document.querySelector('.page.active');
-            if (currentPage && !window.userAllowedPages.includes(currentPage.id)) {
-                showPage('dashboard');
-            }
-            
-            // Update dashboard content for role
-            updateDashboardForRole(selectedRole);
+            // Apply role restrictions (this is now handled by enforceRoleBasedAccess)
+            enforceRoleBasedAccess();
         }
         
         function updateDashboardForRole(role) {
             const dashboardTitle = document.querySelector('#dashboard .page-title');
             const dashboardSubtitle = document.querySelector('#dashboard .page-subtitle');
             
-            const roleConfigs = {
-                'landowner': {
-                    title: '🌿 Landowner Dashboard',
-                    subtitle: 'Maximize your land asset value with planning intelligence and offset opportunities'
-                },
-                'developer': {
-                    title: '🏗️ Developer Dashboard', 
-                    subtitle: 'Streamline planning applications and development workflows with AI-powered insights'
-                },
-                'consultant': {
-                    title: '📊 Consultant Dashboard',
-                    subtitle: 'Professional planning consultancy toolkit with client collaboration features'
-                },
-                'authority': {
-                    title: '🏛️ Planning Authority Dashboard',
-                    subtitle: 'Efficient application processing and policy compliance management tools'
-                }
-            };
+            // Use the ROLE_PERMISSIONS configuration defined in authentication section
+            const permissions = ROLE_PERMISSIONS[role];
             
-            if (dashboardTitle && dashboardSubtitle && roleConfigs[role]) {
-                dashboardTitle.textContent = roleConfigs[role].title;
-                dashboardSubtitle.textContent = roleConfigs[role].subtitle;
+            if (dashboardTitle && dashboardSubtitle && permissions) {
+                dashboardTitle.textContent = permissions.dashboardTitle;
+                dashboardSubtitle.textContent = permissions.dashboardSubtitle;
                 
                 // Log role change for debugging
                 console.log(`Dashboard updated for role: ${role}`);
-                console.log(`Title: ${roleConfigs[role].title}`);
+                console.log(`Title: ${permissions.dashboardTitle}`);
                 console.log(`User can access pages:`, window.userAllowedPages);
             }
         }
