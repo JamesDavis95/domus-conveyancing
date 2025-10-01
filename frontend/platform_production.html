@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus Planning Platform - Professional Planning Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #1e40af;
+            --primary-dark: #1e3a8a;
+            --surface: #ffffff;
+            --background: #f8fafc;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px 0;
+            position: fixed;
+            height: 100vh;
+            width: 280px;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        
+        .logo h1 {
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .logo p {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        
+        .nav-section {
+            margin-bottom: 32px;
+        }
+        
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 0 24px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-item {
+            display: block;
+            padding: 12px 24px;
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: var(--background);
+            color: var(--primary);
+        }
+        
+        .nav-item.active {
+            background: var(--background);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 500;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 32px;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .card-header {
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .card-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background: var(--background);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+        
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: 24px;
+        }
+        
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        
+        /* Status badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success);
+        }
+        
+        .badge-warning {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--warning);
+        }
+        
+        .badge-danger {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                z-index: 1000;
+                transition: left 0.3s;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* User status */
+        .user-status {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .user-email {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        
+        .user-plan {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>Domus Planning</h1>
+                <p>Professional Planning Intelligence</p>
+            </div>
+            
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-section-title">Platform</div>
+                    <a href="#" class="nav-item active" onclick="showPage('dashboard')">Dashboard</a>
+                    <a href="#" class="nav-item" onclick="showPage('planning-ai')">Planning AI</a>
+                    <a href="#" class="nav-item" onclick="showPage('documents')">Document Library</a>
+                    <a href="#" class="nav-item" onclick="showPage('property-api')">Property Data</a>
+                    <a href="#" class="nav-item" onclick="showPage('marketplace')">BNG Marketplace</a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <a href="#" class="nav-item" onclick="showPage('billing')">Billing & Plans</a>
+                    <a href="#" class="nav-item" onclick="showPage('settings')">Settings</a>
+                    <a href="#" class="nav-item" onclick="showPage('support')">Support</a>
+                </div>
+            </nav>
+            
+            <div class="user-status">
+                <div class="user-email">admin@domusplanning.co.uk</div>
+                <div class="user-plan">Enterprise Plan</div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <div class="page-header">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Overview of your planning intelligence platform</p>
+                </div>
+                
+                <div class="grid grid-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Site Analyses</h3>
+                            <p class="card-subtitle">AI-powered planning assessments</p>
+                        </div>
+                        <div style="font-size: 32px; font-weight: 700; color: var(--primary);" data-stat="analyses">24</div>
+                        <p style="color: var(--text-muted); font-size: 14px;">This month</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Documents</h3>
+                            <p class="card-subtitle">Generated planning documents</p>
+                        </div>
+                        <div style="font-size: 32px; font-weight: 700; color: var(--success);" data-stat="documents">156</div>
+                        <p style="color: var(--text-muted); font-size: 14px;">Total generated</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">API Calls</h3>
+                            <p class="card-subtitle">Property data requests</p>
+                        </div>
+                        <div style="font-size: 32px; font-weight: 700; color: var(--warning);" data-stat="api-calls">2,847</div>
+                        <p style="color: var(--text-muted); font-size: 14px;">This month</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Actions</h3>
+                        <p class="card-subtitle">Start your planning intelligence workflow</p>
+                    </div>
+                    
+                    <div class="grid grid-2">
+                        <button class="btn btn-primary" onclick="showPage('planning-ai')">
+                            <span>🎯</span> New Site Analysis
+                        </button>
+                        <button class="btn btn-secondary" onclick="showPage('documents')">
+                            <span>📄</span> Generate Documents
+                        </button>
+                        <button class="btn btn-secondary" onclick="showPage('property-api')">
+                            <span>🏘️</span> Property Research
+                        </button>
+                        <button class="btn btn-secondary" onclick="showPage('marketplace')">
+                            <span>🌱</span> Browse BNG Market
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Planning AI Page -->
+            <div id="planning-ai" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Planning AI</h1>
+                    <p class="page-subtitle">AI-powered site analysis and approval prediction</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">New Site Analysis</h3>
+                        <p class="card-subtitle">Upload site documents for AI assessment</p>
+                    </div>
+                    
+                    <form id="site-analysis-form">
+                        <div class="form-group">
+                            <label class="form-label">Site Reference</label>
+                            <input type="text" name="site_ref" class="form-input" placeholder="Enter site reference (e.g., SITE-2025-001)" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Document Upload</label>
+                            <input type="file" name="files" class="form-input" multiple accept=".pdf,.doc,.docx" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <span>🔍</span> Start AI Analysis
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Analyses</h3>
+                        <p class="card-subtitle">Your recent site assessments</p>
+                    </div>
+                    
+                    <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+                        No recent analyses. Upload documents to get started.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documents Page -->
+            <div id="documents" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Document Library</h1>
+                    <p class="page-subtitle">Professional planning document generation</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Document Templates</h3>
+                        <p class="card-subtitle">Generate professional planning documents</p>
+                    </div>
+                    
+                    <div class="grid grid-3">
+                        <button class="btn btn-secondary">
+                            <span>📋</span> Planning Statement
+                        </button>
+                        <button class="btn btn-secondary">
+                            <span>🏗️</span> Design & Access Statement
+                        </button>
+                        <button class="btn btn-secondary">
+                            <span>🌍</span> Environmental Assessment
+                        </button>
+                        <button class="btn btn-secondary">
+                            <span>🚗</span> Transport Statement
+                        </button>
+                        <button class="btn btn-secondary">
+                            <span>💧</span> Flood Risk Assessment
+                        </button>
+                        <button class="btn btn-secondary">
+                            <span>🌳</span> Biodiversity Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Property API Page -->
+            <div id="property-api" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Property Data API</h1>
+                    <p class="page-subtitle">Comprehensive UK property intelligence</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Property Search</h3>
+                        <p class="card-subtitle">Search UK property data and planning history</p>
+                    </div>
+                    
+                    <form id="property-search-form">
+                        <div class="form-group">
+                            <label class="form-label">Address or Postcode</label>
+                            <input type="text" name="address" class="form-input" placeholder="Enter address or postcode" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <span>🔍</span> Search Property
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- BNG Marketplace Page -->
+            <div id="marketplace" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">BNG Marketplace</h1>
+                    <p class="page-subtitle">Biodiversity Net Gain credit trading</p>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Market Overview</h3>
+                            <p class="card-subtitle">Current biodiversity credit market</p>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                            <span>Average Unit Price:</span>
+                            <strong style="color: var(--primary);" data-market="price">£52.40</strong>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                            <span>Available Units:</span>
+                            <strong style="color: var(--success);" data-market="units">2,847</strong>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Avg. Match Time:</span>
+                            <strong style="color: var(--text-muted);" data-market="time">14 days</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                            <p class="card-subtitle">BNG marketplace operations</p>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <button class="btn btn-primary">Browse Available Credits</button>
+                            <button class="btn btn-secondary">List My Land</button>
+                            <button class="btn btn-secondary">View My Listings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Billing Page -->
+            <div id="billing" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Billing & Plans</h1>
+                    <p class="page-subtitle">Manage your subscription and billing</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Current Plan</h3>
+                        <p class="card-subtitle">Enterprise Plan - £299/month</p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="margin-bottom: 8px;">
+                                <span class="badge badge-success">Active</span>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 14px;">
+                                Next billing: November 1, 2025
+                            </p>
+                        </div>
+                        <button id="billing-portal-button" class="btn btn-secondary">Manage Subscription</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Page -->
+            <div id="settings" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Account and platform preferences</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Account Information</h3>
+                        <p class="card-subtitle">Update your account details</p>
+                    </div>
+                    
+                    <form>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" value="admin@domusplanning.co.uk">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Organization Name</label>
+                            <input type="text" class="form-input" value="Domus Platform Admin">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Support Page -->
+            <div id="support" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Support</h1>
+                    <p class="page-subtitle">Get help with the platform</p>
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Contact Support</h3>
+                            <p class="card-subtitle">Get help from our team</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Email:</strong> support@domusplanning.co.uk
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <strong>Phone:</strong> +44 20 7123 4567
+                        </div>
+                        
+                        <button class="btn btn-primary">Send Message</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Documentation</h3>
+                            <p class="card-subtitle">Platform guides and tutorials</p>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <a href="#" style="color: var(--primary); text-decoration: none;">
+                                📖 User Guide
+                            </a>
+                            <a href="#" style="color: var(--primary); text-decoration: none;">
+                                🎯 Planning AI Tutorial
+                            </a>
+                            <a href="#" style="color: var(--primary); text-decoration: none;">
+                                🌱 BNG Marketplace Guide
+                            </a>
+                            <a href="#" style="color: var(--primary); text-decoration: none;">
+                                🔧 API Documentation
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // API Base URL
+        const API_BASE = '';
+        
+        // Load dashboard stats when page loads
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/dashboard/stats`);
+                const stats = await response.json();
+                
+                // Update dashboard cards with real data
+                document.querySelector('[data-stat="analyses"]').textContent = stats.site_analyses || '0';
+                document.querySelector('[data-stat="documents"]').textContent = stats.documents || '0';
+                document.querySelector('[data-stat="api-calls"]').textContent = stats.api_calls || '0';
+            } catch (error) {
+                console.log('Dashboard stats not available:', error);
+            }
+        }
+        
+        // Load market stats for BNG marketplace
+        async function loadMarketStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/market-stats`);
+                const stats = await response.json();
+                
+                if (stats.unit_price) {
+                    document.querySelector('[data-market="price"]').textContent = `£${stats.unit_price}`;
+                }
+                if (stats.available_units) {
+                    document.querySelector('[data-market="units"]').textContent = stats.available_units.toLocaleString();
+                }
+                if (stats.avg_match_time) {
+                    document.querySelector('[data-market="time"]').textContent = `${stats.avg_match_time} days`;
+                }
+            } catch (error) {
+                console.log('Market stats not available:', error);
+            }
+        }
+        
+        // Simple page navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Mark nav item as active
+            event.target.classList.add('active');
+            
+            // Load page-specific data
+            if (pageId === 'dashboard') {
+                loadDashboardStats();
+            } else if (pageId === 'marketplace') {
+                loadMarketStats();
+            }
+        }
+        
+        // Handle site analysis form submission
+        async function submitSiteAnalysis(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const button = event.target.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<span>⏳</span> Analyzing...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/planning-ai/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Site analysis completed successfully!');
+                    event.target.reset();
+                } else {
+                    alert(`Analysis failed: ${result.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert('Analysis failed: Network error');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Handle property search
+        async function searchProperty(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const address = formData.get('address');
+            const button = event.target.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<span>⏳</span> Searching...';
+            button.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/property/lookup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Property data retrieved successfully!');
+                    console.log('Property data:', result);
+                } else {
+                    alert(`Search failed: ${result.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert('Search failed: Network error');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Handle billing portal access
+        async function openBillingPortal() {
+            try {
+                const response = await fetch(`${API_BASE}/api/billing/portal`);
+                const result = await response.json();
+                
+                if (result.portal_url) {
+                    window.open(result.portal_url, '_blank');
+                } else {
+                    alert('Billing portal unavailable');
+                }
+            } catch (error) {
+                alert('Unable to access billing portal');
+            }
+        }
+        
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial dashboard data
+            loadDashboardStats();
+            
+            // Add mobile menu button on smaller screens
+            if (window.innerWidth <= 768) {
+                const mobileButton = document.createElement('button');
+                mobileButton.innerHTML = '☰';
+                mobileButton.style.cssText = `
+                    position: fixed;
+                    top: 16px;
+                    left: 16px;
+                    z-index: 1001;
+                    background: var(--primary);
+                    color: white;
+                    border: none;
+                    padding: 12px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    cursor: pointer;
+                `;
+                mobileButton.onclick = toggleSidebar;
+                document.body.appendChild(mobileButton);
+            }
+            
+            // Attach form handlers
+            const siteAnalysisForm = document.getElementById('site-analysis-form');
+            if (siteAnalysisForm) {
+                siteAnalysisForm.addEventListener('submit', submitSiteAnalysis);
+            }
+            
+            const propertySearchForm = document.getElementById('property-search-form');
+            if (propertySearchForm) {
+                propertySearchForm.addEventListener('submit', searchProperty);
+            }
+            
+            // Attach billing portal handler
+            const billingButton = document.getElementById('billing-portal-button');
+            if (billingButton) {
+                billingButton.addEventListener('click', openBillingPortal);
+            }
+        });
+    </script>
+</body>
+</html>
