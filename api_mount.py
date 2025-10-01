@@ -121,3 +121,34 @@ async def process_upload(file: UploadFile = File(...)):
     blob = await file.read()
     data["size_bytes"] = len(blob)
     return data
+from fastapi import Request, Depends
+from sqlalchemy.orm import Session
+from stripe_integration import StripeService
+from models import SessionLocal
+
+# Dependency to get DB session
+async def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.post("/api/billing/checkout-session")
+async def create_checkout_session(
+    request: Request,
+    org_id: int,
+    plan_type: str,
+    success_url: str,
+    cancel_url: str,
+    db: Session = Depends(get_db)
+):
+    """Create a Stripe Checkout Session and return the URL"""
+    url = await StripeService.create_checkout_session(
+        org_id=org_id,
+        plan_type=plan_type,
+        success_url=success_url,
+        cancel_url=cancel_url,
+        db=db
+    )
+    return {"checkout_url": url}

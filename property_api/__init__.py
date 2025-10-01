@@ -12,7 +12,6 @@ from .aggregator import (
 
 from .land_registry import (
     LandRegistryAdapter,
-    LandRegistryData,
     get_land_registry_data
 )
 
@@ -53,7 +52,6 @@ __all__ = [
     
     # Individual adapters
     'LandRegistryAdapter',
-    'LandRegistryData',
     'get_land_registry_data',
     
     'EPCDataAdapter', 

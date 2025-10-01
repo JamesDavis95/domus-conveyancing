@@ -7,7 +7,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 
-from ..planning_ai.schemas import SiteInput, Constraint, Score, Recommendation
+from planning_ai.schemas import SiteInput, Constraint, Score, Recommendation
 from .templates import TemplateEngine, DocumentTemplate
 
 

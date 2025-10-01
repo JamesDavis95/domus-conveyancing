@@ -1,3 +1,77 @@
+// --- Planning AI Analysis Handlers ---
+async function runPlanningAIAnalysis() {
+  const statusDiv = document.getElementById('planning-ai-analysis-status');
+  statusDiv.innerHTML = `<span style=\"color:var(--primary);\">Running AI analysis...</span>`;
+  // Example site data; in production, collect from UI or context
+  const site_data = {
+    address: '123 Example St',
+    postcode: 'EX1 2PL',
+    council: 'Example Council',
+    // ...add more fields as needed
+  };
+  try {
+    const {json, ok} = await fetchJSON('/planning-ai/analyze', {
+      method: 'POST',
+      headers: {'content-type':'application/json'},
+      body: JSON.stringify(site_data)
+    });
+    if (!ok || json.error) {
+      statusDiv.innerHTML = `<span style='color:var(--danger);'>Error: ${json.error || 'Failed to run analysis.'}</span>`;
+      return;
+    }
+    statusDiv.innerHTML = `<pre style='max-height:300px;overflow:auto;background:var(--panel);padding:12px;'>${JSON.stringify(json,null,2)}</pre>`;
+  } catch (e) {
+    statusDiv.innerHTML = `<span style='color:var(--danger);'>Error: ${e.message||e}</span>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const aiBtn = document.getElementById('run-planning-ai-analysis-btn');
+  if(aiBtn) aiBtn.onclick = runPlanningAIAnalysis;
+  // Optionally, wire up the other two buttons to show specific parts of the analysis result
+});
+// --- Document Generation Handlers ---
+async function generateDocument(documentType) {
+  const statusDiv = document.getElementById('doc-generation-status');
+  statusDiv.innerHTML = `<span style="color:var(--primary);">Generating <b>${documentType.replace('_',' ')}</b>...</span>`;
+  // Example site data; in production, collect from UI or context
+  const site_data = {
+    address: '123 Example St',
+    postcode: 'EX1 2PL',
+    council: 'Example Council',
+    // ...add more fields as needed
+  };
+  try {
+    const {json, ok} = await fetchJSON('/api/auto-docs/generate', {
+      method: 'POST',
+      headers: {'content-type':'application/json'},
+      body: JSON.stringify({
+        document_type: documentType,
+        site_data: site_data,
+        output_format: 'html'
+      })
+    });
+    if (!ok || json.error) {
+      statusDiv.innerHTML = `<span style='color:var(--danger);'>Error: ${json.error || 'Failed to generate document.'}</span>`;
+      return;
+    }
+    // Show result (for now, just show JSON; can render HTML if available)
+    if(json.html) {
+      statusDiv.innerHTML = `<div style='border:1px solid var(--primary);padding:16px;margin:8px 0;'>${json.html}</div>`;
+    } else {
+      statusDiv.innerHTML = `<pre style='max-height:300px;overflow:auto;background:var(--panel);padding:12px;'>${JSON.stringify(json,null,2)}</pre>`;
+    }
+  } catch (e) {
+    statusDiv.innerHTML = `<span style='color:var(--danger);'>Error: ${e.message||e}</span>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const planBtn = document.getElementById('generate-planning-statement-btn');
+  if(planBtn) planBtn.onclick = ()=>generateDocument('planning_statement');
+  const daBtn = document.getElementById('generate-da-statement-btn');
+  if(daBtn) daBtn.onclick = ()=>generateDocument('design_access_statement');
+});
 async function fetchJSON(url, opts={}){
   const key = document.getElementById('api-key')?.value?.trim();
   const headers = Object.assign({}, opts.headers||{});

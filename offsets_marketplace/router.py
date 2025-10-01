@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from .schemas import (
     OffsetSupplyListing, OffsetDemandRequest, OffsetMatch, OffsetAgreement,
     HabitatType, ListingStatus, DemandStatus, LocationStrategicSignificance,
-    BiodiversityAssessment, CreateSupplyListingRequest, CreateDemandRequestBody
+    BiodiversityAssessment
 )
 from .supply import SupplyManager
 from .demand import DemandManager
@@ -70,7 +70,7 @@ class SearchFilters(BaseModel):
 
 @router.post("/supply/create", response_model=SupplyListingResponse)
 async def create_supply_listing(
-    listing_data: CreateSupplyListingRequest = Body(..., description="Supply listing data")
+    listing_data: OffsetSupplyListing = Body(..., description="Supply listing data")
 ):
     """
     Create a new biodiversity offset supply listing
@@ -222,7 +222,7 @@ async def reserve_units(
 
 @router.post("/demand/create", response_model=DemandRequestResponse)
 async def create_demand_request(
-    request_data: CreateDemandRequestBody = Body(..., description="Demand request data")
+    request_data: OffsetDemandRequest = Body(..., description="Demand request data")
 ):
     """
     Create a new biodiversity offset demand request

@@ -6,7 +6,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 import json
 
-from ..planning_ai.schemas import SiteInput, Constraint, Score, Recommendation
+from planning_ai.schemas import SiteInput, Constraint, Score, Recommendation
 from .templates import TemplateEngine, DocumentTemplate
 
 

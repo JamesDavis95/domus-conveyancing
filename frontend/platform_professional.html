@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus Planning Platform - Professional Planning Intelligence</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --panel: #f1f5f9;
+            --border: #cbd5e1;
+            --text: #1e293b;
+            --muted: #64748b;
+            --primary: #475569;
+            --secondary: #334155;
+            --accent: #0f172a;
+            --success: #166534;
+            --warning: #a16207;
+            --danger: #991b1b;
+            --sidebar-bg: #0f172a;
+            --sidebar-border: #1e293b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.5;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+        }
+
+        .sidebar {
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            padding: 24px 0;
+            overflow-y: auto;
+            width: 280px;
+            height: 100vh;
+            z-index: 1000;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar.collapsed {
+            width: 40px;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .logo {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--sidebar-border);
+            margin-bottom: 24px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .logo p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+        
+        .nav-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #64748b;
+            padding: 0 24px;
+            margin-bottom: 8px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .nav-item:hover {
+            background: #1e293b;
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            border-right: 3px solid #64748b;
+        }
+        
+        .nav-item .icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 12px;
+            background: currentColor;
+            mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>') no-repeat center;
+            -webkit-mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>') no-repeat center;
+        }
+        
+        .main-content {
+            padding: 32px;
+            overflow-y: auto;
+            transition: padding 0.3s ease;
+        }
+        .main-content.expanded {
+            /* No margin-left, just use grid */
+            padding-left: 40px;
+        }
+        
+        .usage-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .usage-progress {
+            width: 100%;
+            height: 8px;
+            background: var(--panel);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--warning));
+            transition: width 0.3s ease;
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 18px;
+            margin-bottom: 24px;
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn.outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        
+        .btn.outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 24px;
+        }
+        
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                transition: left 0.3s ease;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .main-content {
+                padding: 16px;
+            }
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <div class="container">
+        <!-- Professional Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">
+                <h1>Domus</h1>
+                <p>Professional Planning Platform</p>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Overview</div>
+                <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+                    <span class="icon"></span>
+                    Dashboard
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Planning Services</div>
+                <button class="nav-item" data-page="planning-analysis" onclick="showPage('planning-analysis')">
+                    <span class="icon"></span>
+                    Planning AI Analysis
+                </button>
+                <button class="nav-item" data-page="auto-docs" onclick="showPage('auto-docs')">
+                    <span class="icon"></span>
+                    Document Generator
+                </button>
+                <button class="nav-item" data-page="property-api" onclick="showPage('property-api')">
+                    <span class="icon"></span>
+                    Property Data
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Marketplace</div>
+                <button class="nav-item" data-page="offsets-marketplace" onclick="showPage('offsets-marketplace')">
+                    <span class="icon"></span>
+                    Offsets Trading
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
+                <button class="nav-item" data-page="billing" onclick="showPage('billing')">
+                    <span class="icon"></span>
+                    Billing & Plans
+                </button>
+                <button class="nav-item" data-page="settings" onclick="showPage('settings')">
+                    <span class="icon"></span>
+                    Settings
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <div class="page-header">
+                    <h1 class="page-title">Planning Intelligence Dashboard</h1>
+                    <p class="page-subtitle">Professional planning analysis and document generation</p>
+                </div>
+
+                <!-- Usage Bar -->
+                <div class="usage-bar">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span style="font-weight: 500;">Monthly Usage</span>
+                        <span style="color: var(--muted); font-size: 14px;" id="current-plan">Your Plan</span>
+                    </div>
+                    <div class="usage-progress">
+                        <div class="usage-fill" id="usage-fill" style="width: 0%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--muted);">
+                        <span id="usage-text">Usage details here</span>
+                        <button class="btn" style="padding: 4px 12px; font-size: 12px;" onclick="showPage('billing')">Manage Plan</button>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div class="panel">
+                    <h2>Your Analytics</h2>
+                    <div class="grid grid-4">
+                        <div class="stat-card">
+                            <div class="stat-value" id="user-projects">--</div>
+                            <div class="stat-label">Projects Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="user-approvals">--</div>
+                            <div class="stat-label">Approval Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="user-savings">--</div>
+                            <div class="stat-label">Cost Savings</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="user-docs">--</div>
+                            <div class="stat-label">Documents Generated</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Projects Section -->
+                <div class="panel">
+                    <h2>Recent Projects</h2>
+                    <div id="recent-projects-list">
+                        <p>No recent projects to display.</p>
+                        <!-- Populate with real project data -->
+                    </div>
+                </div>
+
+                <!-- Performance vs Market Section -->
+                <div class="panel">
+                    <h2>Performance vs Market</h2>
+                    <div class="grid grid-3">
+                        <div class="stat-card">
+                            <div class="stat-value" id="your-approval-rate">--</div>
+                            <div class="stat-label">Your Approval Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="market-approval-rate">--</div>
+                            <div class="stat-label">Market Avg Approval Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="cost-savings">--</div>
+                            <div class="stat-label">Cost Savings vs Consultancy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Marketplace Overview Section -->
+                <div class="panel">
+                    <h2>Marketplace Overview</h2>
+                    <div class="grid grid-3">
+                        <div class="stat-card">
+                            <div class="stat-value">--</div>
+                            <div class="stat-label">Active Listings</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">--</div>
+                            <div class="stat-label">Total Value</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">--</div>
+                            <div class="stat-label">Units Traded</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Plans Section -->
+                <div class="panel">
+                    <h2>API & Add-On Plans</h2>
+                    <div class="grid grid-3">
+                        <div class="stat-card">
+                            <h3>Developer</h3>
+                            <ul style="margin: 12px 0; color: var(--muted); font-size: 14px;">
+                                <li>10,000 API calls/month</li>
+                                <li>Property data lookups</li>
+                                <li>Email support</li>
+                            </ul>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Business</h3>
+                            <ul style="margin: 12px 0; color: var(--muted); font-size: 14px;">
+                                <li>100,000 API calls/month</li>
+                                <li>Bulk data export</li>
+                                <li>Priority support</li>
+                            </ul>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Enterprise</h3>
+                            <ul style="margin: 12px 0; color: var(--muted); font-size: 14px;">
+                                <li>1,000,000+ API calls/month</li>
+                                <li>Custom integrations</li>
+                                <li>Dedicated account manager</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add-Ons & Services Section -->
+                <div class="panel">
+                    <h2>Professional Services & Add-Ons</h2>
+                    <div class="grid grid-2">
+                        <div class="stat-card">
+                            <h3>Export Submission Bundle</h3>
+                            <p style="color: var(--muted);">Site constraints, AI analysis, docs, compliance trail in one ZIP package</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Custom Policy Training</h3>
+                            <p style="color: var(--muted);">Upload and train AI on specific LPA policies for enterprise clients</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance & Security Section -->
+                <div class="panel">
+                    <h2>Compliance & Security</h2>
+                    <ul style="color: var(--muted); font-size: 14px;">
+                        <li>GDPR compliant data processing</li>
+                        <li>SOC 2 Type II security standards</li>
+                        <li>Professional indemnity insurance</li>
+                        <li>Regular third-party security audits</li>
+                    </ul>
+                </div>
+
+                <!-- Footer -->
+                <footer style="margin-top: 32px; color: var(--muted); font-size: 13px; text-align: center;">
+                    © 2025 Domus Planning Platform. Professional planning intelligence system.<br>
+                    <a href="#" style="color: var(--muted); text-decoration: underline;">Privacy Policy</a> •
+                    <a href="#" style="color: var(--muted); text-decoration: underline;">Terms of Service</a> •
+                    <a href="#" style="color: var(--muted); text-decoration: underline;">Support</a>
+                </footer>
+            </div>
+
+            <!-- Planning Analysis Page -->
+            <div id="planning-analysis" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Planning AI Analysis</h1>
+                    <p class="page-subtitle">Site constraint analysis and approval probability prediction</p>
+                </div>
+
+                <div class="panel">
+                    <h2>Site Analysis</h2>
+                    <form id="site-form" onsubmit="analyzeSite(event)">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Site Address or Postcode</label>
+                            <input type="text" id="site-address" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);" placeholder="Enter full address or postcode" required>
+                        </div>
+                        <button type="submit" class="btn">Analyze Site</button>
+                    </form>
+                    
+                    <div id="analysis-results" style="display: none; margin-top: 24px;">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-Docs Page -->
+            <div id="auto-docs" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Document Generator</h1>
+                    <p class="page-subtitle">Professional planning documents generated automatically</p>
+                </div>
+
+                <div class="panel">
+                    <h2>Generate Documents</h2>
+                    <div class="grid grid-2" style="margin-top: 16px;">
+                        <div class="stat-card">
+                            <h3>Planning Statement</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Comprehensive planning statements with policy analysis</p>
+                            <button class="btn">Generate</button>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Design & Access Statement</h3>
+                            <p style="color: var(--muted); margin: 12px 0;">Professional D&A statements with design rationale</p>
+                            <button class="btn">Generate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property API Page -->
+            <div id="property-api" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Property Data</h1>
+                    <p class="page-subtitle">Comprehensive UK property information</p>
+                </div>
+
+                <div class="panel">
+                    <h2>Property Lookup</h2>
+                    <form id="property-form" onsubmit="lookupProperty(event)">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Property Address or UPRN</label>
+                            <input type="text" id="property-address" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);" placeholder="Enter property address or UPRN" required>
+                        </div>
+                        <button type="submit" class="btn">Lookup Property</button>
+                    </form>
+                    
+                    <div id="property-results" style="display: none; margin-top: 24px;">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offsets Marketplace Page -->
+            <div id="offsets-marketplace" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Offsets Trading</h1>
+                    <p class="page-subtitle">Biodiversity net gain marketplace</p>
+                </div>
+
+                <div class="panel">
+                    <h2>Market Overview</h2>
+                    <div class="grid grid-3" style="margin-top: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--success);">0</div>
+                            <div class="stat-label">Active Listings</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--primary);">£0</div>
+                            <div class="stat-label">Average Unit Price</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--warning);">0</div>
+                            <div class="stat-label">Units Available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Page -->
+            <div id="billing" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Billing & Plans</h1>
+                    <p class="page-subtitle">Manage your subscription and usage</p>
+                </div>
+
+                <div class="panel">
+                    <h2>Current Plan</h2>
+                    <div id="current-plan">
+                        <p>Loading plan details...</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>Available Plans</h2>
+                    <div class="grid grid-3" style="margin-top: 16px;">
+                        <div class="stat-card">
+                            <h3>Core</h3>
+                            <div class="stat-value" style="color: var(--primary);">£800</div>
+                            <div class="stat-label">per month</div>
+                            <ul style="margin: 16px 0; color: var(--muted); font-size: 14px;">
+                                <li>10 site analyses/month</li>
+                                <li>10 document generations</li>
+                                <li>1,000 API calls</li>
+                                <li>Email support</li>
+                            </ul>
+                            <button class="btn outline" onclick="subscribeToPlan('core')">Current Plan</button>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Professional</h3>
+                            <div class="stat-value" style="color: var(--success);">£2,500</div>
+                            <div class="stat-label">per month</div>
+                            <ul style="margin: 16px 0; color: var(--muted); font-size: 14px;">
+                                <li>Unlimited analyses</li>
+                                <li>Unlimited documents</li>
+                                <li>50,000 API calls</li>
+                                <li>Priority support</li>
+                            </ul>
+                            <button class="btn" onclick="subscribeToPlan('professional')">Upgrade</button>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Enterprise</h3>
+                            <div class="stat-value" style="color: var(--warning);">£7,500</div>
+                            <div class="stat-label">per month</div>
+                            <ul style="margin: 16px 0; color: var(--muted); font-size: 14px;">
+                                <li>Everything in Professional</li>
+                                <li>200,000 API calls</li>
+                                <li>Custom integrations</li>
+                                <li>Dedicated account manager</li>
+                            </ul>
+                            <button class="btn" onclick="subscribeToPlan('enterprise')">Contact Sales</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Account and platform configuration</p>
+                </div>
+
+                <div class="panel">
+                    <h2>Account Settings</h2>
+                    <form id="settings-form">
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Full Name</label>
+                            <input type="text" id="user-name" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);" placeholder="Enter your full name">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Email Address</label>
+                            <input type="email" id="user-email" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);" placeholder="Enter your email">
+                        </div>
+                        <button type="submit" class="btn">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Page Navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active state from nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            
+            // Add active state to clicked nav item
+            const targetNav = document.querySelector(`[data-page="${pageId}"]`);
+            if (targetNav) {
+                targetNav.classList.add('active');
+            }
+            
+            // Load page data
+            loadPageData(pageId);
+        }
+
+        // Load page-specific data
+        function loadPageData(pageId) {
+            switch(pageId) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'billing':
+                    loadBillingData();
+                    break;
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const authHeaders = token ? { 'Authorization': 'Bearer ' + token } : {};
+
+                // Analytics (projects completed, approval rate, cost savings, documents generated)
+                const analyticsRes = await fetch('/api/dashboard/analytics', {
+                    headers: {
+                        ...authHeaders
+                    }
+                });
+                const analytics = await analyticsRes.json();
+                if (analytics) {
+                    document.getElementById('user-projects').textContent = analytics.projects_completed || '0';
+                    document.getElementById('user-approvals').textContent = (analytics.approval_rate || 0).toFixed(1) + '%';
+                    document.getElementById('user-savings').textContent = '£' + (analytics.cost_savings || '0');
+                    document.getElementById('user-docs').textContent = analytics.documents_generated || '0';
+                }
+
+                // Recent Projects
+                const projectsRes = await fetch('/api/dashboard/recent-projects', {
+                    headers: {
+                        ...authHeaders
+                    }
+                });
+                const projects = await projectsRes.json();
+                const listDiv = document.getElementById('recent-projects-list');
+                if (projects && projects.length > 0) {
+                    listDiv.innerHTML = '<ul style="list-style:none;padding:0;">' +
+                        projects.map(p => `
+                            <li style="margin-bottom:16px;">
+                                <div style="font-weight:600;">${p.ref || p.id}</div>
+                                <div style="color:var(--muted);font-size:14px;">${p.address || ''}</div>
+                                <div style="font-size:13px;">Status: <span style="color:var(--primary);">${p.status || 'N/A'}</span></div>
+                                <div style="font-size:12px;color:var(--muted);">Created: ${p.created_at ? new Date(p.created_at).toLocaleDateString() : ''}</div>
+                            </li>
+                        `).join('') + '</ul>';
+                } else {
+                    listDiv.innerHTML = '<p>No recent projects to display.</p>';
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+            }
+        }
+
+        // Load billing data
+        async function loadBillingData() {
+            try {
+                const response = await fetch('/api/billing/current-plan');
+                const data = await response.json();
+                
+                const planElement = document.getElementById('current-plan');
+                if (data && data.plan) {
+                    planElement.innerHTML = `
+                        <h3>${data.plan.name}</h3>
+                        <p>£${data.plan.price}/month</p>
+                        <p>Usage: ${data.usage.current}/${data.usage.limit} this month</p>
+                    `;
+                } else {
+                    planElement.innerHTML = '<p>No active plan</p>';
+                }
+            } catch (error) {
+                console.error('Failed to load billing data:', error);
+                document.getElementById('current-plan').innerHTML = '<p>Error loading plan details</p>';
+            }
+        }
+
+        // Site Analysis
+        async function analyzeSite(event) {
+            event.preventDefault();
+            
+            const address = document.getElementById('site-address').value;
+            const resultsDiv = document.getElementById('analysis-results');
+            
+            if (!address) return;
+            
+            // Show loading state
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="spinner"></div>Analyzing site...';
+            
+            try {
+                const response = await fetch('/api/planning-ai/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ address })
+                });
+                
+                const data = await response.json();
+                
+                if (data) {
+                    resultsDiv.innerHTML = `
+                        <div class="panel">
+                            <h3>Analysis Results</h3>
+                            <div class="grid grid-2" style="margin-top: 16px;">
+                                <div class="stat-card">
+                                    <div class="stat-value" style="color: var(--success);">${(data.approval_probability * 100).toFixed(1)}%</div>
+                                    <div class="stat-label">Approval Probability</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" style="color: var(--primary);">${(data.confidence_score * 100).toFixed(1)}%</div>
+                                    <div class="stat-label">Confidence Score</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <h4>Key Constraints:</h4>
+                                <ul style="margin-top: 8px; color: var(--muted);">
+                                    ${data.key_factors ? data.key_factors.map(factor => `<li>${factor}</li>`).join('') : '<li>No major constraints identified</li>'}
+                                </ul>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <p><strong>Analysis:</strong> ${data.rationale}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Analysis failed:', error);
+                resultsDiv.innerHTML = '<p style="color: var(--danger);">Analysis failed. Please try again.</p>';
+            }
+        }
+
+        // Property Lookup
+        async function lookupProperty(event) {
+            event.preventDefault();
+            
+            const address = document.getElementById('property-address').value;
+            const resultsDiv = document.getElementById('property-results');
+            
+            if (!address) return;
+            
+            // Show loading state
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<div class="spinner"></div>Looking up property...';
+            
+            try {
+                const response = await fetch('/api/property/lookup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ address })
+                });
+                
+                const data = await response.json();
+                
+                if (data) {
+                    resultsDiv.innerHTML = `
+                        <div class="panel">
+                            <h3>Property Information</h3>
+                            <div class="grid grid-2" style="margin-top: 16px;">
+                                <div>
+                                    <h4>Basic Details</h4>
+                                    <p><strong>Address:</strong> ${data.address || 'Not available'}</p>
+                                    <p><strong>UPRN:</strong> ${data.uprn || 'Not available'}</p>
+                                    <p><strong>Council Tax Band:</strong> ${data.council_tax_band || 'Not available'}</p>
+                                </div>
+                                <div>
+                                    <h4>Energy Performance</h4>
+                                    <p><strong>EPC Rating:</strong> ${data.epc_rating || 'Not available'}</p>
+                                    <p><strong>Energy Score:</strong> ${data.energy_score || 'Not available'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Property lookup failed:', error);
+                resultsDiv.innerHTML = '<p style="color: var(--danger);">Property lookup failed. Please try again.</p>';
+            }
+        }
+
+        // Plan subscription
+        async function subscribeToPlan(planType) {
+            try {
+                const response = await fetch('/api/billing/create-checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+                    },
+                    body: JSON.stringify({ plan: planType })
+                });
+                
+                const data = await response.json();
+                
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Failed to create checkout session');
+                }
+            } catch (error) {
+                console.error('Checkout failed:', error);
+                alert('Failed to process checkout');
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            
+            // Check for auth token
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                console.log('No auth token found');
+            }
+        });
+        
+        // Handle mobile responsiveness
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('collapsed');
+                document.querySelector('.main-content').classList.add('expanded');
+            }
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Add mobile menu button for small screens
+        if (window.innerWidth <= 768) {
+            const menuButton = document.createElement('button');
+            menuButton.innerHTML = '☰ Menu';
+            menuButton.style.cssText = 'position: fixed; top: 20px; left: 20px; z-index: 1001; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 4px;';
+            menuButton.onclick = toggleMobileMenu;
+            document.body.appendChild(menuButton);
+        }
+    </script>
+</body>
+</html>
