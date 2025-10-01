@@ -7,16 +7,16 @@
     <!-- Updated: September 21, 2025 - New Pricing Model -->
     <style>
         :root {
-            --bg: #0a0e1a;
-            --surface: #1a1f2e;
-            --panel: #232a3d;
-            --border: #2d3748;
-            --text: #e2e8f0;
-            --muted: #94a3b8;
-            --primary: #64748b;
-            --success: #6b7280;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --panel: #f1f5f9;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --muted: #64748b;
+            --primary: #334155;
+            --success: #475569;
             --warning: #64748b;
-            --danger: #6b7280;
+            --danger: #52525b;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -279,7 +279,7 @@
             margin-bottom: 16px;
         }
         
-        .demo-section {
+        .analysis-section {
             margin-bottom: 32px;
         }
         
@@ -577,22 +577,22 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Onboarding Banner (shown for new users) -->
+            <!-- Client Onboarding Banner -->
             <div id="onboarding-banner" style="background: linear-gradient(135deg, var(--primary), #2563eb); color: white; padding: 20px; margin-bottom: 24px; border-radius: 12px; position: relative; overflow: hidden;">
                 <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translate(50%, -50%);"></div>
                 <div style="display: flex; justify-content: between; align-items: center; gap: 24px; position: relative;">
                     <div style="flex: 1;">
-                        <h2 style="font-size: 24px; margin: 0 0 8px 0; font-weight: 700;"> Welcome to Domus Planning Intelligence!</h2>
-                        <p style="font-size: 16px; margin: 0 0 16px 0; opacity: 0.95;">Experience our AI-powered platform with a pre-loaded demo project. See instant planning analysis, risk assessment, and cost predictions.</p>
+                        <h2 style="font-size: 24px; margin: 0 0 8px 0; font-weight: 700;">Welcome to Domus Planning Intelligence</h2>
+                        <p style="font-size: 16px; margin: 0 0 16px 0; opacity: 0.95;">Professional planning intelligence platform ready for your projects. Get started with site analysis, document generation, and planning insights.</p>
                         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                            <button onclick="startDemoProject()" style="background: white; color: var(--primary); border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">
-                                 Try Demo Project (30 sec)
+                            <button onclick="showPage('dashboard')" style="background: white; color: var(--primary); border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">
+                                Start New Project
                             </button>
                             <button onclick="showPage('help-support')" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">
-                                 View Tutorial
+                                Documentation
                             </button>
                             <button onclick="hideOnboarding()" style="background: transparent; color: white; border: none; padding: 12px; cursor: pointer; font-size: 12px; opacity: 0.8;">
-                                 Dismiss
+                                Dismiss
                             </button>
                         </div>
                     </div>
@@ -924,20 +924,20 @@
                     </div>
                 </div>
 
-                <!-- Quick Demo -->
-                <div class="demo-section">
-                    <h2> Try It Now</h2>
+                <!-- Planning Analysis -->
+                <div class="analysis-section">
+                    <h2>Site Analysis</h2>
                     <div class="site-input">
-                        <input type="text" placeholder="Enter site address or postcode (e.g. 'OX1 1AA' or '123 High Street, Oxford')" id="site-address">
+                        <input type="text" placeholder="Enter site address or postcode for analysis" id="site-address">
                     </div>
-                    <button class="btn" onclick="runDemo()">Analyze Site with Planning AI</button>
+                    <button class="btn" onclick="runAnalysis()">Analyze Site</button>
                     
-                    <div id="demo-results" class="results">
+                    <div id="analysis-results" class="results" style="display: none;">
                         <div class="approval-score">
                             <div class="score-circle">
                                 <div class="score-inner">
-                                    <div class="score-percentage">73%</div>
-                                    <div style="font-size: 12px;">Approval</div>
+                                    <div class="score-percentage">--</div>
+                                    <div style="font-size: 12px;">Analysis</div>
                                 </div>
                             </div>
                             <p>High confidence prediction based on AI analysis</p>
@@ -1054,13 +1054,13 @@
                             <h3> Planning Statement</h3>
                             <p style="color: var(--muted); margin: 12px 0;">Comprehensive planning statements with automatic policy referencing, site assessment, and success optimization</p>
                             <button class="btn">Generate Planning Statement</button>
-                            <button class="btn outline" style="margin-left: 8px;">View Sample</button>
+                            <button class="btn outline" style="margin-left: 8px;">View Templates</button>
                         </div>
                         <div class="stat-card">
-                            <h3> Design & Access Statement</h3>
+                            <h3>Design & Access Statement</h3>
                             <p style="color: var(--muted); margin: 12px 0;">Professional D&A statements with accessibility integration, design rationale, and strategic policy alignment</p>
                             <button class="btn">Generate D&A Statement</button>
-                            <button class="btn outline" style="margin-left: 8px;">View Sample</button>
+                            <button class="btn outline" style="margin-left: 8px;">View Templates</button>
                         </div>
                     </div>
                 </div>
@@ -1600,7 +1600,7 @@
                         </div>
                     </div>
 
-                    <!-- Draft Contract Example -->
+                    <!-- Draft Contract template -->
                     <div style="background: var(--surface); border: 1px solid var(--muted); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
                         <div class="grid grid-4">
                             <div>
@@ -1655,7 +1655,7 @@
                         </div>
                     </div>
                     
-                    <!-- Completed Contract Example -->
+                    <!-- Completed Contract template -->
                     <div style="background: var(--surface); border: 1px solid var(--success); border-radius: 8px; padding: 16px;">
                         <div class="grid grid-4">
                             <div>
@@ -1726,17 +1726,17 @@
                     <p class="page-subtitle">Unified UK property data lookup - the foundation for all AI analysis</p>
                 </div>
 
-                <div class="demo-section">
-                    <h2> Site Lookup</h2>
+                <div class="analysis-section">
+                    <h2>Property Lookup</h2>
                     <div class="site-input">
-                        <input type="text" placeholder="Enter property address, postcode, or UPRN" id="property-lookup-input" value="123 Oxford Street, London, W1D 2HX">
+                        <input type="text" placeholder="Enter property address, postcode, or UPRN" id="property-lookup-input" value="">
                     </div>
-                    <button class="btn" onclick="lookupProperty()">Lookup Property Data</button>
+                    <button class="btn" onclick="lookupProperty()">Search Property Data</button>
                     
-                    <div id="property-results" class="results">
+                    <div id="property-results" class="results" style="display: none;">
                         <div class="grid grid-2">
                             <div class="panel">
-                                <h3> Land Registry Data</h3>
+                                <h3>Property Information</h3>
                                 <div style="color: var(--muted); font-size: 14px; line-height: 1.8;">
                                     <p><strong>Title Number:</strong> LN12345</p>
                                     <p><strong>Tenure:</strong> Freehold</p>
@@ -1803,11 +1803,11 @@
                     <p class="page-subtitle">Intelligent constraint detection and approval probability prediction</p>
                 </div>
 
-                <div class="demo-section">
+                <div class="analysis-section">
                     <h2> Site Analysis Input</h2>
                     <div class="grid grid-2">
                         <div class="site-input">
-                            <input type="text" placeholder="Property address or coordinates" id="planning-ai-input" value="123 Oxford Street, London, W1D 2HX">
+                            <input type="text" placeholder="Property address or coordinates" id="planning-ai-input" value="">
                         </div>
                         <div class="site-input">
                             <select style="background: transparent; border: none; color: var(--text); width: 100%;">
@@ -2068,24 +2068,24 @@
                 </div>
             </div>
 
-            <!-- Site Analysis Demo Page -->
+            <!-- Site Analysis analysis Page -->
             <div id="site-analysis" class="page">
                 <div class="page-header">
-                    <h1 class="page-title"> Site Analysis Demo</h1>
+                    <h1 class="page-title"> Site Analysis analysis</h1>
                     <p class="page-subtitle">See the full Planning AI system in action with a real site analysis</p>
                 </div>
 
-                <div class="demo-section">
+                <div class="analysis-section">
                     <div class="site-input">
-                        <input type="text" placeholder="Enter site address, postcode, or UPRN" id="demo-site-input" value="123 Oxford Street, London, W1D 2HX">
+                        <input type="text" placeholder="Enter site address, postcode, or UPRN" id="analysis-site-input" value="">
                     </div>
                     <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-                        <button class="btn" onclick="runFullDemo()">Run Full Analysis</button>
+                        <button class="btn" onclick="runFullanalysis()">Run Full Analysis</button>
                         <button class="btn outline" onclick="generateDocs()">Generate Documents</button>
                         <button class="btn outline" onclick="checkOffsets()">Check Offset Options</button>
                     </div>
                     
-                    <div id="full-demo-results" class="results">
+                    <div id="full-analysis-results" class="results">
                         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
                             <div class="approval-score">
                                 <div class="score-circle">
@@ -2401,7 +2401,7 @@
                         </div>
                     </div>
 
-                    <!-- Solo Project (Invitation Demo) -->
+                    <!-- Solo Project (Invitation analysis) -->
                     <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
                         <div class="grid grid-4">
                             <div>
@@ -3371,7 +3371,7 @@
                     </div>
                     
                     <div style="background: var(--warning); color: white; padding: 16px; border-radius: 8px; text-align: center;">
-                        <strong> Example Transaction: £50,000 habitat purchase = £3,500 commission (split 7% landowner fee)</strong>
+                        <strong> template Transaction: £50,000 habitat purchase = £3,500 commission (split 7% landowner fee)</strong>
                         <div style="font-size: 12px; margin-top: 4px;">Developer pays £50,000 + £0 fees | Landowner receives £46,500 after 7% commission</div>
                     </div>
                 </div>
@@ -3489,9 +3489,9 @@
                         </div>
                     </div>
                     
-                    <!-- Fee Breakdown Example -->
+                    <!-- Fee Breakdown template -->
                     <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-                        <h3 style="margin: 0 0 12px 0; color: var(--text);"> Example: £10,000 Trade</h3>
+                        <h3 style="margin: 0 0 12px 0; color: var(--text);"> template: £10,000 Trade</h3>
                         <div class="grid grid-2" style="gap: 20px;">
                             <div>
                                 <h4 style="margin: 0 0 8px 0; color: var(--success);"> Seller Receives:</h4>
@@ -3914,7 +3914,7 @@
                                         <span style="color: var(--success);"> Licensed</span>
                                     </div>
                                     <div style="display: flex; justify-content: space-between;">
-                                        <span><strong>ONS/EPC Database:</strong> Energy ratings, demographics</span>
+                                        <span><strong>ONS/EPC Database:</strong> Energy ratings, analysisgraphics</span>
                                         <span style="color: var(--success);"> Open Data</span>
                                     </div>
                                 </div>
@@ -4058,13 +4058,13 @@
                     <div style="background: var(--surface); padding: 12px; border-radius: 6px;">
                         <div style="display: flex; align-items: center; margin-bottom: 8px;">
                             <span style="font-size: 16px; margin-right: 8px;"></span>
-                            <strong style="font-size: 14px;">New User? Try the Demo Project</strong>
+                            <strong style="font-size: 14px;">New User? Try the analysis Project</strong>
                         </div>
                         <p style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
                             Experience the platform instantly with pre-loaded real data from a successful Surrey development project.
                         </p>
-                        <button class="btn primary" onclick="loadDemoProject()" style="font-size: 12px;">
-                            <span style="margin-right: 6px;"></span>Load Demo Project
+                        <button class="btn primary" onclick="loadanalysisProject()" style="font-size: 12px;">
+                            <span style="margin-right: 6px;"></span>Load analysis Project
                         </button>
                     </div>
                 </div>
@@ -4076,7 +4076,7 @@
                         <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
                             <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
                                 <h4 style="font-size: 14px; margin-bottom: 4px;"> API Documentation</h4>
-                                <p style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Complete API reference with code examples</p>
+                                <p style="color: var(--muted); font-size: 12px; margin-bottom: 8px;">Complete API reference with code templates</p>
                                 <button class="btn outline" style="font-size: 12px;">View API Docs</button>
                             </div>
                             <div style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
@@ -5198,26 +5198,26 @@
 
     <script>
         // Onboarding Functions
-        function startDemoProject() {
+        function startanalysisProject() {
             // Show loading state
-            const demoButton = event.target;
-            const originalText = demoButton.innerHTML;
-            demoButton.innerHTML = ' Loading Demo...';
-            demoButton.disabled = true;
+            const analysisButton = event.target;
+            const originalText = analysisButton.innerHTML;
+            analysisButton.innerHTML = ' Loading analysis...';
+            analysisButton.disabled = true;
             
-            // Simulate loading demo data
+            // Simulate loading analysis data
             setTimeout(() => {
                 // Reset button
-                demoButton.innerHTML = originalText;
-                demoButton.disabled = false;
+                analysisButton.innerHTML = originalText;
+                analysisButton.disabled = false;
                 
-                // Navigate to projects page with demo data pre-loaded
+                // Navigate to projects page with analysis data pre-loaded
                 showPage('projects');
                 
-                // Show demo project notification
-                showDemoNotification();
+                // Show analysis project notification
+                showanalysisNotification();
                 
-                // Auto-hide onboarding banner after demo
+                // Auto-hide onboarding banner after analysis
                 setTimeout(() => {
                     const banner = document.getElementById('onboarding-banner');
                     if (banner) {
@@ -5230,7 +5230,7 @@
             }, 1500);
         }
         
-        function showDemoNotification() {
+        function showanalysisNotification() {
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
@@ -5251,7 +5251,7 @@
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span></span>
                     <div>
-                        <div>Demo Project Loaded!</div>
+                        <div>analysis Project Loaded!</div>
                         <div style="font-size: 12px; font-weight: normal; opacity: 0.9; margin-top: 4px;">
                             Residential development with real planning data pre-analyzed
                         </div>
@@ -5460,7 +5460,7 @@
             alert(` Property Lookup Results for: ${input.value}\\n\\nData sources queried:\\n Land Registry - Title found\\n EPC Database - Rating found\\n Flood Risk - Zone assessed\\n Planning History - 3 applications found\\n\\nClick "View Results" to see full data breakdown.`);
         }
         
-        function runDemo() {
+        function runanalysis() {
             const siteAddress = document.getElementById('site-address').value;
             if (!siteAddress.trim()) {
                 alert('Please enter a site address or postcode');
@@ -5474,20 +5474,20 @@
             btn.disabled = true;
             
             setTimeout(() => {
-                document.getElementById('demo-results').classList.add('show');
+                document.getElementById('analysis-results').classList.add('show');
                 btn.textContent = originalText;
                 btn.disabled = false;
             }, 1500);
         }
         
-        function runFullDemo() {
+        function runFullanalysis() {
             const btn = event.target;
             const originalText = btn.textContent;
             btn.textContent = 'Analyzing Site...';
             btn.disabled = true;
             
             setTimeout(() => {
-                document.getElementById('full-demo-results').classList.add('show');
+                document.getElementById('full-analysis-results').classList.add('show');
                 btn.textContent = originalText;
                 btn.disabled = false;
             }, 2000);
@@ -5606,7 +5606,7 @@
 
         // Document Hub Functions
         function filterDocuments(category) {
-            alert(` Filtering Documents by: ${category}\n\nShowing relevant documents:\n• Templates and examples\n• Generated content\n• Client-specific materials\n• Project documentation\n\nDocument Hub organizes everything by project and type.`);
+            alert(` Filtering Documents by: ${category}\n\nShowing relevant documents:\n• Templates and templates\n• Generated content\n• Client-specific materials\n• Project documentation\n\nDocument Hub organizes everything by project and type.`);
         }
 
         function bulkDownload() {
@@ -5798,7 +5798,7 @@
         }
 
         function exportLibrary() {
-            alert(' Export Document Library\n\nExporting comprehensive library:\n• All generated documents\n• Templates and examples\n• Project histories and versions\n• Team collaboration notes\n• Metadata and timestamps\n\nPerfect for client handovers and compliance.');
+            alert(' Export Document Library\n\nExporting comprehensive library:\n• All generated documents\n• Templates and templates\n• Project histories and versions\n• Team collaboration notes\n• Metadata and timestamps\n\nPerfect for client handovers and compliance.');
         }
 
         // Export Bundle System
