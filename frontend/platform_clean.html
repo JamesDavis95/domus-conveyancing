@@ -471,19 +471,8 @@
             border-color: var(--primary) !important;
             background: var(--panel) !important;
         }
-    </style>
 </head>
 <body>
-    <!-- Demo Authentication Switcher (HIDDEN IN PRODUCTION) -->
-    <div id="demoAuthSwitcher" style="display: none; position: fixed; top: 10px; right: 10px; z-index: 9999; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 12px;">
-        <div style="font-weight: 600; margin-bottom: 8px; color: var(--text);">Development Mode:</div>
-        <button onclick="loginAs('developer')" style="display: block; width: 100%; margin-bottom: 4px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Developer</button>
-        <button onclick="loginAs('landowner')" style="display: block; width: 100%; margin-bottom: 4px; padding: 6px 12px; background: var(--success); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Landowner</button>
-        <button onclick="loginAs('consultant')" style="display: block; width: 100%; margin-bottom: 4px; padding: 6px 12px; background: var(--warning); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Consultant</button>
-        <button onclick="loginAs('authority')" style="display: block; width: 100%; margin-bottom: 8px; padding: 6px 12px; background: var(--error); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Authority</button>
-        <div style="font-size: 10px; color: var(--muted); text-align: center;">Development Only</div>
-    </div>
-
     <div class="container">
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
@@ -645,26 +634,30 @@
                 </button>
             </div>
 
-            <div class="nav-section">
-                <div class="nav-section-title">Administration</div>
-                <button class="nav-item" data-page="user-management" onclick="showPage('user-management')">
-                    <span class="icon"></span>
+            <div class="nav-section" data-section="administration" data-roles="super_admin">
+                <div class="nav-section-title">Super Admin</div>
+                <button class="nav-item" data-page="admin-panel" data-roles="super_admin" onclick="showPage('admin-panel')">
+                    <span class="icon">⚙</span>
+                    Admin Panel
+                </button>
+                <button class="nav-item" data-page="user-management" data-roles="super_admin" onclick="showPage('user-management')">
+                    <span class="icon">▦</span>
                     User Management
                 </button>
-                <button class="nav-item" data-page="billing-subscriptions" onclick="showPage('billing-subscriptions')">
-                    <span class="icon">�</span>
+                <button class="nav-item" data-page="billing-subscriptions" data-roles="super_admin" onclick="showPage('billing-subscriptions')">
+                    <span class="icon">■</span>
                     Billing & Subscriptions
                 </button>
-                <button class="nav-item" data-page="data-compliance" onclick="showPage('data-compliance')">
-                    <span class="icon"></span>
+                <button class="nav-item" data-page="data-compliance" data-roles="super_admin" onclick="showPage('data-compliance')">
+                    <span class="icon">▤</span>
                     Data & Compliance
                 </button>
-                <button class="nav-item" data-page="help-support" onclick="showPage('help-support')">
-                    <span class="icon"></span>
+                <button class="nav-item" data-page="help-support" data-roles="super_admin" onclick="showPage('help-support')">
+                    <span class="icon">◇</span>
                     Help & Support
                 </button>
-                <button class="nav-item" data-page="settings" onclick="showPage('settings')">
-                    <span class="icon"></span>
+                <button class="nav-item" data-page="settings" data-roles="super_admin" onclick="showPage('settings')">
+                    <span class="icon">●</span>
                     Settings
                 </button>
             </div>
@@ -4752,6 +4745,187 @@
                 </div>
             </div>
 
+            <!-- Admin Panel Page (Super Admin Only) -->
+            <div id="admin-panel" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">Super Admin Panel</h1>
+                    <p class="page-subtitle">Complete platform administration and user permission management</p>
+                </div>
+
+                <!-- User Management Section -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <h2>User Management</h2>
+                    <div class="grid grid-3" style="gap: 16px; margin-bottom: 16px;">
+                        <div class="stat-card">
+                            <div class="stat-value primary">1,247</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value success">1,201</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value warning">46</div>
+                            <div class="stat-label">Pending Approvals</div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); border-radius: 8px; overflow: hidden;">
+                        <div style="padding: 16px; border-bottom: 1px solid var(--border); background: var(--panel);">
+                            <h3 style="margin: 0; font-size: 14px;">Recent User Activity</h3>
+                        </div>
+                        <div style="padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 13px;">Sarah Johnson</div>
+                                    <div style="font-size: 11px; color: var(--muted);">sarah.johnson@urbandev.co.uk</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 12px;">Developer</div>
+                                    <div style="font-size: 11px; color: var(--success);">Active</div>
+                                </div>
+                                <button class="btn outline" style="font-size: 11px; padding: 4px 8px;">Edit</button>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 13px;">Michael Chen</div>
+                                    <div style="font-size: 11px; color: var(--muted);">michael@planningconsult.com</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 12px;">Consultant</div>
+                                    <div style="font-size: 11px; color: var(--success);">Active</div>
+                                </div>
+                                <button class="btn outline" style="font-size: 11px; padding: 4px 8px;">Edit</button>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 13px;">Emma Thompson</div>
+                                    <div style="font-size: 11px; color: var(--muted);">emma.thompson@camden.gov.uk</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 12px;">Authority</div>
+                                    <div style="font-size: 11px; color: var(--warning);">Pending</div>
+                                </div>
+                                <button class="btn outline" style="font-size: 11px; padding: 4px 8px;">Approve</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permission Management -->
+                <div class="panel" style="margin-bottom: 24px;">
+                    <h2>Permission Management</h2>
+                    <p style="color: var(--muted); margin-bottom: 16px;">Grant specific permissions to users beyond their default role access</p>
+                    
+                    <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                        <h3 style="font-size: 14px; margin-bottom: 12px;">Role Permissions Matrix</h3>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; font-size: 12px;">
+                                <thead>
+                                    <tr style="background: var(--panel);">
+                                        <th style="text-align: left; padding: 8px;">Role</th>
+                                        <th style="text-align: center; padding: 8px;">Projects</th>
+                                        <th style="text-align: center; padding: 8px;">Marketplace</th>
+                                        <th style="text-align: center; padding: 8px;">Planning AI</th>
+                                        <th style="text-align: center; padding: 8px;">Authority</th>
+                                        <th style="text-align: center; padding: 8px;">Admin</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: 600;">Developer</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--success);">✓</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--success);">✓</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: 600;">Consultant</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--success);">✓</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--success);">✓</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: 600;">Landowner</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--success);">✓</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: 600;">Authority</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--success);">✓</td>
+                                        <td style="text-align: center; padding: 8px; color: var(--muted);">×</td>
+                                    </tr>
+                                    <tr style="background: var(--primary); color: white;">
+                                        <td style="padding: 8px; font-weight: 600;">Super Admin</td>
+                                        <td style="text-align: center; padding: 8px;">✓</td>
+                                        <td style="text-align: center; padding: 8px;">✓</td>
+                                        <td style="text-align: center; padding: 8px;">✓</td>
+                                        <td style="text-align: center; padding: 8px;">✓</td>
+                                        <td style="text-align: center; padding: 8px;">✓</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="grid grid-2" style="gap: 24px;">
+                    <div class="panel">
+                        <h2>System Status</h2>
+                        <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 600; font-size: 13px;">API Health</span>
+                                <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px;">OPERATIONAL</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 600; font-size: 13px;">Database</span>
+                                <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px;">HEALTHY</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 600; font-size: 13px;">AI Services</span>
+                                <span style="background: var(--warning); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px;">MAINTENANCE</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; font-size: 13px;">Storage</span>
+                                <span style="background: var(--success); color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px;">OPERATIONAL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2>Platform Analytics</h2>
+                        <div style="background: var(--surface); border-radius: 8px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 600; font-size: 13px;">Daily Active Users</span>
+                                <span style="font-weight: 600; color: var(--primary);">847</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 600; font-size: 13px;">API Calls Today</span>
+                                <span style="font-weight: 600; color: var(--success);">12,345</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 600; font-size: 13px;">Storage Used</span>
+                                <span style="font-weight: 600; color: var(--warning);">2.4 TB</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; font-size: 13px;">Revenue (MTD)</span>
+                                <span style="font-weight: 600; color: var(--primary);">£47,892</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Planning Trends Page -->
             <div id="planning-trends" class="page">
                 <div class="page-header">
@@ -6085,19 +6259,22 @@
         
         // Simulated user session (in real app, this comes from server authentication)
         window.currentUser = {
-            id: 'user_12847',
-            name: 'Sarah Johnson',
-            email: 'sarah.johnson@urbandev.co.uk',
-            role: 'developer', // This is the ONLY role this user has - assigned at signup
-            initials: 'SJ',
+            id: 'superadmin_001',
+            name: 'James Davis',
+            email: 'james@domusconveyancing.com',
+            role: 'super_admin', // Super admin with access to everything
+            initials: 'JD',
             permissions: {
-                // Permissions are determined by role and cannot be changed
+                // Super admin has all permissions
                 canViewProjects: true,
-                canViewMarketplace: false,
-                canViewLandPortfolio: false,
-                canViewApplicationReview: false,
+                canViewMarketplace: true,
+                canViewLandPortfolio: true,
+                canViewApplicationReview: true,
                 canCreateDocuments: true,
-                canAccessPlanningAI: true
+                canAccessPlanningAI: true,
+                canManageUsers: true,
+                canManagePermissions: true,
+                canAccessAdminPanel: true
             }
         };
 
@@ -6122,6 +6299,11 @@
                 allowedPages: ['dashboard', 'application-review', 'policy-compliance', 'local-development'],
                 dashboardTitle: 'Planning Authority Dashboard',
                 dashboardSubtitle: 'Efficient application processing and policy compliance management tools'
+            },
+            'super_admin': {
+                allowedPages: ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api', 'team-workspace', 'marketplace', 'land-portfolio', 'offset-contracts', 'application-review', 'policy-compliance', 'local-development', 'admin-panel'],
+                dashboardTitle: 'Super Admin Dashboard',
+                dashboardSubtitle: 'Complete platform administration with user management and permission controls'
             }
         };
 
@@ -6201,10 +6383,10 @@
         }
 
         function hidePagesForOtherRoles(allowedPages) {
-            // Hide unauthorized pages (don't remove from DOM for demo switching)
+            // Hide unauthorized pages for security
             document.querySelectorAll('.page').forEach(page => {
                 if (!allowedPages.includes(page.id)) {
-                    page.style.display = 'none'; // Hide instead of remove for demo
+                    page.style.display = 'none'; // Hide unauthorized content
                     page.classList.add('unauthorized-page');
                     console.log('Hidden unauthorized page:', page.id);
                 } else {
@@ -6212,14 +6394,6 @@
                     page.classList.remove('unauthorized-page');
                     console.log('Authorized page available:', page.id);
                 }
-            });
-        }
-
-        function restoreAllPagesForDemo() {
-            // Restore all pages for demo switching (REMOVE IN PRODUCTION)
-            document.querySelectorAll('.page').forEach(page => {
-                page.style.display = 'block';
-                page.classList.remove('unauthorized-page');
             });
         }
 
@@ -6232,62 +6406,6 @@
             }
         }
 
-        // DEMO ONLY: Simulate logging in as different users (REMOVE IN PRODUCTION)
-        function loginAs(role) {
-            console.log(`Demo login as ${role}`);
-            
-            // Restore all pages for demo switching (REMOVE IN PRODUCTION)
-            restoreAllPagesForDemo();
-            
-            // Demo user profiles for different roles
-            const demoUsers = {
-                'developer': {
-                    id: 'dev_001',
-                    name: 'James Davis',
-                    email: 'james@devstudio.com',
-                    role: 'developer',
-                    initials: 'JD'
-                },
-                'landowner': {
-                    id: 'land_001', 
-                    name: 'Sarah Wilson',
-                    email: 'sarah@greenestate.co.uk',
-                    role: 'landowner',
-                    initials: 'SW'
-                },
-                'consultant': {
-                    id: 'cons_001',
-                    name: 'Michael Chen',
-                    email: 'michael@urbanplanning.com',
-                    role: 'consultant',
-                    initials: 'MC'
-                },
-                'authority': {
-                    id: 'auth_001',
-                    name: 'Emma Thompson',
-                    email: 'emma.thompson@camden.gov.uk',
-                    role: 'authority',
-                    initials: 'ET'
-                }
-            };
-
-            // Set current user to the selected demo user
-            window.currentUser = demoUsers[role];
-            
-            // Reinitialize authentication with new user
-            initializeAuthentication();
-            
-            // Return to dashboard
-            showPage('dashboard');
-            
-            // Highlight the current role in the demo switcher
-            document.querySelectorAll('#demoAuthSwitcher button').forEach(btn => {
-                btn.style.opacity = '0.7';
-            });
-            event.target.style.opacity = '1';
-            event.target.style.boxShadow = '0 0 0 2px var(--primary)';
-        }
-
         // Override the old role-based UI function to use the authenticated user's role
         function updateRoleBasedUI() {
             // This function is now called only during authentication initialization
@@ -6298,20 +6416,6 @@
         // Initialize authentication when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeAuthentication();
-            
-            // Enable development mode with Ctrl+Shift+D
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.shiftKey && e.code === 'KeyD') {
-                    const switcher = document.getElementById('demoAuthSwitcher');
-                    if (switcher.style.display === 'none') {
-                        switcher.style.display = 'block';
-                        console.log('Development mode enabled');
-                    } else {
-                        switcher.style.display = 'none';
-                        console.log('Development mode disabled');
-                    }
-                }
-            });
         });
 
         // ========================================
