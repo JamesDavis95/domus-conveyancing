@@ -3,7 +3,7 @@ services:
     name: domus-planning-platform
     env: python
     plan: starter
-    buildCommand: chmod +x build.sh && ./build.sh
+    buildCommand: pip install -r requirements.txt
     startCommand: python -m uvicorn app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
@@ -21,17 +21,5 @@ services:
         sync: false
       - key: STRIPE_SECRET_KEY
         sync: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: domus-planning-db
-          property: connectionString
       - key: FORCE_DEPLOY
-        value: "2025-10-01-production"
-  
-  - type: pserv
-    name: domus-planning-db
-    env: postgresql
-    plan: starter
-    region: oregon
-    databaseName: domus_planning
-    databaseUser: domus_user
+        value: "2025-10-01-production-simplified"
