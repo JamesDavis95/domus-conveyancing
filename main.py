@@ -8,7 +8,8 @@ def read_root():
     return {
         "message": "🚀 Domus Planning Platform is LIVE!", 
         "status": "working",
-        "environment": "production"
+        "environment": "production",
+        "deploy_time": "2025-10-01"
     }
 
 @app.get("/health")
