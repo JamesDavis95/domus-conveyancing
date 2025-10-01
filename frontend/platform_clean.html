@@ -496,7 +496,7 @@
                 </div>
             </div>
             
-            <div class="nav-section" data-section="overview" data-roles="developer,consultant,landowner,authority">
+            <div class="nav-section" data-section="overview" data-roles="developer,consultant,landowner,authority,super_admin">
                 <div class="nav-section-title">Overview</div>
                 <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
                     <span class="icon">■</span>
@@ -505,51 +505,51 @@
             </div>
 
             <!-- Developer/Consultant Only -->
-            <div class="nav-section" data-section="development-tools" data-roles="developer,consultant">
+            <div class="nav-section" data-section="development-tools" data-roles="developer,consultant,super_admin">
                 <div class="nav-section-title">Development Tools</div>
-                <button class="nav-item" data-page="projects" data-roles="developer,consultant" onclick="showPage('projects')">
+                <button class="nav-item" data-page="projects" data-roles="developer,consultant,super_admin" onclick="showPage('projects')">
                     <span class="icon">▲</span>
                     My Projects
                 </button>
-                <button class="nav-item" data-page="planning-ai" data-roles="developer,consultant" onclick="showPage('planning-ai')">
+                <button class="nav-item" data-page="planning-ai" data-roles="developer,consultant,super_admin" onclick="showPage('planning-ai')">
                     <span class="icon">●</span>
                     Planning AI Analysis
                 </button>
-                <button class="nav-item" data-page="auto-docs" data-roles="developer,consultant" onclick="showPage('auto-docs')">
+                <button class="nav-item" data-page="auto-docs" data-roles="developer,consultant,super_admin" onclick="showPage('auto-docs')">
                     <span class="icon">📄</span>
                     Auto-Docs Generator
                 </button>
             </div>
 
             <!-- Landowner Only -->
-            <div class="nav-section" data-section="marketplace-tools" data-roles="landowner">
+            <div class="nav-section" data-section="marketplace-tools" data-roles="landowner,super_admin">
                 <div class="nav-section-title">Landowner Services</div>
-                <button class="nav-item" data-page="marketplace" data-roles="landowner" onclick="showPage('marketplace')">
+                <button class="nav-item" data-page="marketplace" data-roles="landowner,super_admin" onclick="showPage('marketplace')">
                     <span class="icon">◆</span>
                     BNG Marketplace
                 </button>
-                <button class="nav-item" data-page="land-portfolio" data-roles="landowner" onclick="showPage('land-portfolio')">
+                <button class="nav-item" data-page="land-portfolio" data-roles="landowner,super_admin" onclick="showPage('land-portfolio')">
                     <span class="icon">◇</span>
                     My Land Portfolio
                 </button>
-                <button class="nav-item" data-page="offset-contracts" data-roles="landowner" onclick="showPage('offset-contracts')">
+                <button class="nav-item" data-page="offset-contracts" data-roles="landowner,super_admin" onclick="showPage('offset-contracts')">
                     <span class="icon">▣</span>
                     Offset Contracts
                 </button>
             </div>
 
             <!-- Authority Only -->
-            <div class="nav-section" data-section="authority-tools" data-roles="authority">
+            <div class="nav-section" data-section="authority-tools" data-roles="authority,super_admin">
                 <div class="nav-section-title">Authority Portal</div>
-                <button class="nav-item" data-page="application-review" data-roles="authority" onclick="showPage('application-review')">
+                <button class="nav-item" data-page="application-review" data-roles="authority,super_admin" onclick="showPage('application-review')">
                     <span class="icon">▢</span>
                     Application Review
                 </button>
-                <button class="nav-item" data-page="local-development" data-roles="authority" onclick="showPage('local-development')">
+                <button class="nav-item" data-page="local-development" data-roles="authority,super_admin" onclick="showPage('local-development')">
                     <span class="icon">▤</span>
                     Local Development
                 </button>
-                <button class="nav-item" data-page="policy-compliance" data-roles="authority" onclick="showPage('policy-compliance')">
+                <button class="nav-item" data-page="policy-compliance" data-roles="authority,super_admin" onclick="showPage('policy-compliance')">
                     <span class="icon">▦</span>
                     Policy Compliance
                 </button>
@@ -558,15 +558,15 @@
             <!-- Shared Services -->
             <div class="nav-section">
                 <div class="nav-section-title">Data & Reports</div>
-                <button class="nav-item" data-page="property-api" data-roles="developer,landowner,consultant,authority" onclick="showPage('property-api')">
+                <button class="nav-item" data-page="property-api" data-roles="developer,landowner,consultant,authority,super_admin" onclick="showPage('property-api')">
                     <span class="icon">▧</span>
                     Property Data API
                 </button>
-                <button class="nav-item" data-page="planning-history" data-roles="developer,consultant" onclick="showPage('planning-history')">
+                <button class="nav-item" data-page="planning-history" data-roles="developer,consultant,super_admin" onclick="showPage('planning-history')">
                     <span class="icon"></span>
                     Planning History
                 </button>
-                <button class="nav-item" data-page="offsets-marketplace" data-roles="landowner,developer" onclick="showPage('offsets-marketplace')">
+                <button class="nav-item" data-page="offsets-marketplace" data-roles="landowner,developer,super_admin" onclick="showPage('offsets-marketplace')">
                     <span class="icon"></span>
                     Offsets Marketplace
                     <span class="role-indicator role-landowner">LAND</span>
@@ -575,17 +575,17 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Offsets Marketplace</div>
-                <button class="nav-item" data-page="offsets-supply" data-roles="landowner" onclick="showPage('offsets-supply')">
+                <button class="nav-item" data-page="offsets-supply" data-roles="landowner,super_admin" onclick="showPage('offsets-supply')">
                     <span class="icon">�</span>
                     Supply Listings
                     <span class="role-indicator role-landowner">LAND</span>
                 </button>
-                <button class="nav-item" data-page="offsets-demand" data-roles="developer" onclick="showPage('offsets-demand')">
+                <button class="nav-item" data-page="offsets-demand" data-roles="developer,super_admin" onclick="showPage('offsets-demand')">
                     <span class="icon"></span>
                     Demand Listings
                     <span class="role-indicator role-developer">DEV</span>
                 </button>
-                <button class="nav-item" data-page="offsets-matching" data-roles="developer,landowner" onclick="showPage('offsets-matching')">
+                <button class="nav-item" data-page="offsets-matching" data-roles="developer,landowner,super_admin" onclick="showPage('offsets-matching')">
                     <span class="icon"></span>
                     AI Matching
                 </button>
