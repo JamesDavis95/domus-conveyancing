@@ -17,7 +17,31 @@ from datetime import datetime, timedelta
 import jwt
 import bcrypt
 from models import get_db, User, Organization, Usage, Subscription
-from backend_auth import UserRole, PlanType, PLAN_LIMITS
+
+# Try to import backend auth - graceful fallback if not available
+try:
+    from backend_auth import UserRole, PlanType, PLAN_LIMITS
+except ImportError as e:
+    print(f"⚠️ Backend auth not available: {e}")
+    # Define fallback enums
+    import enum
+    class UserRole(enum.Enum):
+        DEVELOPER = "developer"
+        CONSULTANT = "consultant"
+        LANDOWNER = "landowner"
+        ADMIN = "admin"
+        SUPER_ADMIN = "super_admin"
+    
+    class PlanType(enum.Enum):
+        CORE = "core"
+        PROFESSIONAL = "professional"
+        ENTERPRISE = "enterprise"
+    
+    PLAN_LIMITS = {
+        PlanType.CORE: {"site_analyses_per_month": 10, "documents_per_month": 5},
+        PlanType.PROFESSIONAL: {"site_analyses_per_month": 100, "documents_per_month": 50},
+        PlanType.ENTERPRISE: {"site_analyses_per_month": -1, "documents_per_month": -1}
+    }
 from stripe_integration import StripeService
 
 app = FastAPI()
