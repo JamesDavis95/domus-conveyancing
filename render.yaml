@@ -1,34 +1,13 @@
-databases:
-  - name: domus-planning-db
-    databaseName: domus_planning
-    user: domus_user
-
 services:
   - type: web
     name: domus-planning-platform
     env: python
     plan: starter
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements-minimal.txt
     startCommand: python app_minimal.py
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.6
-      - key: ENVIRONMENT
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: domus-planning-db
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-      - key: JWT_SECRET_KEY
-        generateValue: true
-      - key: ALLOWED_HOSTS
-        value: "*"
-      - key: STRIPE_PUBLISHABLE_KEY
-        sync: false
-      - key: STRIPE_SECRET_KEY
-        sync: false
-      - key: FORCE_DEPLOY
-        value: "2025-10-01-database-deploy"
+      - key: PORT
+        value: 10000
