@@ -338,10 +338,12 @@ async def clear_property_caches() -> Dict[str, Any]:
             summary="Get Multiple Property Summaries",
             description="Get summaries for multiple properties in one request")
 async def batch_property_summaries(
-    identifiers: List[str] = Field(..., description="List of property identifiers"),
-    search_type: str = Field("address", description="Type of search for all identifiers")
+    request: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Get summaries for multiple properties"""
+    
+    identifiers = request.get("identifiers", [])
+    search_type = request.get("search_type", "address")
     
     if len(identifiers) > 50:  # Limit batch size
         raise HTTPException(

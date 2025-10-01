@@ -79,7 +79,7 @@ from .epc_data import EPCDataAdapter, get_epc_data
 from .flood_risk import FloodRiskAdapter, get_flood_risk_data
 from .planning_history import PlanningHistoryAdapter, get_planning_history
 from .cache import PropertyDataCache, CacheManager
-from .aggregator import PropertyDataAggregator, get_comprehensive_property_data
+from .aggregator import PropertyDataAggregator, get_comprehensive_property_report, get_property_summary
 
 __version__ = "1.0.0"
 __all__ = [
@@ -94,5 +94,6 @@ __all__ = [
     "get_epc_data",
     "get_flood_risk_data", 
     "get_planning_history",
-    "get_comprehensive_property_data"
+    "get_comprehensive_property_report",
+    "get_property_summary"
 ]
