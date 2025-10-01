@@ -25,7 +25,7 @@ processes = ["app"]
   port = 443
   handlers = ["tls","http"]
   [[services.http_checks]]
-  path = "/healthz"
+  path = "/health"
   interval = "15s"
   timeout = "2s"
   method = "get"
