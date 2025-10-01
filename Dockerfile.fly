@@ -2,15 +2,19 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy and install requirements
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app
+# Copy application
 COPY main.py .
+COPY server.py .
 
-# Expose port
+# Create startup script that handles PORT properly
+RUN echo '#!/bin/bash\nexec python server.py' > /app/start.sh && chmod +x /app/start.sh
+
+# Expose port (will be overridden by $PORT)
 EXPOSE 8000
 
-# Start command
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+# Use the startup script
+CMD ["/app/start.sh"]
