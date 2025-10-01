@@ -431,6 +431,20 @@
             background: var(--success) !important;
             transform: scale(1.1);
         }
+
+        /* Role-based content display */
+        .role-content {
+            display: none;
+        }
+        
+        .role-content.active {
+            display: block;
+        }
+        
+        .action-card:hover {
+            border-color: var(--primary);
+            background: var(--panel);
+        }
     </style>
 </head>
 <body>
@@ -577,62 +591,172 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Client Onboarding Banner -->
-            <div id="onboarding-banner" style="background: linear-gradient(135deg, var(--primary), #2563eb); color: white; padding: 20px; margin-bottom: 24px; border-radius: 12px; position: relative; overflow: hidden;">
-                <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translate(50%, -50%);"></div>
-                <div style="display: flex; justify-content: between; align-items: center; gap: 24px; position: relative;">
+            <!-- Operational Dashboard Header -->
+            <div class="dashboard-header" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <h1 style="font-size: 28px; margin: 0 0 4px 0; font-weight: 700; color: var(--text);">My Projects</h1>
+                        <p style="color: var(--muted); margin: 0;">Manage your planning projects and site analysis</p>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn primary" onclick="createNewProject()">New Project</button>
+                        <button class="btn" onclick="showPage('planning-ai')">Site Analysis</button>
+                    </div>
+                </div>
+                
+                <!-- Usage Quotas -->
+                <div style="display: flex; gap: 24px; padding: 16px; background: var(--panel); border-radius: 8px;">
                     <div style="flex: 1;">
-                        <h2 style="font-size: 24px; margin: 0 0 8px 0; font-weight: 700;">Welcome to Domus Planning Intelligence</h2>
-                        <p style="font-size: 16px; margin: 0 0 16px 0; opacity: 0.95;">Professional planning intelligence platform ready for your projects. Get started with site analysis, document generation, and planning insights.</p>
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                            <button onclick="showPage('dashboard')" style="background: white; color: var(--primary); border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">
-                                Start New Project
-                            </button>
-                            <button onclick="showPage('help-support')" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">
-                                Documentation
-                            </button>
-                            <button onclick="hideOnboarding()" style="background: transparent; color: white; border: none; padding: 12px; cursor: pointer; font-size: 12px; opacity: 0.8;">
-                                Dismiss
-                            </button>
+                        <div style="font-size: 14px; color: var(--muted); margin-bottom: 4px;">Projects This Month</div>
+                        <div style="font-size: 18px; font-weight: 600; color: var(--text);">3 of 10 used</div>
+                        <div style="width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-top: 8px;">
+                            <div style="width: 30%; height: 100%; background: var(--primary); border-radius: 2px;"></div>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="text-align: center;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px; color: var(--muted); margin-bottom: 4px;">Documents Generated</div>
+                        <div style="font-size: 18px; font-weight: 600; color: var(--text);">12 of 50 used</div>
+                        <div style="width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-top: 8px;">
+                            <div style="width: 24%; height: 100%; background: var(--primary); border-radius: 2px;"></div>
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px; color: var(--muted); margin-bottom: 4px;">Current Plan</div>
+                        <div style="font-size: 18px; font-weight: 600; color: var(--primary);">Professional</div>
+                        <button class="btn outline" style="margin-top: 8px; font-size: 12px; padding: 4px 12px;" onclick="showPage('billing')">Manage Plan</button>
+                    </div>
+                </div>
+            </div>
                             <div style="font-size: 28px; font-weight: 700; line-height: 1;">97.3%</div>
                             <div style="font-size: 11px; opacity: 0.9;">AI Accuracy</div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; line-height: 1;">£20k+</div>
-                            <div style="font-size: 11px; opacity: 0.9;">Avg Savings</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; line-height: 1;">< 3s</div>
-                            <div style="font-size: 11px; opacity: 0.9;">Response Time</div>
-                        </div>
+            
+            <!-- Recent Projects Section -->
+            <div class="projects-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="font-size: 20px; font-weight: 600; margin: 0;">Recent Projects</h2>
+                    <button class="btn outline" onclick="showPage('projects')">View All</button>
+                </div>
+                
+                <!-- Empty State -->
+                <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+                    <div style="width: 64px; height: 64px; background: var(--panel); border-radius: 12px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14,2 14,8 20,8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
                     </div>
+                    <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 8px 0; color: var(--text);">No projects yet</h3>
+                    <p style="color: var(--muted); margin: 0 0 20px 0; max-width: 400px; margin-left: auto; margin-right: auto;">Get started by creating your first planning project. Analyze sites, generate documents, and track approval progress.</p>
+                    <button class="btn primary" onclick="createNewProject()">Create Your First Project</button>
                 </div>
             </div>
 
             <!-- Dashboard Page -->
             <div id="dashboard" class="page active">
-                <div class="page-header">
-                    <h1 class="page-title"> Planning Intelligence Dashboard</h1>
-                    <p class="page-subtitle">Key metrics for developers, consultants, and planning professionals</p>
+                <!-- Role Selection -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Your Dashboard</h2>
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+                        <label style="font-weight: 500;">Role:</label>
+                        <select id="user-role" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" onchange="updateRoleView()">
+                            <option value="developer">Developer</option>
+                            <option value="consultant">Planning Consultant</option>
+                            <option value="landowner">Landowner</option>
+                            <option value="authority">Local Authority</option>
+                        </select>
+                    </div>
                     
-                    <!-- Role-Based Quick Actions -->
-                    <div class="user-role-section" style="margin-top: 16px; padding: 16px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                            <span style="font-size: 14px; font-weight: 600;">Your Role:</span>
-                            <select id="user-role" style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg);" onchange="updateRoleView()">
-                                <option value="developer"> Developer</option>
-                                <option value="consultant"> Planning Consultant</option>
-                                <option value="landowner"> Landowner</option>
-                            </select>
-                            <div style="flex: 1;"></div>
+                    <!-- Role-specific content -->
+                    <div id="role-dashboard">
+                        <!-- Developer Dashboard (default) -->
+                        <div id="developer-dashboard" class="role-content active">
+                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Developer Tools</h3>
+                            <p style="color: var(--muted); margin: 0 0 16px 0;">Plan, analyze, and deliver development projects with AI-powered planning intelligence.</p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('projects')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">My Projects</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Track development sites and planning applications</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('planning-ai')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Site Analysis</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">AI approval scoring and constraint detection</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('marketplace')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Find BNG Offsets</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Browse biodiversity offset opportunities</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="quick-actions" id="role-actions">
-                            <button class="btn primary" onclick="showPage('planning-analysis')" style="margin-right: 8px;"> Analyze New Site</button>
-                            <button class="btn outline" onclick="showPage('my-sites')" style="margin-right: 8px;"> My Projects</button>
+                        
+                        <!-- Consultant Dashboard -->
+                        <div id="consultant-dashboard" class="role-content">
+                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Consultant Toolkit</h3>
+                            <p style="color: var(--muted); margin: 0 0 16px 0;">Professional planning consultancy tools for client projects and team collaboration.</p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('projects')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Client Projects</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Manage consultancy projects and deliverables</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('auto-docs')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Generate Documents</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Professional planning statements and reports</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('planning-ai')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Expert Analysis</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Advanced AI insights for professional advice</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Landowner Dashboard -->
+                        <div id="landowner-dashboard" class="role-content">
+                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Landowner Hub</h3>
+                            <p style="color: var(--muted); margin: 0 0 16px 0;">Maximize your land value through development opportunities and offset trading.</p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('marketplace')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">List Your Land</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Offer BNG offset opportunities to developers</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('planning-ai')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Development Potential</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Assess land development opportunities</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('property-api')">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Property Intelligence</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Comprehensive land and property data</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Authority Dashboard -->
+                        <div id="authority-dashboard" class="role-content">
+                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Authority Portal</h3>
+                            <p style="color: var(--muted); margin: 0 0 16px 0;">Planning application review tools and local development insights.</p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Application Review</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Review and assess planning applications</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Local Development</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Track development activity in your area</p>
+                                </div>
+                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;">
+                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Policy Analysis</h4>
+                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Local plan policy alignment tools</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                             <button class="btn outline" onclick="showPage('property-explorer')"> Property Lookup</button>
                         </div>
                     </div>
@@ -974,49 +1098,246 @@
                 </div>
             </div>
 
+            <!-- Projects Page -->
+            <div id="projects" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">My Projects</h1>
+                    <p class="page-subtitle">Manage your planning projects and track application progress</p>
+                    <button class="btn primary" onclick="createNewProject()">New Project</button>
+                </div>
+
+                <!-- Projects Empty State -->
+                <div class="empty-state" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 60px 40px; text-align: center;">
+                    <div style="width: 80px; height: 80px; background: var(--panel); border-radius: 16px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="9" cy="9" r="2"></circle>
+                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                        </svg>
+                    </div>
+                    <h3 style="font-size: 24px; font-weight: 600; margin: 0 0 12px 0; color: var(--text);">No projects yet</h3>
+                    <p style="color: var(--muted); margin: 0 0 32px 0; max-width: 500px; margin-left: auto; margin-right: auto; font-size: 16px; line-height: 1.5;">Create your first planning project to get started with AI-powered site analysis, document generation, and approval tracking.</p>
+                    
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn primary" onclick="createNewProject()">Create Project</button>
+                        <button class="btn outline" onclick="showPage('planning-ai')">Try Site Analysis</button>
+                    </div>
+                    
+                    <!-- Quick Start Guide -->
+                    <div style="margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border);">
+                        <h4 style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">Getting Started</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: left; max-width: 600px; margin: 0 auto;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 4px;">1. Site Analysis</div>
+                                <div style="font-size: 14px; color: var(--muted);">Upload site plans and get AI-powered planning assessment</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 4px;">2. Generate Documents</div>
+                                <div style="font-size: 14px; color: var(--muted);">Create professional planning statements automatically</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 4px;">3. Track Progress</div>
+                                <div style="font-size: 14px; color: var(--muted);">Monitor application status and receive updates</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Planning AI Page -->
             <div id="planning-ai" class="page">
                 <div class="page-header">
-                    <h1 class="page-title"> Planning AI Analysis</h1>
-                    <p class="page-subtitle">Instant approval probability prediction with constraint analysis and AI recommendations</p>
+                    <h1 class="page-title">Planning AI Analysis</h1>
+                    <p class="page-subtitle">Upload your site details and get instant AI-powered planning assessment</p>
                 </div>
 
-                <div class="grid grid-3">
-                    <div class="stat-card">
-                        <div class="stat-value success">97.3%*</div>
-                        <div class="stat-label">AI Analysis Accuracy</div>
-                        <div style="font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.3;">*Validated on 2,500+ cases. Advisory only.</div>
-                        <div style="font-size: 10px; color: var(--muted); margin-top: 4px;">*Based on 2,500+ validated cases</div>
+                <!-- Site Input Form -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <h3 style="margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">Site Information</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 6px;">Site Address</label>
+                            <input type="text" id="site-address" placeholder="Enter full postcode or address" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 6px;">Development Type</label>
+                            <select id="development-type" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);">
+                                <option value="">Select development type</option>
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="mixed-use">Mixed Use</option>
+                                <option value="industrial">Industrial</option>
+                                <option value="change-of-use">Change of Use</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value primary">2.4s</div>
-                        <div class="stat-label">Average Analysis Time</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 6px;">Number of Units</label>
+                            <input type="number" id="units" placeholder="e.g. 10" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 6px;">Site Area (hectares)</label>
+                            <input type="number" id="site-area" step="0.1" placeholder="e.g. 1.5" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 6px;">Building Height (floors)</label>
+                            <input type="number" id="building-height" placeholder="e.g. 3" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);">
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value success">85%</div>
-                        <div class="stat-label">Faster than manual analysis</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 6px;">Additional Details</label>
+                        <textarea id="additional-details" placeholder="Describe any specific requirements, constraints, or design considerations..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); min-height: 80px; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn primary" onclick="runPlanningAnalysis()" style="padding: 12px 32px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            Analyze Site
+                        </button>
                     </div>
                 </div>
 
-                <div class="panel">
-                    <h2> AI Capabilities</h2>
-                    <div class="grid grid-3">
-                        <div class="stat-card">
-                            <h3> Constraint Detection</h3>
-                            <p style="color: var(--muted); margin: 12px 0;">Automatically identify Green Belt, flood zones, conservation areas, heritage assets, and 20+ other planning constraints</p>
-                            <button class="btn">Run Analysis</button>
+                <!-- Analysis Results (initially hidden) -->
+                <div id="analysis-results" style="display: none;">
+                    <!-- Approval Score -->
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; text-align: center;">
+                        <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600;">Planning Approval Probability</h3>
+                        
+                        <div style="display: inline-block; position: relative; width: 120px; height: 120px; margin-bottom: 20px;">
+                            <svg width="120" height="120" style="transform: rotate(-90deg);">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="8"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--success)" stroke-width="8" 
+                                        stroke-dasharray="314" stroke-dashoffset="94" stroke-linecap="round"/>
+                            </svg>
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: var(--success);">73%</div>
+                                <div style="font-size: 12px; color: var(--muted);">LIKELY</div>
+                            </div>
                         </div>
-                        <div class="stat-card">
-                            <h3> Approval Probability</h3>
-                            <p style="color: var(--muted); margin: 12px 0;">AI-powered prediction model trained on 50,000+ UK planning decisions with confidence scoring</p>
-                            <button class="btn">Get Prediction</button>
-                        </div>
-                        <div class="stat-card">
-                            <h3> Smart Recommendations</h3>
-                            <p style="color: var(--muted); margin: 12px 0;">Actionable suggestions to improve approval probability - design optimizations, policy alignment, and strategic enhancements</p>
-                            <button class="btn">View Suggestions</button>
+                        
+                        <p style="color: var(--muted); margin: 0; max-width: 400px; margin-left: auto; margin-right: auto;">
+                            Based on analysis of similar developments in your area and current planning policies.
+                        </p>
+                    </div>
+                    
+                    <!-- Key Constraints -->
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Key Constraints Detected</h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <div style="width: 8px; height: 8px; background: var(--warning); border-radius: 50%;"></div>
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Conservation Area</h4>
+                                </div>
+                                <p style="margin: 0; font-size: 13px; color: var(--muted);">Site within Camden Conservation Area. Design must preserve character and appearance.</p>
+                            </div>
+                            
+                            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></div>
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Parking Standards</h4>
+                                </div>
+                                <p style="margin: 0; font-size: 13px; color: var(--muted);">Meets local parking requirements. 0.8 spaces per unit recommended.</p>
+                            </div>
+                            
+                            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <div style="width: 8px; height: 8px; background: var(--error); border-radius: 50%;"></div>
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600;">Height Restrictions</h4>
+                                </div>
+                                <p style="margin: 0; font-size: 13px; color: var(--muted);">Proposed height exceeds area guidelines. Consider reducing to 2-3 floors.</p>
+                            </div>
                         </div>
                     </div>
+                    
+                    <!-- AI Recommendations -->
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                        <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">AI Recommendations</h3>
+                        
+                        <div style="background: var(--bg); border-left: 4px solid var(--primary); padding: 16px; margin-bottom: 16px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: var(--primary);">High Impact Improvements</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: var(--muted);">
+                                <li>Reduce building height to 3 floors maximum</li>
+                                <li>Include heritage impact assessment early</li>
+                                <li>Propose traditional materials and design details</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: var(--bg); border-left: 4px solid var(--success); padding: 16px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: var(--success);">Optimization Opportunities</h4>
+                            <ul style="margin: 0; padding-left: 20px; color: var(--muted);">
+                                <li>Consider pre-application consultation with planning officer</li>
+                                <li>Explore affordable housing commuted sum options</li>
+                                <li>Include sustainability measures (BREEAM, renewable energy)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <button class="btn primary" onclick="generatePlanningDocs()" style="margin-right: 12px;">Generate Documents</button>
+                        <button class="btn outline" onclick="saveAnalysis()" style="margin-right: 12px;">Save Analysis</button>
+                        <button class="btn outline" onclick="exportReport()">Export Report</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marketplace Page -->
+            <div id="marketplace" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">BNG Offsets Marketplace</h1>
+                    <p class="page-subtitle">Trade biodiversity net gain units with verified landowners and offset providers</p>
+                </div>
+
+                <!-- Marketplace Empty State -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; margin-bottom: 24px;">
+                    <div style="text-align: center; margin-bottom: 32px;">
+                        <div style="width: 80px; height: 80px; background: var(--panel); border-radius: 16px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                            </svg>
+                        </div>
+                        <h3 style="font-size: 24px; font-weight: 600; margin: 0 0 12px 0;">Marketplace Coming Soon</h3>
+                        <p style="color: var(--muted); margin: 0 0 24px 0; max-width: 500px; margin-left: auto; margin-right: auto;">Connect with verified offset providers across the UK. Trade BNG units, browse available sites, and secure your biodiversity requirements.</p>
+                    </div>
+                    
+                    <!-- Feature Preview -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                            <h4 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: var(--primary);">Browse Offsets</h4>
+                            <p style="color: var(--muted); font-size: 14px; margin: 0;">Search available BNG units by location, habitat type, and unit cost across verified providers.</p>
+                        </div>
+                        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                            <h4 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: var(--primary);">List Your Land</h4>
+                            <p style="color: var(--muted); font-size: 14px; margin: 0;">Landowners can list available habitat creation and enhancement opportunities for developers.</p>
+                        </div>
+                        <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                            <h4 style="font-size: 16px; font-weight: 600; margin: 0 0 8px 0; color: var(--primary);">Secure Trading</h4>
+                            <p style="color: var(--muted); font-size: 14px; margin: 0;">Escrow protection, legal agreements, and monitoring compliance built into every transaction.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Call to Action -->
+                    <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
+                        <button class="btn primary" style="margin-right: 12px;">Join Waitlist</button>
+                        <button class="btn outline">Learn More</button>
+                    </div>
+                </div>
+                
+                <!-- Beta Access Information -->
+                <div style="background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%); color: white; border-radius: 12px; padding: 24px; text-align: center;">
+                    <h4 style="font-size: 18px; font-weight: 600; margin: 0 0 8px 0;">Early Access Available</h4>
+                    <p style="margin: 0 0 16px 0; opacity: 0.9;">Be among the first to access our marketplace when it launches. Get priority onboarding and special launch pricing.</p>
+                    <button style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Request Beta Access</button>
                 </div>
             </div>
 
@@ -5306,6 +5627,80 @@
             // Activate nav item
             document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
         }
+
+        // Create new project function
+        function createNewProject() {
+            // In a real application, this would open a project creation modal
+            alert('Create New Project functionality would open here - connecting to project creation API');
+        }
+
+        // Planning AI Analysis Functions
+        function runPlanningAnalysis() {
+            const address = document.getElementById('site-address').value;
+            const devType = document.getElementById('development-type').value;
+            const units = document.getElementById('units').value;
+            const area = document.getElementById('site-area').value;
+            const height = document.getElementById('building-height').value;
+            
+            // Validate required fields
+            if (!address || !devType) {
+                alert('Please enter site address and development type to continue');
+                return;
+            }
+            
+            // Show loading state
+            const analyzeBtn = event.target;
+            const originalText = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></span>Analyzing...';
+            analyzeBtn.disabled = true;
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // Show results
+                document.getElementById('analysis-results').style.display = 'block';
+                document.getElementById('analysis-results').scrollIntoView({ behavior: 'smooth' });
+                
+                // Reset button
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
+                
+                // In a real application, this would call the planning AI API
+                console.log('Analysis data:', { address, devType, units, area, height });
+            }, 2000);
+        }
+
+        function generatePlanningDocs() {
+            alert('Generate Planning Documents functionality would connect to Auto-Docs API');
+        }
+
+        function saveAnalysis() {
+            alert('Save Analysis functionality would save to user projects');
+        }
+
+        function exportReport() {
+            alert('Export Report functionality would generate PDF report');
+        }
+
+        // Role view updates
+        function updateRoleView() {
+            const selectedRole = document.getElementById('user-role').value;
+            
+            // Hide all role content
+            document.querySelectorAll('.role-content').forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+            
+            // Show selected role content
+            const activeContent = document.getElementById(selectedRole + '-dashboard');
+            if (activeContent) {
+                activeContent.classList.add('active');
+                activeContent.style.display = 'block';
+            }
+            
+            // Update navigation visibility based on role
+            updateRoleBasedUI();
+        }
         
         // Role-based UI customization
         function updateRoleBasedUI() {
@@ -5361,6 +5756,7 @@
         // Initialize role-based UI on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateRoleBasedUI();
+            updateRoleView(); // Initialize role view
             checkOnboardingVisibility();
         });
         function updateRoleView() {
