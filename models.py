@@ -10,6 +10,7 @@ class UserRole(enum.Enum):
     CONSULTANT = "consultant"
     LANDOWNER = "landowner"
     ADMIN = "admin"
+    SUPER_ADMIN = "super_admin"
 
 class PlanType(enum.Enum):
     CORE = "core"
@@ -131,11 +132,34 @@ class Usage(Base):
     organization = relationship("Organization", back_populates="usage_records")
     user = relationship("User", back_populates="usage_records")
 
-# Add SessionLocal for SQLAlchemy sessions
+# Database Configuration - Production Ready
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+import os
 
-engine = create_engine("sqlite:///./production.db", connect_args={"check_same_thread": False})
+# Get database URL from environment (PostgreSQL for production, SQLite for local)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./production.db")
+
+# Handle PostgreSQL URLs (Render provides postgres://, but SQLAlchemy needs postgresql://)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Create engine with appropriate configuration
+if DATABASE_URL.startswith("postgresql://"):
+    # PostgreSQL configuration for production
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        echo=False  # Set to True for debugging
+    )
+else:
+    # SQLite configuration for local development
+    engine = create_engine(
+        DATABASE_URL, 
+        connect_args={"check_same_thread": False}
+    )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Dependency to get DB session
