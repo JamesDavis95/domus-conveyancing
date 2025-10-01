@@ -1,0 +1,76 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database & Storage
+sqlalchemy==1.4.46
+psycopg2-binary==2.9.9
+aiosqlite==0.19.0
+alembic==1.12.1
+
+# Authentication & Security
+pyjwt==2.8.0
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
+cryptography==41.0.7
+fastapi-users==12.1.2
+
+# Payment Processing
+stripe==7.7.0
+
+# API & Integration
+httpx==0.25.2
+requests==2.31.0
+python-dotenv==1.0.0
+celery==5.3.4
+
+# Data Processing & Analytics
+pandas==2.1.3
+numpy==1.25.2
+openpyxl==3.1.2
+
+# Document Processing
+python-docx==1.1.0
+pdfminer.six==20221105
+ocrmypdf==15.4.4
+PyMuPDF==1.23.8
+reportlab==4.0.7
+
+# Cloud & Storage
+boto3==1.34.0
+
+# Monitoring & Security
+prometheus-client==0.19.0
+clamd==1.0.2
+sentry-sdk[fastapi]==1.38.0
+
+# Background Tasks
+redis==5.0.7
+rq==1.15.1
+
+# Government & Compliance
+uk-postcode-utils==1.0.1
+itsdangerous
+
+httpx
+
+# Data Processing & Validation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Document Processing
+PyPDF2==3.0.1
+pdfminer.six==20231228
+aiohttp==3.9.1
+
+# Geospatial & Analysis
+geopy==2.4.0
+shapely==2.0.2
+numpy==1.25.2
+Pillow==10.1.0
+geoalchemy2==0.14.2
+opencv-python-headless==4.8.1.78
+
+# Production Dependencies
+gunicorn==21.2.0
+psutil==5.9.6
+setuptools==69.0.3
