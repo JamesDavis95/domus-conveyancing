@@ -3,9 +3,6 @@ services:
     name: domus-planning-platform
     env: python
     plan: starter
-    buildCommand: pip install -r requirements-minimal.txt
+    buildCommand: pip install fastapi uvicorn
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.6
