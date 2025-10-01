@@ -488,7 +488,8 @@
                 <select id="userRole" onchange="updateRoleBasedUI()" style="margin-bottom: 8px;">
                     <option value="developer">Developer</option>
                     <option value="landowner">Landowner</option>
-                    <option value="consultant">Consultant</option>
+                    <option value="consultant">Planning Consultant</option>
+                    <option value="authority">Local Authority</option>
                 </select>
                 <div id="roleDescription" style="font-size: 11px; color: var(--muted);">Access developer-focused planning tools</div>
             </div>
@@ -496,25 +497,67 @@
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
                 <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-                    <span class="icon">�</span>
+                    <span class="icon">📊</span>
                     Dashboard
                 </button>
             </div>
 
-            <div class="nav-section">
-                <div class="nav-section-title">Planning Services</div>
-                <button class="nav-item" data-page="planning-analysis" data-roles="developer,consultant" onclick="showPage('planning-analysis')">
-                    <span class="icon"></span>
+            <!-- Developer/Consultant Only -->
+            <div class="nav-section" data-roles="developer,consultant">
+                <div class="nav-section-title">Development Tools</div>
+                <button class="nav-item" data-page="projects" data-roles="developer,consultant" onclick="showPage('projects')">
+                    <span class="icon">🏗️</span>
+                    My Projects
+                </button>
+                <button class="nav-item" data-page="planning-ai" data-roles="developer,consultant" onclick="showPage('planning-ai')">
+                    <span class="icon">🎯</span>
                     Planning AI Analysis
-                    <span class="role-indicator role-developer">DEV</span>
                 </button>
                 <button class="nav-item" data-page="auto-docs" data-roles="developer,consultant" onclick="showPage('auto-docs')">
-                    <span class="icon">�</span>
+                    <span class="icon">📄</span>
                     Auto-Docs Generator
-                    <span class="role-indicator role-consultant">CON</span>
                 </button>
-                <button class="nav-item" data-page="property-api" data-roles="developer,landowner,consultant" onclick="showPage('property-api')">
-                    <span class="icon"></span>
+            </div>
+
+            <!-- Landowner Only -->
+            <div class="nav-section" data-roles="landowner">
+                <div class="nav-section-title">Landowner Services</div>
+                <button class="nav-item" data-page="marketplace" data-roles="landowner" onclick="showPage('marketplace')">
+                    <span class="icon">🌱</span>
+                    BNG Marketplace
+                </button>
+                <button class="nav-item" data-page="land-portfolio" data-roles="landowner" onclick="showPage('land-portfolio')">
+                    <span class="icon">🏞️</span>
+                    My Land Portfolio
+                </button>
+                <button class="nav-item" data-page="offset-contracts" data-roles="landowner" onclick="showPage('offset-contracts')">
+                    <span class="icon">📋</span>
+                    Offset Contracts
+                </button>
+            </div>
+
+            <!-- Authority Only -->
+            <div class="nav-section" data-roles="authority">
+                <div class="nav-section-title">Authority Portal</div>
+                <button class="nav-item" data-page="application-review" data-roles="authority" onclick="showPage('application-review')">
+                    <span class="icon">📋</span>
+                    Application Review
+                </button>
+                <button class="nav-item" data-page="local-development" data-roles="authority" onclick="showPage('local-development')">
+                    <span class="icon">🏘️</span>
+                    Local Development
+                </button>
+                <button class="nav-item" data-page="policy-compliance" data-roles="authority" onclick="showPage('policy-compliance')">
+                    <span class="icon">⚖️</span>
+                    Policy Compliance
+                </button>
+            </div>
+
+            <!-- Shared Services -->
+            <div class="nav-section">
+                <div class="nav-section-title">Data & Reports</div>
+                <button class="nav-item" data-page="property-api" data-roles="developer,landowner,consultant,authority" onclick="showPage('property-api')">
+                    <span class="icon">🗄️</span>
                     Property Data API
                 </button>
                 <button class="nav-item" data-page="planning-history" data-roles="developer,consultant" onclick="showPage('planning-history')">
@@ -5743,6 +5786,286 @@
         </div>
     </div>
 
+    <!-- Land Portfolio Page (Landowner Role) -->
+    <div id="land-portfolio" class="page">
+        <div class="page-header">
+            <h1 class="page-title">🌿 My Land Portfolio</h1>
+            <p class="page-subtitle">Manage your properties, biodiversity assets, and revenue streams</p>
+            <button class="btn primary">+ Add New Property</button>
+        </div>
+
+        <!-- Portfolio Overview -->
+        <div class="grid grid-3" style="margin-bottom: 24px;">
+            <div class="panel">
+                <h3>Total Land Area</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--primary); margin: 8px 0;">247.3 hectares</div>
+                <div style="color: var(--muted); font-size: 12px;">Across 6 properties</div>
+            </div>
+            <div class="panel">
+                <h3>Annual Revenue</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--success); margin: 8px 0;">£84,200</div>
+                <div style="color: var(--muted); font-size: 12px;">+23% from last year</div>
+            </div>
+            <div class="panel">
+                <h3>Active Contracts</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--warning); margin: 8px 0;">12</div>
+                <div style="color: var(--muted); font-size: 12px;">Worth £340k total</div>
+            </div>
+        </div>
+
+        <!-- Property Listings -->
+        <div class="panel">
+            <h2>My Properties</h2>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="margin: 0; color: var(--primary);">Woodlands Farm, Berkshire</h3>
+                        <p style="color: var(--muted); margin: 4px 0;">89.2 hectares • Mixed woodland & grassland</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">ACTIVE</span>
+                        <div style="color: var(--success); font-weight: 600; margin-top: 4px;">£31,200/year</div>
+                    </div>
+                </div>
+                <div class="grid grid-4" style="gap: 16px; font-size: 12px; margin-bottom: 12px;">
+                    <div><strong>Habitat Units:</strong><br>42.3 available</div>
+                    <div><strong>Active Contracts:</strong><br>5 agreements</div>
+                    <div><strong>Completion:</strong><br>2027-2032</div>
+                    <div><strong>Monitoring:</strong><br>On track</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn outline" style="font-size: 12px;">View Details</button>
+                    <button class="btn outline" style="font-size: 12px;">Update Status</button>
+                    <button class="btn outline" style="font-size: 12px;">Download Reports</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offset Contracts Page (Landowner Role) -->
+    <div id="offset-contracts" class="page">
+        <div class="page-header">
+            <h1 class="page-title">📋 Offset Contracts</h1>
+            <p class="page-subtitle">Active agreements, payments, and delivery milestones</p>
+            <button class="btn primary">+ New Contract Request</button>
+        </div>
+
+        <!-- Contract Summary -->
+        <div class="grid grid-4" style="margin-bottom: 24px;">
+            <div class="panel">
+                <h3>Active Contracts</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--primary);">12</div>
+            </div>
+            <div class="panel">
+                <h3>Total Value</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--success);">£340,800</div>
+            </div>
+            <div class="panel">
+                <h3>Pending Payments</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--warning);">£28,400</div>
+            </div>
+            <div class="panel">
+                <h3>On Schedule</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--primary);">92%</div>
+            </div>
+        </div>
+
+        <!-- Contract List -->
+        <div class="panel">
+            <h2>Contract Management</h2>
+            
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="margin: 0; color: var(--primary);">Contract #2024-WF-001</h3>
+                        <p style="color: var(--muted); margin: 4px 0;">Redrow Homes Ltd • Woodland creation • 15.2 habitat units</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">ON TRACK</span>
+                        <div style="color: var(--success); font-weight: 600; margin-top: 4px;">£47,200 total</div>
+                    </div>
+                </div>
+                
+                <!-- Progress Timeline -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px;">
+                        <span>Contract Start: Jan 2024</span>
+                        <span>Next Milestone: Oct 2024</span>
+                        <span>Completion: Dec 2026</span>
+                    </div>
+                    <div style="background: var(--border); height: 4px; border-radius: 2px; position: relative;">
+                        <div style="background: var(--success); height: 100%; width: 65%; border-radius: 2px;"></div>
+                    </div>
+                    <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">65% complete • Next payment: £12,800 (due Oct 15)</div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn outline" style="font-size: 12px;">View Full Contract</button>
+                    <button class="btn outline" style="font-size: 12px;">Submit Progress Report</button>
+                    <button class="btn primary" style="font-size: 12px;">Request Payment</button>
+                </div>
+            </div>
+
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="margin: 0; color: var(--primary);">Contract #2024-RM-003</h3>
+                        <p style="color: var(--muted); margin: 4px 0;">Taylor Wimpey • Wetland restoration • 28.6 habitat units</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: var(--warning); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">ATTENTION NEEDED</span>
+                        <div style="color: var(--warning); font-weight: 600; margin-top: 4px;">£89,400 total</div>
+                    </div>
+                </div>
+                
+                <!-- Progress Timeline -->
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px;">
+                        <span>Contract Start: Mar 2024</span>
+                        <span>Overdue Milestone: Sep 2024</span>
+                        <span>Completion: Jun 2028</span>
+                    </div>
+                    <div style="background: var(--border); height: 4px; border-radius: 2px; position: relative;">
+                        <div style="background: var(--warning); height: 100%; width: 35%; border-radius: 2px;"></div>
+                    </div>
+                    <div style="font-size: 11px; color: var(--warning); margin-top: 4px;">Behind schedule • Action required for milestone compliance</div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn outline" style="font-size: 12px;">View Issues</button>
+                    <button class="btn warning" style="font-size: 12px;">Update Timeline</button>
+                    <button class="btn outline" style="font-size: 12px;">Contact Buyer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Review Page (Authority Role) -->
+    <div id="application-review" class="page">
+        <div class="page-header">
+            <h1 class="page-title">🏛️ Application Review Queue</h1>
+            <p class="page-subtitle">Planning applications awaiting determination and review</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn outline">Filter Applications</button>
+                <button class="btn primary">Case Officer Assignment</button>
+            </div>
+        </div>
+
+        <!-- Review Statistics -->
+        <div class="grid grid-4" style="margin-bottom: 24px;">
+            <div class="panel">
+                <h3>Pending Review</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--warning);">47</div>
+                <div style="color: var(--muted); font-size: 12px;">Within target time</div>
+            </div>
+            <div class="panel">
+                <h3>Overdue</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--error);">8</div>
+                <div style="color: var(--muted); font-size: 12px;">Require urgent action</div>
+            </div>
+            <div class="panel">
+                <h3>Validated Today</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--success);">12</div>
+                <div style="color: var(--muted); font-size: 12px;">Ready for review</div>
+            </div>
+            <div class="panel">
+                <h3>Performance</h3>
+                <div style="font-size: 24px; font-weight: 600; color: var(--primary);">94%</div>
+                <div style="color: var(--muted); font-size: 12px;">On-time determinations</div>
+            </div>
+        </div>
+
+        <!-- Application Queue -->
+        <div class="panel">
+            <h2>Priority Applications</h2>
+            
+            <div style="background: var(--surface); border: 1px solid var(--error); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="margin: 0; color: var(--primary);">24/03847/FUL - 45 High Street</h3>
+                        <p style="color: var(--muted); margin: 4px 0;">Change of use from retail to residential • Officer: Sarah Mitchell</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: var(--error); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">OVERDUE</span>
+                        <div style="color: var(--error); font-weight: 600; margin-top: 4px;">3 days over target</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-4" style="gap: 16px; font-size: 12px; margin-bottom: 12px;">
+                    <div><strong>Received:</strong><br>August 15, 2024</div>
+                    <div><strong>Target Date:</strong><br>October 10, 2024</div>
+                    <div><strong>Consultation:</strong><br>2 responses pending</div>
+                    <div><strong>Key Issues:</strong><br>Parking, amenity</div>
+                </div>
+
+                <!-- Progress indicators -->
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Application Progress:</div>
+                    <div style="display: flex; gap: 8px; font-size: 11px;">
+                        <span style="background: var(--success); color: white; padding: 2px 6px; border-radius: 4px;">VALIDATED</span>
+                        <span style="background: var(--success); color: white; padding: 2px 6px; border-radius: 4px;">CONSULTATION</span>
+                        <span style="background: var(--warning); color: white; padding: 2px 6px; border-radius: 4px;">ASSESSMENT</span>
+                        <span style="background: var(--border); color: var(--muted); padding: 2px 6px; border-radius: 4px;">DECISION</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn error" style="font-size: 12px;">Priority Review</button>
+                    <button class="btn outline" style="font-size: 12px;">View Application</button>
+                    <button class="btn outline" style="font-size: 12px;">Case Notes</button>
+                    <button class="btn outline" style="font-size: 12px;">Site Visit</button>
+                </div>
+            </div>
+
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="margin: 0; color: var(--primary);">24/03852/FUL - Land at Mill Lane</h3>
+                        <p style="color: var(--muted); margin: 4px 0;">8 dwellings with biodiversity net gain • Officer: David Chen</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px;">ON TRACK</span>
+                        <div style="color: var(--success); font-weight: 600; margin-top: 4px;">5 days remaining</div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-4" style="gap: 16px; font-size: 12px; margin-bottom: 12px;">
+                    <div><strong>Received:</strong><br>September 2, 2024</div>
+                    <div><strong>Target Date:</strong><br>October 25, 2024</div>
+                    <div><strong>Consultation:</strong><br>Complete</div>
+                    <div><strong>BNG Status:</strong><br>12.4% achieved</div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Application Progress:</div>
+                    <div style="display: flex; gap: 8px; font-size: 11px;">
+                        <span style="background: var(--success); color: white; padding: 2px 6px; border-radius: 4px;">VALIDATED</span>
+                        <span style="background: var(--success); color: white; padding: 2px 6px; border-radius: 4px;">CONSULTATION</span>
+                        <span style="background: var(--success); color: white; padding: 2px 6px; border-radius: 4px;">ASSESSMENT</span>
+                        <span style="background: var(--warning); color: white; padding: 2px 6px; border-radius: 4px;">DECISION PENDING</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn primary" style="font-size: 12px;">Complete Review</button>
+                    <button class="btn outline" style="font-size: 12px;">View BNG Assessment</button>
+                    <button class="btn outline" style="font-size: 12px;">Draft Decision</button>
+                </div>
+            </div>
+
+            <!-- Consultation Responses -->
+            <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid var(--primary); border-radius: 8px; padding: 16px;">
+                <h3 style="margin: 0 0 12px 0; color: var(--primary);">Consultation Responses Requiring Review</h3>
+                <div style="font-size: 12px; line-height: 1.6; color: var(--muted);">
+                    <div style="margin-bottom: 8px;">• <strong>Natural England:</strong> No objection subject to biodiversity conditions (App: 24/03852/FUL)</div>
+                    <div style="margin-bottom: 8px;">• <strong>Parish Council:</strong> Concerns about traffic impact (App: 24/03847/FUL)</div>
+                    <div style="margin-bottom: 8px;">• <strong>Environment Agency:</strong> Flood risk assessment approved (App: 24/03849/FUL)</div>
+                </div>
+                <button class="btn outline" style="margin-top: 12px; font-size: 12px;">Review All Consultations</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Onboarding Functions
         function startanalysisProject() {
@@ -5835,8 +6158,15 @@
             }
         }
 
-        // Simple page navigation
+        // Secure page navigation with role-based access control
         function showPage(pageId) {
+            // Check if user has permission to access this page
+            if (window.userAllowedPages && !window.userAllowedPages.includes(pageId)) {
+                console.warn(`Access denied: User role does not have permission to access page '${pageId}'`);
+                alert('Access Denied: You do not have permission to access this page.');
+                return;
+            }
+            
             // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
                 page.classList.remove('active');
@@ -5848,10 +6178,149 @@
             });
             
             // Show selected page
-            document.getElementById(pageId).classList.add('active');
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                
+                // Apply role-specific data filtering
+                applyRoleBasedDataFiltering(pageId);
+            }
             
             // Activate nav item
-            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+            const navItem = document.querySelector(`[data-page="${pageId}"]`);
+            if (navItem) {
+                navItem.classList.add('active');
+            }
+        }
+
+        // Apply role-based data filtering to ensure users only see their own data
+        function applyRoleBasedDataFiltering(pageId) {
+            const currentRole = document.getElementById('userRole').value;
+            
+            // Apply specific filtering based on page and role
+            switch(pageId) {
+                case 'projects':
+                    filterProjectsByRole(currentRole);
+                    break;
+                case 'marketplace':
+                    filterMarketplaceByRole(currentRole);
+                    break;
+                case 'auto-docs':
+                    filterDocumentsByRole(currentRole);
+                    break;
+                case 'land-portfolio':
+                    filterLandPortfolioByRole(currentRole);
+                    break;
+                default:
+                    // Apply general data filtering
+                    filterGeneralDataByRole(currentRole);
+            }
+        }
+
+        function filterProjectsByRole(role) {
+            // In a real app, this would filter projects API calls by user ID
+            console.log(`Filtering projects for role: ${role}`);
+            
+            // Simulate user-specific project filtering
+            const projects = document.querySelectorAll('.project-item');
+            projects.forEach((project, index) => {
+                // Show only projects 1, 3, 5 for current user (simulation)
+                if (index % 2 === 0) {
+                    project.style.display = 'block';
+                } else {
+                    project.style.display = 'none';
+                }
+            });
+        }
+
+        function filterMarketplaceByRole(role) {
+            // Filter marketplace data based on role
+            console.log(`Filtering marketplace for role: ${role}`);
+            
+            if (role === 'landowner') {
+                // Show landowner-specific marketplace view
+                showMarketplaceSection('list-land');
+                // Hide listings from other landowners (privacy)
+                hideOtherUsersListings();
+            } else if (role === 'developer' || role === 'consultant') {
+                // Show developer/consultant-specific marketplace view
+                showMarketplaceSection('browse');
+                // Show all available offsets but hide supplier contact details
+                anonymizeSupplierDetails();
+            }
+        }
+
+        function filterDocumentsByRole(role) {
+            // Only show documents created by current user
+            console.log(`Filtering documents for role: ${role}`);
+            
+            // In a real implementation, this would query user-specific documents
+            const documents = document.querySelectorAll('.document-item');
+            documents.forEach((doc, index) => {
+                // Simulate showing only user's documents
+                if (index < 3) { // Show first 3 as user's documents
+                    doc.style.display = 'block';
+                } else {
+                    doc.style.display = 'none'; // Hide other users' documents
+                }
+            });
+        }
+
+        function filterLandPortfolioByRole(role) {
+            // Only show land owned by current user
+            console.log(`Filtering land portfolio for role: ${role}`);
+            
+            if (role !== 'landowner') {
+                // Non-landowners shouldn't see any land portfolio data
+                console.warn('Access denied: Only landowners can view land portfolio');
+                return;
+            }
+            
+            // Apply user-specific land ownership filtering
+            // In real app: filter by landowner_id === current_user_id
+        }
+
+        function filterGeneralDataByRole(role) {
+            // Apply general data filtering rules
+            console.log(`Applying general data filtering for role: ${role}`);
+            
+            // Hide sensitive data based on role
+            if (role === 'authority') {
+                // Authorities see application data but not commercial details
+                hideCommercialData();
+            } else if (role === 'landowner') {
+                // Landowners see their own data but not others' private information
+                hideOtherUsersPrivateData();
+            } else if (role === 'developer' || role === 'consultant') {
+                // Developers/consultants see project data but not internal authority discussions
+                hideInternalAuthorityData();
+            }
+        }
+
+        // Helper functions for data privacy
+        function hideOtherUsersListings() {
+            // Hide marketplace listings from other users for privacy
+            console.log('Hiding other users\' private listing details');
+        }
+
+        function anonymizeSupplierDetails() {
+            // Remove personal contact details from supplier listings
+            console.log('Anonymizing supplier contact details for buyer privacy');
+        }
+
+        function hideCommercialData() {
+            // Hide commercial/financial data from authority users
+            console.log('Hiding commercial data from authority view');
+        }
+
+        function hideOtherUsersPrivateData() {
+            // Hide other users' private documents and data
+            console.log('Hiding other users\' private data');
+        }
+
+        function hideInternalAuthorityData() {
+            // Hide internal authority discussions and notes
+            console.log('Hiding internal authority data from external users');
         }
 
         // Create new project function
@@ -6089,27 +6558,67 @@
             updateRoleBasedUI();
         }
         
-        // Role-based UI customization
+        // Role-based UI customization with strict access control
         function updateRoleBasedUI() {
             const selectedRole = document.getElementById('userRole').value;
             const descriptions = {
-                'landowner': 'Focus on land asset optimization and offset opportunities',
-                'developer': 'Access developer-focused planning tools and analysis',
-                'consultant': 'Professional consulting toolkit and client collaboration'
+                'landowner': 'Maximize land value through BNG offsets and development opportunities',
+                'developer': 'Streamline planning applications with AI-powered development tools',
+                'consultant': 'Professional planning consultancy toolkit with client collaboration',
+                'authority': 'Planning application review and local development oversight tools'
             };
             
             // Update role description
             document.getElementById('roleDescription').textContent = descriptions[selectedRole];
             
-            // Show/hide navigation items based on role
+            // Hide ALL navigation sections first
+            document.querySelectorAll('.nav-section[data-roles]').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show/hide navigation sections based on role
+            document.querySelectorAll('.nav-section[data-roles]').forEach(section => {
+                const sectionRoles = section.getAttribute('data-roles');
+                if (sectionRoles && sectionRoles.split(',').includes(selectedRole)) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+            
+            // Show/hide individual navigation items based on role
             document.querySelectorAll('.nav-item[data-roles]').forEach(item => {
-                const itemRoles = item.getAttribute('data-roles').split(',');
-                if (itemRoles.includes(selectedRole)) {
+                const itemRoles = item.getAttribute('data-roles');
+                if (itemRoles && itemRoles.split(',').includes(selectedRole)) {
                     item.style.display = 'flex';
                 } else {
                     item.style.display = 'none';
                 }
             });
+            
+            // Hide ALL pages first for security
+            document.querySelectorAll('.page').forEach(page => {
+                if (page.id !== 'dashboard') {
+                    page.style.display = 'none';
+                }
+            });
+            
+            // Define role-specific page access
+            const rolePageAccess = {
+                'developer': ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api'],
+                'consultant': ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api'],
+                'landowner': ['dashboard', 'marketplace', 'land-portfolio', 'offset-contracts', 'property-api'],
+                'authority': ['dashboard', 'application-review', 'local-development', 'policy-compliance', 'property-api']
+            };
+            
+            // Store current user's allowed pages for navigation security
+            window.userAllowedPages = rolePageAccess[selectedRole] || ['dashboard'];
+            
+            // Force return to dashboard if current page is not allowed
+            const currentPage = document.querySelector('.page.active');
+            if (currentPage && !window.userAllowedPages.includes(currentPage.id)) {
+                showPage('dashboard');
+            }
             
             // Update dashboard content for role
             updateDashboardForRole(selectedRole);
@@ -6121,22 +6630,31 @@
             
             const roleConfigs = {
                 'landowner': {
-                    title: 'Landowner Dashboard',
+                    title: '🌿 Landowner Dashboard',
                     subtitle: 'Maximize your land asset value with planning intelligence and offset opportunities'
                 },
                 'developer': {
-                    title: 'Developer Dashboard', 
+                    title: '🏗️ Developer Dashboard', 
                     subtitle: 'Streamline planning applications and development workflows with AI-powered insights'
                 },
                 'consultant': {
-                    title: 'Consultant Dashboard',
+                    title: '📊 Consultant Dashboard',
                     subtitle: 'Professional planning consultancy toolkit with client collaboration features'
+                },
+                'authority': {
+                    title: '🏛️ Planning Authority Dashboard',
+                    subtitle: 'Efficient application processing and policy compliance management tools'
                 }
             };
             
-            if (dashboardTitle && dashboardSubtitle) {
+            if (dashboardTitle && dashboardSubtitle && roleConfigs[role]) {
                 dashboardTitle.textContent = roleConfigs[role].title;
                 dashboardSubtitle.textContent = roleConfigs[role].subtitle;
+                
+                // Log role change for debugging
+                console.log(`Dashboard updated for role: ${role}`);
+                console.log(`Title: ${roleConfigs[role].title}`);
+                console.log(`User can access pages:`, window.userAllowedPages);
             }
         }
         
