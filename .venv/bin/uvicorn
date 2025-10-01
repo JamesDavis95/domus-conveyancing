@@ -1,4 +1,4 @@
-#!/Users/jamesdavis/Desktop/domus-conveyancing/.venv/bin/python3.13
+#!/Users/jamesdavis/Desktop/domus-conveyancing/.venv/bin/python
 import sys
 from uvicorn.main import main
 if __name__ == '__main__':
