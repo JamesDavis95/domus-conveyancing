@@ -6350,6 +6350,11 @@
         }
 
         function hideNavigationForOtherRoles(userRole) {
+            // Super admin sees everything - skip hiding for super_admin
+            if (userRole === 'super_admin') {
+                return; // Don't hide anything for super admin
+            }
+            
             // Define which navigation sections are visible for each role
             const roleNavSections = {
                 'developer': ['overview', 'development-tools'],
