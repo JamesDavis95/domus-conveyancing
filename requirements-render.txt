@@ -1,0 +1,37 @@
+# Domus Planning Platform - Render-Optimized Dependencies
+# Minimal reliable set for cloud deployment
+
+# Core Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+jinja2==3.1.2
+
+# Database (SQLite for reliability)
+sqlalchemy==1.4.46
+alembic==1.12.1
+
+# Authentication & Security
+pyjwt==2.8.0
+bcrypt==4.0.1
+passlib[bcrypt]==1.7.4
+
+# Payment Processing
+stripe==7.7.0
+
+# HTTP Requests
+httpx==0.25.2
+requests==2.31.0
+
+# Environment & Config
+python-dotenv==1.0.0
+
+# Data Processing (minimal)
+pandas==2.1.3
+pydantic==2.5.0
+
+# Document Generation
+reportlab==4.0.7
+
+# Production Server
+gunicorn==21.2.0

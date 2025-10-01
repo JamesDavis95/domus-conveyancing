@@ -11,8 +11,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import jwt
 import bcrypt
-from models import User, Organization, Usage
-from db import get_db
+from models import User, Organization, Usage, get_db
 
 # Security configuration
 SECRET_KEY = "your-secret-key-change-in-production"  # TODO: Move to environment variable

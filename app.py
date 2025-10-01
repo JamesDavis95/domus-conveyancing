@@ -51,6 +51,19 @@ except ImportError as e:
 
 from models import get_db
 
+# Simple database initialization
+def init_database():
+    """Initialize database tables if they don't exist"""
+    try:
+        from models import Base, engine
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables initialized")
+    except Exception as e:
+        print(f"⚠️ Database initialization issue (non-critical): {e}")
+
+# Initialize database on startup
+init_database()
+
 
 # Initialize the Domus Planning Platform
 app = FastAPI(
