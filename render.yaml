@@ -1,16 +1,25 @@
+databases:
+  - name: domus-planning-db
+    databaseName: domus_planning
+    user: domus_user
+
 services:
   - type: web
     name: domus-planning-platform
     env: python
     plan: starter
-    buildCommand: pip install -r requirements.txt && mkdir -p static && cp -r frontend/* static/ 2>/dev/null || echo "Frontend copied"
-    startCommand: python -m uvicorn app:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: python start_render.py
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.6
       - key: ENVIRONMENT
         value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: domus-planning-db
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY
@@ -22,4 +31,4 @@ services:
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: FORCE_DEPLOY
-        value: "2025-10-01-deployment-fix"
+        value: "2025-10-01-database-deploy"
