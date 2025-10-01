@@ -3,7 +3,7 @@ services:
     name: domus-planning-platform
     env: python
     plan: starter
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && mkdir -p static && cp -r frontend/* static/ 2>/dev/null || echo "Frontend copied"
     startCommand: python -m uvicorn app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
@@ -22,4 +22,4 @@ services:
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: FORCE_DEPLOY
-        value: "2025-10-01-production-simplified"
+        value: "2025-10-01-deployment-fix"

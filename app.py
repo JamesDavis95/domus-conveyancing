@@ -131,11 +131,64 @@ app.mount("/static", StaticFiles(directory="frontend"), name="static")
 async def root():
     """Serve the production platform interface"""
     try:
-        # Serve the clean production platform UI
+        # Try to serve the clean production platform UI
         with open('frontend/platform_production.html', 'r', encoding='utf-8') as f:
             return f.read()
     except Exception as e:
-        return f"<html><body><h1>Platform Unavailable</h1><p>Please try again later.</p></body></html>"
+        print(f"Frontend file error: {e}")
+        # Fallback to inline HTML for Render deployment
+        return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus Planning Platform - Professional Planning Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+               min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: white; padding: 2rem; border-radius: 16px; 
+                     box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 800px; text-align: center; }
+        .logo { font-size: 2.5rem; font-weight: bold; color: #1e40af; margin-bottom: 1rem; }
+        .tagline { font-size: 1.2rem; color: #64748b; margin-bottom: 2rem; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+                    gap: 1rem; margin: 2rem 0; }
+        .feature { padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .feature h3 { color: #1e40af; margin-bottom: 0.5rem; }
+        .cta { background: #1e40af; color: white; padding: 1rem 2rem; 
+               border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; }
+        .cta:hover { background: #1e3a8a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏠 Domus Planning Platform</div>
+        <div class="tagline">Professional Planning Intelligence & Compliance Automation</div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🤖 AI Planning Assistant</h3>
+                <p>Intelligent analysis and automation</p>
+            </div>
+            <div class="feature">
+                <h3>📊 BNG Marketplace</h3>
+                <p>Biodiversity Net Gain trading</p>
+            </div>
+            <div class="feature">
+                <h3>⚡ Real-time Data</h3>
+                <p>Property and planning intelligence</p>
+            </div>
+        </div>
+        
+        <button class="cta" onclick="window.location.href='/login'">Access Platform</button>
+        
+        <div style="margin-top: 2rem; font-size: 0.9rem; color: #64748b;">
+            <p>Professional Planning • Compliance Automation • Market Intelligence</p>
+        </div>
+    </div>
+</body>
+</html>"""
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
