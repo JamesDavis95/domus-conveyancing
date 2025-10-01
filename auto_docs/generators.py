@@ -7,7 +7,7 @@ from datetime import datetime
 import asyncio
 import uuid
 
-from ..planning_ai.schemas import SiteInput, Constraint, Score, Recommendation
+from planning_ai.schemas import SiteInput, Constraint, Score, Recommendation
 from .planning_statement import generate_planning_statement
 from .design_access import generate_design_access_statement
 from .templates import (

@@ -13,9 +13,7 @@ from .schemas import (
     BiodiversityAssessment,
     ListingStatus,
     DemandStatus,
-    LocationStrategicSignificance,
-    CreateSupplyListingRequest,
-    CreateDemandRequestBody
+    LocationStrategicSignificance
 )
 
 from .supply import SupplyManager
@@ -41,8 +39,8 @@ __all__ = [
     "ListingStatus",
     "DemandStatus",
     "LocationStrategicSignificance",
-    "CreateSupplyListingRequest",
-    "CreateDemandRequestBody",
+    # "CreateSupplyListingRequest",  # Removed, does not exist
+    # "CreateDemandRequestBody",  # Removed, does not exist
     
     # Core Managers
     "SupplyManager",

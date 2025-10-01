@@ -3,805 +3,145 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Domus Planning Platform</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --muted: #94a3b8;
-      --text: #e5e7eb;
-      --line: #1f2937;
-      --btn: #1d4ed8;
-      --btnh: #2563eb;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --sidebar-width: 260px;
-    }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
-      overflow-x: hidden;
-      width: 100%;
-      position: relative;
-    }
-    
-    html {
-      overflow-x: hidden;
-      width: 100%;
-    }
-    
-    /* Header */
-    .header {
-      background: var(--panel);
-      border-bottom: 1px solid var(--line);
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      background: linear-gradient(45deg, #60a5fa, #34d399);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    
-    /* Layout */
-    .app-layout {
-      display: flex;
-      min-height: calc(100vh - 60px);
-      width: 100%;
-      overflow-x: hidden;
-    }
-    
-    /* Sidebar Navigation */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: var(--panel);
-      border-right: 1px solid var(--line);
-      padding: 24px 0;
-      overflow-y: auto;
-    }
-    
-    .nav-section {
-      margin-bottom: 32px;
-    }
-    
-    .nav-section-title {
-      padding: 0 24px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-    }
-    
-    .nav-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 24px;
-      color: var(--text);
-      text-decoration: none;
-      transition: all 0.2s;
-      cursor: pointer;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-      font-size: 14px;
-    }
-    
-    .nav-item:hover,
-    .nav-item.active {
-      background: var(--bg);
-      color: var(--success);
-    }
-    
-    .nav-item .icon {
-      width: 18px;
-      height: 18px;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-    
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      padding: 32px;
-      overflow-y: auto;
-      max-width: calc(100vw - var(--sidebar-width));
-    }
-    
-    .page {
-      display: none;
-    }
-    
-    .page.active {
-      display: block;
-      animation: fadeIn 0.2s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .page-header {
-      margin-bottom: 32px;
-    }
-    
-    .page-title {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0 0 8px 0;
-    }
-    
-    .page-subtitle {
-      color: var(--muted);
-      font-size: 16px;
-      margin: 0;
-    }
-    
-    /* Components */
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-    
-    .panel h2 {
-      margin: 0 0 20px 0;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .panel h3 {
-      margin: 0 0 16px 0;
-      font-size: 16px;
-      color: var(--muted);
-    }
-    
-    .grid {
-      display: grid;
-      gap: 24px;
-    }
-    
-    .grid-2 { grid-template-columns: 1fr 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-    
-    .stat-card {
-      background: var(--bg);
-      padding: 20px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-    }
-    
-    .stat-card .value {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    
-    .stat-card .label {
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 500;
-    }
-    
-    .stat-card .trend {
-      font-size: 12px;
-      margin-top: 12px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    
-    .trend.up { color: var(--success); }
-    .trend.down { color: var(--danger); }
-    
-    /* Forms */
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text);
-      font-weight: 500;
-    }
-    
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-    }
-    
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      outline: none;
-      border-color: var(--btn);
-      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
-    }
-    
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    
-    /* Buttons */
-    .btn {
-      padding: 12px 20px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--bg);
-      color: var(--text);
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    
-    .btn:hover { background: var(--panel); }
-    .btn.primary { background: var(--btn); border-color: var(--btn); color: white; }
-    .btn.primary:hover { background: var(--btnh); }
-    .btn.success { background: var(--success); border-color: var(--success); color: white; }
-    .btn.danger { background: var(--danger); border-color: var(--danger); color: white; }
-    .btn.sm { padding: 8px 12px; font-size: 12px; }
-    
-    /* Tables */
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    
-    .table th,
-    .table td {
-      padding: 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--line);
-    }
-    
-    .table th {
-      background: var(--bg);
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .table tbody tr {
-      transition: background 0.2s;
-    }
-    
-    .table tbody tr:hover {
-      background: var(--bg);
-    }
-    
-    /* Status badges */
-    .status {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .status.active { background: var(--success); color: white; }
-    .status.pending { background: var(--warning); color: white; }
-    .status.inactive { background: var(--muted); color: white; }
-    .status.draft { background: var(--line); color: var(--muted); }
-    
-    /* Utilities */
-    .flex { display: flex; }
-    .flex-between { justify-content: space-between; }
-    .flex-center { align-items: center; }
-    .gap-2 { gap: 8px; }
-    .gap-3 { gap: 12px; }
-    .gap-4 { gap: 16px; }
-    .mb-0 { margin-bottom: 0; }
-    .mb-2 { margin-bottom: 8px; }
-    .mb-3 { margin-bottom: 12px; }
-    .mb-4 { margin-bottom: 16px; }
-    .text-success { color: var(--success); }
-    .text-warning { color: var(--warning); }
-    .text-danger { color: var(--danger); }
-    .text-muted { color: var(--muted); }
-    .text-sm { font-size: 12px; }
-    .fw-500 { font-weight: 500; }
-    .fw-600 { font-weight: 600; }
-    
-    /* Loading states */
-    .loading {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--line);
-      border-radius: 50%;
-      border-top-color: var(--btn);
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* Mobile Menu Toggle */
-    .mobile-menu-toggle {
-      display: none;
-      background: none;
-      border: none;
-      color: var(--text);
-      font-size: 24px;
-      cursor: pointer;
-      padding: 8px;
-    }
-    
-    .mobile-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 150;
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      /* Reset app layout for mobile */
-      .app-layout {
-        display: block;
-        position: relative;
-        width: 100%;
-        min-height: calc(100vh - 60px);
-      }
-      
-      /* Header adjustments */
-      .header {
-        padding: 12px 16px;
-        position: relative;
-        z-index: 300;
-      }
-      
-      .logo {
-        font-size: 18px;
-      }
-      
-      .user-info span {
-        display: none;
-      }
-      
-      .user-info span:first-child {
-        display: inline;
-      }
-      
-      /* Show mobile menu toggle */
-      .mobile-menu-toggle {
-        display: block;
-      }
-      
-      /* Sidebar mobile behavior */
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        width: 280px;
-        height: 100vh;
-        z-index: 200;
-        transition: left 0.3s ease-in-out;
-        padding-top: 80px;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-      }
-      
-      .sidebar.mobile-open {
-        left: 0;
-      }
-      
-      .mobile-overlay.active {
-        display: block;
-      }
-      
-      /* Main content adjustments - CRITICAL FIX */
-      .main-content {
-        padding: 16px;
-        max-width: 100vw;
-        width: 100vw;
-        margin-left: 0;
-        overflow-x: hidden;
-        box-sizing: border-box;
-      }
-      
-      /* Grid adjustments */
-      .grid-2, 
-      .grid-3, 
-      .grid-4 { 
-        grid-template-columns: 1fr; 
-        gap: 16px;
-      }
-      
-      .form-row { 
-        grid-template-columns: 1fr; 
-        gap: 16px;
-      }
-      
-      /* Panel adjustments */
-      .panel {
-        padding: 16px;
-        margin-bottom: 16px;
-      }
-      
-      .panel h2 {
-        font-size: 18px;
-        margin-bottom: 16px;
-      }
-      
-      /* Page header adjustments */
-      .page-title {
-        font-size: 24px;
-      }
-      
-      .page-subtitle {
-        font-size: 14px;
-      }
-      
-      /* Button adjustments */
-      .btn {
-        padding: 10px 16px;
-        font-size: 14px;
-      }
-      
-      .btn.sm {
-        padding: 6px 10px;
-        font-size: 12px;
-      }
-      
-      /* Table adjustments */
-      .table {
-        font-size: 12px;
-      }
-      
-      .table th,
-      .table td {
-        padding: 8px;
-      }
-      
-      /* Stat card adjustments */
-      .stat-card {
-        padding: 16px;
-      }
-      
-      .stat-card .value {
-        font-size: 24px;
-      }
-      
-      /* Form adjustments */
-      .form-group input,
-      .form-group select,
-      .form-group textarea {
-        padding: 10px 12px;
-        font-size: 16px; /* Prevents zoom on iOS */
-      }
-      
-      /* AI Components mobile adjustments */
-      #aiHelpbot {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: calc(100vw - 40px);
-        max-width: 350px;
-        height: 400px;
-      }
-      
-      .map-container {
-        height: 300px !important;
-      }
-      
-      /* Document upload area */
-      .upload-area {
-        padding: 20px;
-        text-align: center;
-      }
-      
-      /* Modal adjustments for mobile */
-      .modal-content {
-        margin: 20px;
-        width: calc(100% - 40px);
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
-      }
-      
-      /* Ensure all page content fits properly */
-      .page {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
-      }
-      
-      /* Fix any wide tables or content */
-      .table {
-        width: 100%;
-        table-layout: fixed;
-      }
-      
-      .panel {
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-      }
-      
-      /* Grid containers */
-      .grid {
-        width: 100%;
-        max-width: 100%;
-      }
-      
-      /* Form elements */
-      .form-group {
-        width: 100%;
-        max-width: 100%;
-      }
-      
-      .form-group input,
-      .form-group select,
-      .form-group textarea {
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      /* Extra small screens */
-      .header {
-        padding: 8px 12px;
-      }
-      
-      .main-content {
-        padding: 12px;
-      }
-      
-      .panel {
-        padding: 12px;
-      }
-      
-      .page-title {
-        font-size: 20px;
-      }
-      
-      .stat-card .value {
-        font-size: 20px;
-      }
-      
-      .btn {
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-    }
-  </style>
+  <title>Domus Planning Intelligence</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <script>
-    // Define ALL FUNCTIONS IMMEDIATELY - before any HTML that uses them
-    console.log('🚀 Loading essential functions...');
-    
-    window.showPage = function(pageId) {
-      console.log('🎯 NAVIGATION: Switching to page:', pageId);
-      
-      // Hide all pages
-      var pages = document.querySelectorAll('.page');
-      for (var i = 0; i < pages.length; i++) {
-        pages[i].classList.remove('active');
-      }
-      
-      // Show target page
-      var targetPage = document.getElementById(pageId);
-      if (targetPage) {
-        targetPage.classList.add('active');
-        console.log('✅ SUCCESS: Page shown:', pageId);
-      } else {
-        console.log('❌ ERROR: Page not found:', pageId);
-      }
-      
-      // Update nav active state
-      var navItems = document.querySelectorAll('.nav-item');
-      for (var i = 0; i < navItems.length; i++) {
-        navItems[i].classList.remove('active');
-        if (navItems[i].getAttribute('data-page') === pageId) {
-          navItems[i].classList.add('active');
-        }
-      }
-    };
-    
-    window.toggleMobileMenu = function() {
-      console.log('📱 Toggle mobile menu');
-      var sidebar = document.querySelector('.sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('mobile-open');
-      }
-    };
-    
-    window.showCreateMatterModal = function() {
-      alert('Create Matter modal - functionality will be added');
-    };
-    
-    console.log('✅ All essential functions loaded BEFORE HTML');
-  </script>
-
   <!-- Header -->
   <header class="header">
-    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
-    <div class="logo">Domus Planning Platform</div>
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <div class="logo">
+      <span class="logo-text">Domus</span>
+      <span class="logo-subtitle">Planning Intelligence</span>
+    </div>
     <div class="user-menu">
       <div class="user-info">
-        <span>Admin User</span>
-        <span>•</span>
-        <span>East Hertfordshire Council</span>
+        <span class="user-name">Professional User</span>
+        <span class="separator">•</span>
+        <span class="user-org">Developer Plan</span>
+        <div class="user-avatar">P</div>
       </div>
     </div>
   </header>
-
-  <!-- Mobile Overlay -->
+  
   <div class="mobile-overlay" onclick="closeMobileMenu()"></div>
-
-  <!-- Main App Layout -->
+  
   <div class="app-layout">
     <!-- Sidebar Navigation -->
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
+      <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15,18 9,12 15,6"></polyline>
+        </svg>
+        <span class="toggle-text">Collapse</span>
+      </button>
+      
       <div class="nav-section">
         <div class="nav-section-title">Overview</div>
         <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-          <span class="icon"></span>
-          Dashboard
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          </svg>
+          <span class="nav-text">Dashboard</span>
         </button>
       </div>
-
+      
       <div class="nav-section">
-        <div class="nav-section-title">Planning Services</div>
-        <button class="nav-item" data-page="matters" onclick="showPage('matters')">
-          <span class="icon">🏗️</span>
-          Planning Applications
-        </button>
-        <button class="nav-item" data-page="documents" onclick="showPage('documents')">
-          <span class="icon">📋</span>
-          Application Documents
-        </button>
-        <button class="nav-item" data-page="workflow" onclick="showPage('workflow')">
-          <span class="icon">⚖️</span>
-          Policy Compliance
-        </button>
-      </div>
-
-      <div class="nav-section">
-        <div class="nav-section-title">Administration</div>
-        <button class="nav-item" data-page="users" onclick="showPage('users')">
-          <span class="icon"></span>
-          User Management
-        </button>
-        <button class="nav-item" data-page="billing" onclick="showPage('billing')">
-          <span class="icon"></span>
-          Financial Management
-        </button>
-        <button class="nav-item" data-page="integrations" onclick="showPage('integrations')">
-          <span class="icon"></span>
-          System Integrations
-        </button>
-      </div>
-
-      <div class="nav-section">
-        <div class="nav-section-title">Planning-First AI</div>
+        <div class="nav-section-title">Planning Intelligence</div>
         <button class="nav-item" data-page="planning-ai" onclick="showPage('planning-ai')">
-          <span class="icon">🧠</span>
-          Planning AI Analysis
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span class="nav-text">Planning AI</span>
         </button>
         <button class="nav-item" data-page="auto-docs" onclick="showPage('auto-docs')">
-          <span class="icon">📄</span>
-          Auto-Docs Generator
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10,9 9,9 8,9"></polyline>
+          </svg>
+          <span class="nav-text">Auto-Docs</span>
         </button>
         <button class="nav-item" data-page="property-api" onclick="showPage('property-api')">
-          <span class="icon">🏠</span>
-          Property Data API
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+          </svg>
+          <span class="nav-text">Property Data API</span>
         </button>
         <button class="nav-item" data-page="offsets-marketplace" onclick="showPage('offsets-marketplace')">
-          <span class="icon">🌱</span>
-          Offsets Marketplace
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <span class="nav-text">Offsets Marketplace</span>
         </button>
       </div>
-
+      
       <div class="nav-section">
-        <div class="nav-section-title">Legacy Services</div>
-        <button class="nav-item" data-page="building-control" onclick="showPage('building-control')">
-          <span class="icon">🏠</span>
-          Building Control
+        <div class="nav-section-title">Projects & Data</div>
+        <button class="nav-item" data-page="projects" onclick="showPage('projects')">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"></path>
+            <rect x="9" y="7" width="6" height="4"></rect>
+          </svg>
+          <span class="nav-text">My Projects</span>
         </button>
-        <button class="nav-item" data-page="land-charges" onclick="showPage('land-charges')">
-          <span class="icon">📜</span>
-          Land Charges
+        <button class="nav-item" data-page="documents" onclick="showPage('documents')">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13,2 13,9 20,9"></polyline>
+          </svg>
+          <span class="nav-text">Documents</span>
         </button>
-        <button class="nav-item" data-page="waste-licensing" onclick="showPage('waste-licensing')">
-          <span class="icon">♻️</span>
-          Waste Services
-        </button>
-        <button class="nav-item" data-page="housing-standards" onclick="showPage('housing-standards')">
-          <span class="icon">🏘️</span>
-          Housing Standards
+        <button class="nav-item" data-page="analytics" onclick="showPage('analytics')">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
+          </svg>
+          <span class="nav-text">Analytics</span>
         </button>
       </div>
-
+      
       <div class="nav-section">
-        <div class="nav-section-title">Analytics</div>
-        <button class="nav-item" data-page="reports" onclick="showPage('reports')">
-          <span class="icon"></span>
-          Reports & Analytics
+        <div class="nav-section-title">Account</div>
+        <button class="nav-item" data-page="billing" onclick="showPage('billing')">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span class="nav-text">Billing & Usage</span>
         </button>
-        <button class="nav-item" data-page="compliance" onclick="showPage('compliance')">
-          <span class="icon"></span>
-          Compliance & Audit
+        <button class="nav-item" data-page="team" onclick="showPage('team')">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span class="nav-text">Team</span>
         </button>
-      </div>
-
-      <div class="nav-section">
-        <div class="nav-section-title">System</div>
         <button class="nav-item" data-page="settings" onclick="showPage('settings')">
-          <span class="icon"></span>
-          Settings
-        </button>
-        <button class="nav-item" data-page="support" onclick="showPage('support')">
-          <span class="icon"></span>
-          Support
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span class="nav-text">Settings</span>
         </button>
       </div>
     </nav>
-
-    <!-- Main Content Area -->
+    
     <main class="main-content">
       <!-- Dashboard Page -->
       <div id="dashboard" class="page active">
@@ -809,32 +149,28 @@
           <h1 class="page-title">Dashboard</h1>
           <p class="page-subtitle">Overview of your planning operations and applications</p>
         </div>
-
-        <!-- Key Metrics -->
         <div class="grid grid-4">
           <div class="stat-card">
             <div class="value text-success">156</div>
             <div class="label">Active Applications</div>
-            <div class="trend up">↗ +8% this month</div>
+            <div class="trend up">+8% this month</div>
           </div>
           <div class="stat-card">
             <div class="value text-warning">34</div>
             <div class="label">Awaiting Decision</div>
-            <div class="trend down">↘ -12% this week</div>
+            <div class="trend down">-12% this week</div>
           </div>
           <div class="stat-card">
             <div class="value text-success">5.2 days</div>
             <div class="label">Avg Decision Time</div>
-            <div class="trend up">↗ 35% faster</div>
+            <div class="trend up">35% faster</div>
           </div>
           <div class="stat-card">
             <div class="value text-success">92%</div>
             <div class="label">Policy Compliance</div>
-            <div class="trend up">↗ +5% accuracy</div>
+            <div class="trend up">+5% accuracy</div>
           </div>
         </div>
-
-        <!-- Quick Actions -->
         <div class="grid grid-2">
           <div class="panel">
             <h2>Quick Actions</h2>
@@ -844,7 +180,6 @@
               <button class="btn" data-page="reports" onclick="showPage('reports')">Generate Report</button>
             </div>
           </div>
-
           <div class="panel">
             <h2>System Status</h2>
             <div class="text-sm">
@@ -867,8 +202,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Recent Activity -->
         <div class="panel">
           <h2>Recent Applications</h2>
           <table class="table">
@@ -891,7 +224,7 @@
                 <td><span class="status active">Under Consideration</span></td>
                 <td>Sarah Johnson</td>
                 <td>15 Oct 2025</td>
-                <td><button class="btn sm">Review</button></td>
+                <td><button class="btn sm" onclick="handleAction('Review', '25/00156/FUL')">Review</button></td>
               </tr>
               <tr>
                 <td>25/00157/HOU</td>
@@ -900,7 +233,7 @@
                 <td><span class="status pending">Validation</span></td>
                 <td>Mike Chen</td>
                 <td>28 Sep 2025</td>
-                <td><button class="btn sm">Validate</button></td>
+                <td><button class="btn sm" onclick="handleAction('Validate', '25/00157/HOU')">Validate</button></td>
               </tr>
               <tr>
                 <td>25/00158/OUT</td>
@@ -909,27 +242,24 @@
                 <td><span class="status draft">Consultation</span></td>
                 <td>Emma Wilson</td>
                 <td>12 Oct 2025</td>
-                <td><button class="btn sm">View</button></td>
+                <td><button class="btn sm" onclick="handleAction('View', '25/00158/OUT')">View</button></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-
+      </div>
       <!-- Matters Management Page -->
       <div id="matters" class="page">
         <div class="page-header">
           <h1 class="page-title">Planning Applications</h1>
           <p class="page-subtitle">Manage planning applications and decision workflow</p>
         </div>
-
-        <!-- Filters and Actions -->
         <div class="panel">
           <div class="flex flex-between flex-center mb-4">
             <h2 class="mb-0">All Matters</h2>
             <button class="btn primary" onclick="showCreateMatterModal()">+ Create New Matter</button>
           </div>
-          
           <div class="grid grid-4">
             <div class="form-group">
               <label>Filter by Status</label>
@@ -965,8 +295,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Matters List -->
         <div class="panel">
           <table class="table">
             <thead>
@@ -998,8 +326,8 @@
                 <td>15 Sep 2025</td>
                 <td>£125.00</td>
                 <td>
-                  <button class="btn sm">View</button>
-                  <button class="btn sm">Edit</button>
+                  <button class="btn sm" onclick="handleAction('View', 'DOM-2025-001')">View</button>
+                  <button class="btn sm" onclick="handleAction('Edit', 'DOM-2025-001')">Edit</button>
                 </td>
               </tr>
               <!-- More rows would be loaded via JavaScript -->
@@ -1007,1460 +335,183 @@
           </table>
         </div>
       </div>
-
+      </div>
       <!-- Document Processing Page -->
       <div id="documents" class="page">
         <div class="page-header">
           <h1 class="page-title">Document Processing</h1>
           <p class="page-subtitle">AI-powered document analysis and data extraction</p>
         </div>
-
-        <!-- Upload Area -->
-        <div class="panel">
-          <h2>Upload Documents</h2>
-          <div class="grid grid-2">
-            <div>
-              <div class="form-group">
-                <label>Matter Reference</label>
-                <select>
-                  <option>Select existing matter...</option>
-                  <option>DOM-2025-001 - 123 High Street</option>
-                  <option>DOM-2025-002 - 45 Mill Lane</option>
-                  <option>Create new matter...</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label>Document Type</label>
-                <select>
-                  <option>Local Search (LLC1)</option>
-                  <option>Environmental Search (CON29)</option>
-                  <option>Planning Documents</option>
-                  <option>Title Deeds</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Council/Authority</label>
-                <input type="text" placeholder="e.g., East Hertfordshire District Council">
-              </div>
-            </div>
-
-            <div>
-              <div class="form-group">
-                <label>Property Address</label>
-                <input type="text" placeholder="Full property address">
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Postcode</label>
-                  <input type="text" placeholder="e.g., SG14 1AB">
-                </div>
-                <div class="form-group">
-                  <label>UPRN (Optional)</label>
-                  <input type="text" placeholder="Unique Property Reference">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label>Files</label>
-                <input type="file" multiple accept=".pdf,.doc,.docx">
-              </div>
-            </div>
-          </div>
-
-          <div class="flex gap-3 mb-0">
-            <button class="btn primary">Process Documents</button>
-            <button class="btn">Save as Draft</button>
-          </div>
-        </div>
-
-        <!-- Processing Status -->
-        <div class="panel">
-          <h2>Processing Queue</h2>
-          <table class="table">
-            <thead>
-              <tr>
-                <th>File</th>
-                <th>Matter</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Progress</th>
-                <th>AI Confidence</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>search_123_high_st.pdf</td>
-                <td>DOM-2025-001</td>
-                <td>Local Search</td>
-                <td><span class="status active">Processing</span></td>
-                <td>85%</td>
-                <td>92%</td>
-                <td><button class="btn sm">View Results</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Add your document processing content here -->
       </div>
-
       <!-- User Management Page -->
       <div id="users" class="page">
         <div class="page-header">
           <h1 class="page-title">User Management</h1>
           <p class="page-subtitle">Manage staff accounts and permissions</p>
         </div>
-
-        <div class="panel">
-          <div class="flex flex-between flex-center mb-4">
-            <h2 class="mb-0">Council Staff</h2>
-            <button class="btn primary">+ Add New User</button>
-          </div>
-
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th>Last Login</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Sarah Johnson</strong></td>
-                <td>s.johnson@eastherts.gov.uk</td>
-                <td>Planning</td>
-                <td>Senior Officer</td>
-                <td>2 hours ago</td>
-                <td><span class="status active">Active</span></td>
-                <td>
-                  <button class="btn sm">Edit</button>
-                  <button class="btn sm">Permissions</button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Mike Chen</strong></td>
-                <td>m.chen@eastherts.gov.uk</td>
-                <td>Housing</td>
-                <td>Officer</td>
-                <td>1 day ago</td>
-                <td><span class="status active">Active</span></td>
-                <td>
-                  <button class="btn sm">Edit</button>
-                  <button class="btn sm">Permissions</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Add your user management content here -->
       </div>
-
-      <!-- Financial Management Page -->
-      <div id="billing" class="page">
+      <!-- Subscriptions/Billing Page -->
+      <div id="subscriptions" class="page">
         <div class="page-header">
-          <h1 class="page-title">Financial Management</h1>
-          <p class="page-subtitle">Billing, costs, and financial reporting</p>
+          <h1 class="page-title">Billing & Subscription</h1>
+          <p class="page-subtitle">All your payment, plan, and billing options in one place</p>
         </div>
-
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">£28,450</div>
-            <div class="label">This Month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value">£186,250</div>
-            <div class="label">Year to Date</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">£4,125</div>
-            <div class="label">Outstanding</div>
-          </div>
-          <div class="stat-card">
-            <div class="value">£125.50</div>
-            <div class="label">Avg per Matter</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>Recent Invoices</h2>
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Invoice #</th>
-                <th>Department</th>
-                <th>Period</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Due Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>INV-2025-001</strong></td>
-                <td>Planning</td>
-                <td>Aug 2025</td>
-                <td>£12,450.00</td>
-                <td><span class="status active">Paid</span></td>
-                <td>31 Aug 2025</td>
-                <td><button class="btn sm">Download PDF</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Add your subscriptions/billing content here -->
       </div>
-
       <!-- System Integrations Page -->
       <div id="integrations" class="page">
         <div class="page-header">
           <h1 class="page-title">System Integrations</h1>
           <p class="page-subtitle">Connected systems and data sources</p>
         </div>
-
-        <div class="panel">
-          <h2>Council Systems</h2>
-          <div class="grid grid-3">
-            <div class="stat-card">
-              <div class="flex flex-between flex-center">
-                <div>
-                  <div class="fw-600">Capita Academy</div>
-                  <div class="text-sm text-muted">CRM Integration</div>
-                </div>
-                <span class="status active">Connected</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="flex flex-between flex-center">
-                <div>
-                  <div class="fw-600">Civica CX</div>
-                  <div class="text-sm text-muted">Finance System</div>
-                </div>
-                <span class="status active">Connected</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="flex flex-between flex-center">
-                <div>
-                  <div class="fw-600">SharePoint</div>
-                  <div class="text-sm text-muted">Document Storage</div>
-                </div>
-                <span class="status pending">Pending</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Add your integrations content here -->
       </div>
-
       <!-- Reports & Analytics Page -->
       <div id="reports" class="page">
         <div class="page-header">
           <h1 class="page-title">Reports & Analytics</h1>
           <p class="page-subtitle">Performance metrics and business intelligence</p>
         </div>
-
-        <div class="panel">
-          <h2>Performance Dashboard</h2>
-          <p class="text-muted">Detailed analytics coming soon...</p>
-        </div>
+        <!-- Add your reports/analytics content here -->
       </div>
-
       <!-- Compliance & Audit Page -->
       <div id="compliance" class="page">
         <div class="page-header">
           <h1 class="page-title">Compliance & Audit</h1>
           <p class="page-subtitle">Security, compliance, and audit trails</p>
         </div>
-
-        <div class="panel">
-          <h2>Compliance Status</h2>
-          <div class="grid grid-2">
-            <div>
-              <div class="flex flex-between mb-2">
-                <span>GDPR Compliance</span>
-                <span class="status active">Compliant</span>
-              </div>
-              <div class="flex flex-between mb-2">
-                <span>ISO 27001</span>
-                <span class="status active">Certified</span>
-              </div>
-              <div class="flex flex-between">
-                <span>Cyber Essentials Plus</span>
-                <span class="status active">Certified</span>
-              </div>
-            </div>
-            <div>
-              <div class="flex flex-between mb-2">
-                <span>Data Retention</span>
-                <span class="status active">Automated</span>
-              </div>
-              <div class="flex flex-between mb-2">
-                <span>Audit Logging</span>
-                <span class="status active">Active</span>
-              </div>
-              <div class="flex flex-between">
-                <span>Backup & Recovery</span>
-                <span class="status active">99.9% SLA</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Add your compliance/audit content here -->
       </div>
-
       <!-- Workflow Management Page -->
       <div id="workflow" class="page">
         <div class="page-header">
           <h1 class="page-title">Workflow Management</h1>
           <p class="page-subtitle">Automated workflows and approvals</p>
         </div>
-
-        <div class="panel">
-          <h2>Active Workflows</h2>
-          <p class="text-muted">Workflow management interface coming soon...</p>
-        </div>
+        <!-- Add your workflow management content here -->
       </div>
-
-      <!-- Settings Page -->
-      <div id="settings" class="page">
-        <div class="page-header">
-          <h1 class="page-title">System Settings</h1>
-          <p class="page-subtitle">Configure platform settings and preferences</p>
-        </div>
-
-        <div class="panel">
-          <h2>General Settings</h2>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Organization Name</label>
-              <input type="text" value="East Hertfordshire District Council">
-            </div>
-            <div class="form-group">
-              <label>Default Currency</label>
-              <select>
-                <option>GBP (£)</option>
-                <option>EUR (€)</option>
-                <option>USD ($)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Waste Licensing Page -->
       <div id="waste-licensing" class="page">
         <div class="page-header">
           <h1 class="page-title">Waste Regulatory Services</h1>
           <p class="page-subtitle">Waste carrier licensing, compliance monitoring, and environmental enforcement</p>
-          <button class="btn primary">New Licence Application</button>
         </div>
-
-        <!-- Key Metrics -->
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">547</div>
-            <div class="label">Active Licences</div>
-            <div class="trend up">↗ +3% this quarter</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">34</div>
-            <div class="label">Inspections Due</div>
-            <div class="trend down">↘ -8% this month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">92%</div>
-            <div class="label">Compliance Rate</div>
-            <div class="trend up">↗ +2% this year</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">£67K</div>
-            <div class="label">Revenue YTD</div>
-            <div class="trend up">↗ +15% vs target</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>Recent Waste Regulatory Cases</h2>
-          <div class="table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Business</th>
-                  <th>Licence Type</th>
-                  <th>Status</th>
-                  <th>Officer</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>WR/2024/1234</strong></td>
-                  <td>Green Waste Solutions Ltd</td>
-                  <td>Waste Carrier</td>
-                  <td><span class="status warning">Renewal Due</span></td>
-                  <td>Tom Wilson</td>
-                  <td><button class="btn sm">View</button></td>
-                </tr>
-                <tr>
-                  <td><strong>WR/2024/1235</strong></td>
-                  <td>Skip Hire Express</td>
-                  <td>Scrap Metal Dealer</td>
-                  <td><span class="status success">Compliant</span></td>
-                  <td>Kate Johnson</td>
-                  <td><button class="btn sm">Inspect</button></td>
-                </tr>
-                <tr>
-                  <td><strong>WR/2024/1236</strong></td>
-                  <td>Eco Recycling Ltd</td>
-                  <td>Hazardous Waste</td>
-                  <td><span class="status danger">Enforcement</span></td>
-                  <td>Paul Davis</td>
-                  <td><button class="btn sm">Action</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- Add your waste licensing content here -->
       </div>
-
       <!-- Housing Standards Page -->
       <div id="housing-standards" class="page">
         <div class="page-header">
           <h1 class="page-title">Private Sector Housing</h1>
           <p class="page-subtitle">HMO licensing, housing standards enforcement, and property inspections</p>
-          <button class="btn primary">New Enforcement Case</button>
         </div>
-
-        <!-- Key Metrics -->
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">167</div>
-            <div class="label">Active Cases</div>
-            <div class="trend up">↗ +5% this month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">28</div>
-            <div class="label">Inspections Due</div>
-            <div class="trend down">↘ Scheduled</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">423</div>
-            <div class="label">HMO Licences</div>
-            <div class="trend up">↗ +12% this year</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">4.2 days</div>
-            <div class="label">Avg Response Time</div>
-            <div class="trend down">↗ Target: 5 days</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>Recent Housing Enforcement Cases</h2>
-          <div class="table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Property</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Officer</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>HSG/2024/5678</strong></td>
-                  <td>Flat 3, 45 Victoria Street</td>
-                  <td>HMO Licence</td>
-                  <td><span class="status info">Under Review</span></td>
-                  <td>Rachel Green</td>
-                  <td><button class="btn sm">Review</button></td>
-                </tr>
-                <tr>
-                  <td><strong>HSG/2024/5679</strong></td>
-                  <td>12 Queen Road</td>
-                  <td>Category 1 Hazard</td>
-                  <td><span class="status danger">Notice Served</span></td>
-                  <td>Mark Thompson</td>
-                  <td><button class="btn sm">Monitor</button></td>
-                </tr>
-                <tr>
-                  <td><strong>HSG/2024/5680</strong></td>
-                  <td>8A High Street</td>
-                  <td>HHSRS Assessment</td>
-                  <td><span class="status warning">Inspection Due</span></td>
-                  <td>Lucy Wilson</td>
-                  <td><button class="btn sm">Schedule</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- Add your housing standards content here -->
       </div>
-
       <!-- Building Control Page -->
       <div id="building-control" class="page">
         <div class="page-header">
           <h1 class="page-title">Building Control</h1>
           <p class="page-subtitle">Building regulations, inspections, and completion certificates</p>
-          <button class="btn primary">New Application</button>
         </div>
-
-        <!-- Key Metrics -->
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">234</div>
-            <div class="label">Active Applications</div>
-            <div class="trend up">↗ +7% this month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">45</div>
-            <div class="label">Inspections Scheduled</div>
-            <div class="trend up">↗ This week</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">67</div>
-            <div class="label">Certificates Issued</div>
-            <div class="trend up">↗ This month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">94%</div>
-            <div class="label">Customer Satisfaction</div>
-            <div class="trend up">↗ Above target</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>Recent Building Control Applications</h2>
-          <div class="table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Address</th>
-                  <th>Description</th>
-                  <th>Stage</th>
-                  <th>Officer</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>BC/24/789</strong></td>
-                  <td>156 Oak Avenue</td>
-                  <td>Single storey extension</td>
-                  <td><span class="status success">Plans Approved</span></td>
-                  <td>John Smith</td>
-                  <td><button class="btn sm">Inspect</button></td>
-                </tr>
-                <tr>
-                  <td><strong>BC/24/790</strong></td>
-                  <td>22 Elm Close</td>
-                  <td>New build dwelling</td>
-                  <td><span class="status warning">Foundation Inspection</span></td>
-                  <td>Anna Taylor</td>
-                  <td><button class="btn sm">Schedule</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- Add your building control content here -->
       </div>
-
       <!-- Land Charges Page -->
       <div id="land-charges" class="page">
         <div class="page-header">
           <h1 class="page-title">Land Charges</h1>
           <p class="page-subtitle">LLC1 searches, CON29 enquiries, and property information</p>
-          <button class="btn primary">New Search</button>
         </div>
-
-        <!-- Key Metrics -->
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">187</div>
-            <div class="label">Active Searches</div>
-            <div class="trend up">↗ +4% this month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">23</div>
-            <div class="label">Urgent Searches</div>
-            <div class="trend down">↘ Priority queue</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">5.8 days</div>
-            <div class="label">Avg Processing Time</div>
-            <div class="trend down">↗ Target: 10 days</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">98%</div>
-            <div class="label">SLA Performance</div>
-            <div class="trend up">↗ Above target</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>Recent Land Charges Searches</h2>
-          <div class="table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Reference</th>
-                  <th>Address</th>
-                  <th>Client</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>LLC/45678</strong></td>
-                  <td>78 Manor Road</td>
-                  <td>Smith & Partners</td>
-                  <td>LLC1</td>
-                  <td><span class="status success">Completed</span></td>
-                  <td><button class="btn sm">Download</button></td>
-                </tr>
-                <tr>
-                  <td><strong>LLC/45679</strong></td>
-                  <td>145 Station Road</td>
-                  <td>Jones Solicitors</td>
-                  <td>CON29</td>
-                  <td><span class="status warning">Processing</span></td>
-                  <td><button class="btn sm">Update</button></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- Add your land charges content here -->
       </div>
-
       <!-- Support Page -->
       <div id="support" class="page">
         <div class="page-header">
           <h1 class="page-title">Support</h1>
           <p class="page-subtitle">Help, documentation, and contact support</p>
         </div>
-
-        <div class="panel">
-          <h2>Get Help</h2>
-          <div class="grid grid-3">
-            <div class="stat-card">
-              <div class="fw-600">Documentation</div>
-              <div class="text-sm text-muted mt-2">User guides and tutorials</div>
-              <button class="btn mt-3">View Docs</button>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">Live Chat</div>
-              <div class="text-sm text-muted mt-2">Chat with support team</div>
-              <button class="btn mt-3">Start Chat</button>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">Email Support</div>
-              <div class="text-sm text-muted mt-2">Send us an email</div>
-              <button class="btn mt-3">Contact Us</button>
-            </div>
-          </div>
-        </div>
+        <!-- Add your support content here -->
       </div>
-
       <!-- Planning AI Page -->
       <div id="planning-ai" class="page">
         <div class="page-header">
-          <h1 class="page-title">🧠 Planning AI Analysis</h1>
+          <h1 class="page-title">Planning AI Analysis</h1>
           <p class="page-subtitle">AI-powered planning analysis, constraints mapping, and policy assessment</p>
-          <button class="btn primary">New AI Analysis</button>
         </div>
-
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">97.3%</div>
-            <div class="label">Analysis Accuracy</div>
-            <div class="trend up">↗ +3% this month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">2.4s</div>
-            <div class="label">Average Analysis Time</div>
-            <div class="trend up">↗ 85% faster than manual</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">156</div>
-            <div class="label">Sites Analyzed Today</div>
-            <div class="trend up">↗ +12% vs yesterday</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">23</div>
-            <div class="label">High Risk Sites</div>
-            <div class="trend down">↘ -5% this week</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>🎯 AI Capabilities</h2>
-          <div class="grid grid-3">
-            <div class="stat-card">
-              <div class="fw-600">🗺️ Constraint Analysis</div>
-              <div class="text-sm text-muted mt-2">Automated identification of planning constraints, protected areas, and policy considerations</div>
-              <button class="btn mt-3">Run Analysis</button>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">📊 Suitability Scoring</div>
-              <div class="text-sm text-muted mt-2">AI-powered development potential assessment with confidence scoring</div>
-              <button class="btn mt-3">Generate Score</button>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">💡 Smart Recommendations</div>
-              <div class="text-sm text-muted mt-2">Intelligent suggestions for planning improvements and risk mitigation</div>
-              <button class="btn mt-3">Get Suggestions</button>
-            </div>
-          </div>
-        </div>
+        <!-- Add your planning AI content here -->
       </div>
-
       <!-- Auto-Docs Page -->
       <div id="auto-docs" class="page">
         <div class="page-header">
-          <h1 class="page-title">📄 Auto-Docs Generator</h1>
+          <h1 class="page-title">Auto-Docs Generator</h1>
           <p class="page-subtitle">AI-powered document generation for Planning Statements and Design & Access Statements</p>
-          <button class="btn primary">Generate Document</button>
         </div>
-
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">342</div>
-            <div class="label">Documents Generated</div>
-            <div class="trend up">↗ +28% this month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">4.2 min</div>
-            <div class="label">Average Generation Time</div>
-            <div class="trend up">↗ 95% faster than manual</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">94%</div>
-            <div class="label">First-Time Approval Rate</div>
-            <div class="trend up">↗ +15% improvement</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">12</div>
-            <div class="label">Templates Available</div>
-            <div class="trend up">↗ 3 new this quarter</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>📋 Document Types</h2>
-          <div class="grid grid-2">
-            <div class="stat-card">
-              <div class="fw-600">📋 Planning Statement</div>
-              <div class="text-sm text-muted mt-2">Comprehensive planning statements with policy analysis and site assessment</div>
-              <div class="flex gap-2 mt-3">
-                <button class="btn primary">Generate</button>
-                <button class="btn">Preview Template</button>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">🏗️ Design & Access Statement</div>
-              <div class="text-sm text-muted mt-2">Professional D&A statements with accessibility compliance and design rationale</div>
-              <div class="flex gap-2 mt-3">
-                <button class="btn primary">Generate</button>
-                <button class="btn">Preview Template</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Add your auto-docs content here -->
       </div>
-
       <!-- Property API Page -->
       <div id="property-api" class="page">
         <div class="page-header">
-          <h1 class="page-title">🏠 Property Data API</h1>
+          <h1 class="page-title">Property Data API</h1>
           <p class="page-subtitle">External data integration for Land Registry, EPC ratings, flood risk, and planning history</p>
-          <button class="btn primary">Query Property Data</button>
         </div>
-
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">99.8%</div>
-            <div class="label">API Uptime</div>
-            <div class="trend up">↗ Excellent reliability</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">847ms</div>
-            <div class="label">Average Response Time</div>
-            <div class="trend up">↗ Sub-second performance</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">2,347</div>
-            <div class="label">Queries Today</div>
-            <div class="trend up">↗ +18% vs yesterday</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">4</div>
-            <div class="label">Data Sources</div>
-            <div class="trend up">↗ All systems operational</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>🔌 Data Sources</h2>
-          <div class="grid grid-2">
-            <div class="stat-card">
-              <div class="fw-600">🏛️ Land Registry</div>
-              <div class="text-sm text-muted mt-2">Property ownership, price paid data, and title information</div>
-              <div class="flex flex-between mt-3">
-                <span class="status active">Operational</span>
-                <button class="btn sm">Test Query</button>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">⚡ EPC Ratings</div>
-              <div class="text-sm text-muted mt-2">Energy performance certificates and efficiency ratings</div>
-              <div class="flex flex-between mt-3">
-                <span class="status active">Operational</span>
-                <button class="btn sm">Test Query</button>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">🌊 Flood Risk Data</div>
-              <div class="text-sm text-muted mt-2">Environment Agency flood risk zones and historical flooding</div>
-              <div class="flex flex-between mt-3">
-                <span class="status active">Operational</span>
-                <button class="btn sm">Test Query</button>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">📋 Planning History</div>
-              <div class="text-sm text-muted mt-2">Historical planning applications and decision outcomes</div>
-              <div class="flex flex-between mt-3">
-                <span class="status active">Operational</span>
-                <button class="btn sm">Test Query</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Add your property API content here -->
       </div>
-
       <!-- Offsets Marketplace Page -->
       <div id="offsets-marketplace" class="page">
         <div class="page-header">
-          <h1 class="page-title">🌱 Offsets Marketplace</h1>
-          <p class="page-subtitle">Biodiversity Net Gain trading platform with DEFRA metric v4.0 integration</p>
-          <div class="flex gap-2">
-            <button class="btn primary">List Biodiversity Units</button>
-            <button class="btn">Request Offsets</button>
-          </div>
+          <h1 class="page-title">Offsets Marketplace</h1>
+          <p class="page-subtitle">Biodiversity Net Gain trading platform with DEFRA metric integration</p>
         </div>
-
-        <!-- Market Overview -->
-        <div class="grid grid-4">
-          <div class="stat-card">
-            <div class="value text-success">12,847</div>
-            <div class="label">Available BNG Units</div>
-            <div class="trend up">↗ +234 units this week</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-warning">8,293</div>
-            <div class="label">Units in Demand</div>
-            <div class="trend up">↗ +156 requests this week</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-info">£42.50</div>
-            <div class="label">Average Unit Price</div>
-            <div class="trend up">↗ +£2.30 vs last month</div>
-          </div>
-          <div class="stat-card">
-            <div class="value text-success">89</div>
-            <div class="label">Successful Matches</div>
-            <div class="trend up">↗ 94% match success rate</div>
-          </div>
+        <!-- Add your offsets marketplace content here -->
+      </div>
+      <!-- Settings Page -->
+      <div id="settings" class="page">
+        <div class="page-header">
+          <h1 class="page-title">System Settings</h1>
+          <p class="page-subtitle">Configure platform settings and preferences</p>
         </div>
-
-        <!-- Trading Interface -->
-        <div class="grid grid-2">
-          <div class="panel">
-            <h2>🌿 Supply Listings</h2>
-            <div class="text-sm text-muted mb-3">Landowner biodiversity unit offerings</div>
-            
-            <div class="mb-3">
-              <div class="flex flex-between">
-                <strong>Hertfordshire Meadow Project</strong>
-                <span class="status active">Available</span>
-              </div>
-              <div class="text-sm text-muted">Grassland (Species-Rich) • 147.5 units • £38/unit</div>
-              <div class="text-sm">📍 Near Hertford • DEFRA High Distinctiveness</div>
-            </div>
-            
-            <div class="mb-3">
-              <div class="flex flex-between">
-                <strong>Woodland Creation Scheme</strong>
-                <span class="status info">Reserved</span>
-              </div>
-              <div class="text-sm text-muted">Broadleaf Woodland • 89.3 units • £52/unit</div>
-              <div class="text-sm">📍 Near Stevenage • Strategic Significance Area</div>
-            </div>
-            
-            <div class="mb-3">
-              <div class="flex flex-between">
-                <strong>Wetland Restoration</strong>
-                <span class="status active">Available</span>
-              </div>
-              <div class="text-sm text-muted">Freshwater Wetland • 203.7 units • £65/unit</div>
-              <div class="text-sm">📍 Near Watford • Very High Distinctiveness</div>
-            </div>
-            
-            <button class="btn primary w-full mt-3">View All Supply Listings</button>
-          </div>
-
-          <div class="panel">
-            <h2>🏗️ Demand Requests</h2>
-            <div class="text-sm text-muted mb-3">Developer offset requirements</div>
-            
-            <div class="mb-3">
-              <div class="flex flex-between">
-                <strong>Residential Development</strong>
-                <span class="status warning">Searching</span>
-              </div>
-              <div class="text-sm text-muted">Seeking 89.5 units • Max £45/unit</div>
-              <div class="text-sm">📍 St Albans area • Grassland preferred</div>
-            </div>
-            
-            <div class="mb-3">
-              <div class="flex flex-between">
-                <strong>Industrial Park Extension</strong>
-                <span class="status danger">Urgent</span>
-              </div>
-              <div class="text-sm text-muted">Seeking 156.8 units • Max £50/unit</div>
-              <div class="text-sm">📍 Hemel Hempstead • Mixed habitat types</div>
-            </div>
-            
-            <div class="mb-3">
-              <div class="flex flex-between">
-                <strong>School Expansion</strong>
-                <span class="status info">Matched</span>
-              </div>
-              <div class="text-sm text-muted">Required 42.1 units • £38/unit agreed</div>
-              <div class="text-sm">📍 Hertford • Completed transaction</div>
-            </div>
-            
-            <button class="btn primary w-full mt-3">View All Demand Requests</button>
-          </div>
-        </div>
-
-        <!-- DEFRA Integration -->
-        <div class="panel">
-          <h2>🏛️ DEFRA Metric Integration</h2>
-          <div class="grid grid-3">
-            <div class="stat-card">
-              <div class="fw-600">📊 Biodiversity Metric v4.0</div>
-              <div class="text-sm text-muted mt-2">Official DEFRA calculation methodology for accurate unit assessment</div>
-              <div class="flex flex-between mt-3">
-                <span class="status active">Integrated</span>
-                <button class="btn sm">Calculate Units</button>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">🗺️ Habitat Classification</div>
-              <div class="text-sm text-muted mt-2">14 standardized habitat types with distinctiveness scoring</div>
-              <div class="flex flex-between mt-3">
-                <span class="status active">Updated</span>
-                <button class="btn sm">View Types</button>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="fw-600">⭐ Strategic Significance</div>
-              <div class="text-sm text-muted mt-2">Location-based multipliers for ecologically important areas</div>
-              <div class="flex flex-between mt-3">
-                <span class="status active">Mapped</span>
-                <button class="btn sm">Check Area</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Market Analytics -->
-        <div class="panel">
-          <h2>📈 Market Analytics</h2>
-          <div class="grid grid-4">
-            <div class="stat-card">
-              <div class="value text-success">1.55</div>
-              <div class="label">Supply/Demand Ratio</div>
-              <div class="text-sm text-muted">Balanced market conditions</div>
-            </div>
-            <div class="stat-card">
-              <div class="value text-info">£41.20</div>
-              <div class="label">Market Average Price</div>
-              <div class="text-sm text-muted">All habitat types weighted</div>
-            </div>
-            <div class="stat-card">
-              <div class="value text-warning">34km</div>
-              <div class="label">Average Match Distance</div>
-              <div class="text-sm text-muted">Supply to demand proximity</div>
-            </div>
-            <div class="stat-card">
-              <div class="value text-success">87%</div>
-              <div class="label">Same-Authority Matches</div>
-              <div class="text-sm text-muted">Local offset preference</div>
-            </div>
-          </div>
-        </div>
+        <!-- Add your settings content here -->
       </div>
     </main>
   </div>
-
   <script>
-    // ULTRA SIMPLE navigation system that WILL work
-    console.log('🚀 Loading Navigation System...');
-    
-    // Make function globally available
-    window.showPage = function(pageId) {
-      console.log('🎯 showPage called with:', pageId);
-      
-      try {
-        // Hide ALL pages first
-        var allPages = document.querySelectorAll('.page');
-        console.log('Found ' + allPages.length + ' pages');
-        
-        for (var i = 0; i < allPages.length; i++) {
-          allPages[i].classList.remove('active');
-          console.log('Hidden page:', allPages[i].id);
+    function showPage(pageId) {
+      var pages = document.querySelectorAll('.page');
+      for (var i = 0; i < pages.length; i++) {
+        pages[i].classList.remove('active');
+      }
+      var targetPage = document.getElementById(pageId);
+      if (targetPage) {
+        targetPage.classList.add('active');
+      }
+      var navItems = document.querySelectorAll('.nav-item');
+      for (var k = 0; k < navItems.length; k++) {
+        navItems[k].classList.remove('active');
+        if (navItems[k].getAttribute('data-page') === pageId) {
+          navItems[k].classList.add('active');
         }
-        
-        // Show the target page
-        var targetPage = document.getElementById(pageId);
-        if (targetPage) {
-          targetPage.classList.add('active');
-          console.log('✅ SHOWN PAGE:', pageId);
-        } else {
-          console.log('❌ PAGE NOT FOUND:', pageId);
-          // List all available page IDs for debugging
-          var allPageIds = [];
-          for (var j = 0; j < allPages.length; j++) {
-            if (allPages[j].id) allPageIds.push(allPages[j].id);
-          }
-          console.log('Available pages:', allPageIds);
-        }
-        
-        // Update navigation active state
-        var navItems = document.querySelectorAll('.nav-item');
-        for (var k = 0; k < navItems.length; k++) {
-          navItems[k].classList.remove('active');
-          if (navItems[k].getAttribute('data-page') === pageId) {
-            navItems[k].classList.add('active');
-          }
-        }
-        
-      } catch (error) {
-        console.error('❌ Navigation error:', error);
-      }
-    };
-    
-    // Test function availability
-    console.log('showPage function available:', typeof window.showPage);
-    
-    // Initialize navigation when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('🚀 Initializing Domus Platform Navigation...');
-      
-      // Attach click handlers to all navigation buttons
-      var navButtons = document.querySelectorAll('[data-page]');
-      console.log('Found navigation buttons:', navButtons.length);
-      
-      for (var i = 0; i < navButtons.length; i++) {
-        var button = navButtons[i];
-        var pageId = button.getAttribute('data-page');
-        
-        button.addEventListener('click', function(e) {
-          var targetPage = e.target.getAttribute('data-page') || e.target.closest('[data-page]').getAttribute('data-page');
-          console.log('CLICK: Button clicked for page:', targetPage);
-          showPage(targetPage);
-        });
-        
-        console.log('Attached handler for button:', pageId);
-      }
-      
-      console.log('✅ Navigation system ready!');
-      loadDashboardData();
-    });
-    
-    // Simple data loading
-    function loadDashboardData() {
-      console.log('Loading dashboard data...');
-    }
-    
-    // Load data for specific pages (kept for compatibility)
-    function loadPageData(pageId) {
-      console.log('Loading data for page:', pageId);
-      try {
-        switch(pageId) {
-          case 'dashboard':
-            loadDashboardData();
-            break;
-          case 'matters':
-            loadMattersData();
-            break;
-          case 'documents':
-            loadDocumentsData();
-            break;
-          case 'users':
-            loadUsersData();
-            break;
-          case 'billing':
-            loadBillingData();
-            break;
-          case 'integrations':
-            loadIntegrationsData();
-            break;
-          default:
-            console.log('No specific data loader for page:', pageId);
-        }
-      } catch (error) {
-        console.error('Error loading page data:', error);
       }
     }
-    
-    // API calls to load real data
-    async function loadDashboardData() {
-      try {
-        // Load dashboard statistics
-        const statsResponse = await fetch('/api/dashboard/stats');
-        const statsData = await statsResponse.json();
-        
-        // Load planning applications
-        const planningResponse = await fetch('/api/planning/applications');
-        const planningData = await planningResponse.json();
-        
-        // Update dashboard metrics with real data
-        updateDashboardMetrics(statsData);
-        updateRecentMatters(planningData.applications);
-        console.log('Planning platform data loaded:', { stats: statsData, applications: planningData });
-      } catch (error) {
-        console.error('Dashboard data loading failed:', error);
-        // Show demo data on error
-        showDemoData();
-      }
-    }
-    
-    function updateDashboardMetrics(stats) {
-      // Update planning applications metric
-      const planningCard = document.querySelector('.stat-card');
-      if (planningCard) {
-        const value = planningCard.querySelector('.value');
-        const trend = planningCard.querySelector('.trend');
-        if (value) value.textContent = stats.planning_applications.total;
-        if (trend) trend.textContent = `↗ ${stats.planning_applications.pending} pending`;
-      }
-      
-      // Update other metrics if cards exist
-      const allCards = document.querySelectorAll('.stat-card');
-      if (allCards.length >= 2 && allCards[1]) {
-        const decisionTimeValue = allCards[1].querySelector('.value');
-        const decisionTimeTrend = allCards[1].querySelector('.trend');
-        if (decisionTimeValue) decisionTimeValue.textContent = stats.avg_decision_time;
-        if (decisionTimeTrend) decisionTimeTrend.textContent = `Target: 8 weeks`;
-      }
-      
-      if (allCards.length >= 3 && allCards[2]) {
-        const complianceValue = allCards[2].querySelector('.value');
-        const complianceTrend = allCards[2].querySelector('.trend');
-        if (complianceValue) complianceValue.textContent = stats.compliance_rate;
-        if (complianceTrend) complianceTrend.textContent = `↗ Improving`;
-      }
-    }
-    
-    function updateRecentMatters(applications) {
-      const tbody = document.querySelector('#dashboard .table tbody');
-      if (tbody && applications) {
-        tbody.innerHTML = applications.slice(0, 6).map(app => `
-          <tr>
-            <td><strong>${app.id}</strong></td>
-            <td>${app.address}</td>
-            <td>${app.type}</td>
-            <td><span class="status ${getStatusClass(app.status)}">${app.status}</span></td>
-            <td>${app.officer}</td>
-          </tr>
-        `).join('');
-      }
-    }
-    
-    function getStatusClass(status) {
-      const statusMap = {
-        'Under Review': 'warning',
-        'Consultation': 'info', 
-        'Decision Due': 'warning',
-        'Approved': 'success',
-        'Rejected': 'danger'
-      };
-      return statusMap[status] || 'info';
-    }
-    
-    function showDemoData() {
-      // Show demo planning data if API fails
-      const demoStats = {
-        planning_applications: { total: 1247, pending: 203 },
-        avg_decision_time: '9.2 weeks',
-        compliance_rate: '94%'
-      };
-      updateDashboardMetrics(demoStats);
-    }
-            <td>${matter.assigned_to}</td>
-            <td>${new Date(matter.due_date).toLocaleDateString()}</td>
-            <td><button class="btn sm" onclick="viewMatter('${matter.id}')">View</button></td>
-          </tr>
-        `).join('');
-      }
-    }
-    
-    async function loadMattersData() {
-      try {
-        const response = await fetch('/api/matters', {
-          headers: {'Authorization': 'Bearer demo-token'}
-        });
-        const data = await response.json();
-        
-        // Update matters table with real data
-        updateMattersTable(data.matters);
-        console.log('Matters data loaded:', data);
-      } catch (error) {
-        console.error('Matters data loading failed:', error);
-      }
-    }
-    
-    function updateMattersTable(matters) {
-      const tbody = document.querySelector('#matters .table tbody');
-      if (tbody && matters) {
-        tbody.innerHTML = matters.map(matter => `
-          <tr>
-            <td><strong>${matter.ref}</strong></td>
-            <td>
-              <div>${matter.property_address.split(',')[0]}</div>
-              <div class="text-muted text-sm">${matter.property_address}</div>
-            </td>
-            <td>${matter.council}</td>
-            <td>${matter.department}</td>
-            <td><span class="status ${matter.status}">${matter.status.replace('_', ' ').toUpperCase()}</span></td>
-            <td>${matter.assigned_to ? matter.assigned_to.name : 'Unassigned'}</td>
-            <td><span class="text-${matter.priority === 'high' ? 'warning' : 'muted'}">${matter.priority.toUpperCase()}</span></td>
-            <td>${new Date(matter.due_date).toLocaleDateString()}</td>
-            <td>£${matter.estimated_cost ? matter.estimated_cost.toFixed(2) : '0.00'}</td>
-            <td>
-              <button class="btn sm" onclick="viewMatter('${matter.id}')">View</button>
-              <button class="btn sm" onclick="editMatter('${matter.id}')">Edit</button>
-            </td>
-          </tr>
-        `).join('');
-      }
-    }
-    
-    async function loadDocumentsData() {
-      // Document processing functionality
-      console.log('Document processing ready');
-    }
-    
-    async function loadUsersData() {
-      try {
-        const response = await fetch('/api/users', {
-          headers: {'Authorization': 'Bearer demo-token'}
-        });
-        const data = await response.json();
-        
-        // Update users table with real data
-        updateUsersTable(data.users);
-        console.log('Users data loaded:', data);
-      } catch (error) {
-        console.error('Users data loading failed:', error);
-      }
-    }
-    
-    function updateUsersTable(users) {
-      const tbody = document.querySelector('#users .table tbody');
-      if (tbody && users) {
-        tbody.innerHTML = users.map(user => `
-          <tr>
-            <td><strong>${user.full_name}</strong></td>
-            <td>${user.email}</td>
-            <td>${user.department}</td>
-            <td>${user.role.replace('_', ' ')}</td>
-            <td>${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
-            <td><span class="status ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
-            <td>
-              <button class="btn sm" onclick="editUser(${user.id})">Edit</button>
-              <button class="btn sm" onclick="managePermissions(${user.id})">Permissions</button>
-            </td>
-          </tr>
-        `).join('');
-      }
-    }
-    
-    async function loadBillingData() {
-      try {
-        const response = await fetch('/api/billing/summary');
-        const data = await response.json();
-        console.log('Billing data:', data);
-      } catch (error) {
-        console.log('Billing data loading (demo mode)');
-      }
-    }
-    
-    async function loadIntegrationsData() {
-      try {
-        const response = await fetch('/api/enterprise/integrations');
-        const data = await response.json();
-        console.log('Integrations data:', data);
-      } catch (error) {
-        console.log('Integrations data loading (demo mode)');
-      }
-    }
-    
-    // Action functions
-    function showCreateMatterModal() {
-      alert('Create Matter modal would open here - this would be a proper form in production');
-    }
-    
-    function viewMatter(matterId) {
-      alert('View matter ' + matterId + ' - this would open a detailed view');
-    }
-    
-    function editMatter(matterId) {
-      alert('Edit matter ' + matterId + ' - this would open an edit form');
-    }
-    
-    function editUser(userId) {
-      alert('Edit user ' + userId + ' - this would open a user edit form');
-    }
-    
-    function managePermissions(userId) {
-      alert('Manage permissions for user ' + userId + ' - this would open permissions dialog');
-    }
-    
-    // Mobile Menu Functions
     function toggleMobileMenu() {
       const sidebar = document.querySelector('.sidebar');
       const overlay = document.querySelector('.mobile-overlay');
-      
       sidebar.classList.toggle('mobile-open');
       overlay.classList.toggle('active');
     }
-    
     function closeMobileMenu() {
       const sidebar = document.querySelector('.sidebar');
       const overlay = document.querySelector('.mobile-overlay');
-      
       sidebar.classList.remove('mobile-open');
       overlay.classList.remove('active');
     }
-    
-    // Enhanced showPage function for mobile
-    function showPageMobile(pageId) {
-      console.log('Navigating to page:', pageId);
-      showPage(pageId);
-      // Auto-close mobile menu after navigation on mobile
-      if (window.innerWidth <= 768) {
-        closeMobileMenu();
-      }
+    function handleAction(action, id) {
+      console.log('Action:', action, 'ID:', id);
+      // Add your action handling logic here
     }
-    
-    // Update all nav items to use mobile-friendly navigation
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM loaded - initializing navigation');
-      // Don't replace onclick handlers since they're already set correctly in HTML
-      
-      // Just ensure showPage function works
-      console.log('Navigation system ready');
-    });
-
-    // Initialize app
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('🚀 Domus Planning Platform Starting...');
-      
-      // Verify all functions exist
-      console.log('Functions available:', {
-        showPage: typeof showPage,
-        showPageMobile: typeof showPageMobile,
-        toggleMobileMenu: typeof toggleMobileMenu,
-        loadDashboardData: typeof loadDashboardData
-      });
-      
-      // Test navigation system
-      console.log('Testing navigation elements...');
-      const navItems = document.querySelectorAll('.nav-item');
-      console.log('Found nav items:', navItems.length);
-      
-      const pages = document.querySelectorAll('.page');
-      console.log('Found pages:', pages.length);
-      
-      // Add comprehensive click event listeners
-      navItems.forEach((item, index) => {
-        const onclick = item.getAttribute('onclick');
-        console.log('Nav item ' + index + ': onclick="' + onclick + '"');
-        
-        // Add backup click listener that works 100%
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('🖱️ Nav item clicked:', onclick);
-          
-          // Extract page ID from onclick
-          if (onclick && onclick.includes('showPage(')) {
-            const match = onclick.match(/showPage\('([^']+)'\)/);
-            if (match) {
-              const pageId = match[1];
-              console.log('📄 Navigating to page:', pageId);
-              showPage(pageId);
-            }
-          }
-        });
-      });
-      
-      // Add click handlers for dashboard buttons
-      const dashboardButtons = document.querySelectorAll('.btn[onclick]');
-      console.log('Found dashboard buttons:', dashboardButtons.length);
-      
-      dashboardButtons.forEach((btn, index) => {
-        const onclick = btn.getAttribute('onclick');
-        console.log('Dashboard button ' + index + ': onclick="' + onclick + '"');
-        
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('🖱️ Dashboard button clicked:', onclick);
-          
-          if (onclick && onclick.includes('showPage(')) {
-            const match = onclick.match(/showPage\('([^']+)'\)/);
-            if (match) {
-              const pageId = match[1];
-              console.log('📄 Dashboard navigating to page:', pageId);
-              showPage(pageId);
-            }
-          }
-        });
-      });
-      
-      loadDashboardData();
-      console.log('✅ Domus Planning Platform initialized successfully');
-    });
-    
-    // Emergency initialization - ensure navigation works
-    setTimeout(function() {
-      console.log('🔧 Emergency navigation check...');
-      if (typeof window.showPage === 'function') {
-        console.log('✅ Navigation function ready');
-        // Test navigation availability
-        window.testNav = function() { showPage('matters'); };
-        console.log('🧪 Test: window.testNav() to test navigation');
-      } else {
-        console.log('❌ Navigation function missing!');
-      }
-    }, 100);
+    function showCreateMatterModal() {
+      console.log('Opening create matter modal');
+      // Add your modal logic here
+    }
   </script>
 </body>
 </html>
