@@ -132,7 +132,7 @@ async def root():
     """Serve the production platform interface"""
     try:
         # Try to serve the clean production platform UI
-        with open('frontend/platform_clean.html', 'r', encoding='utf-8') as f:
+        with open('frontend/platform_production.html', 'r', encoding='utf-8') as f:
             return f.read()
     except Exception as e:
         print(f"Frontend file error: {e}")
