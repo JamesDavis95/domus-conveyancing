@@ -1,6 +1,3 @@
-from fastapi import Query
-from sqlalchemy import desc
-from sqlalchemy.exc import NoResultFound
 #!/usr/bin/env python3
 """
 Domus Planning Platform - Professional Planning Intelligence System
@@ -12,7 +9,6 @@ Property API - Unified UK property data integration
 Offsets Marketplace - Biodiversity Net Gain trading platform
 """
 
-
 import os
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -22,37 +18,53 @@ from datetime import datetime
 from pathlib import Path
 import random
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
-# Try to import production modules - graceful fallback if missing
-try:
-    from production_auth import get_current_user, QuotaEnforcement, enforce_quota_middleware
-    PRODUCTION_AUTH_AVAILABLE = True
-except ImportError as e:
-    print(f"⚠️ Production auth not available: {e}")
-    PRODUCTION_AUTH_AVAILABLE = False
-    # Create dummy functions
-    def get_current_user():
-        return {"id": 1, "email": "admin@domusplanning.co.uk", "org_id": 1}
-    def enforce_quota_middleware():
-        pass
-    class QuotaEnforcement:
-        pass
+# Import our auth system
+from auth_system import (
+    get_current_user, require_permission, require_quota, 
+    hash_password, verify_password, create_access_token,
+    increment_usage, org_scoped_query
+)
+from models import Users, Orgs, Projects, UserRole, PlanType
 
-try:
-    from stripe_integration import StripeService
-    STRIPE_AVAILABLE = True
-except ImportError as e:
-    print(f"⚠️ Stripe integration not available: {e}")
-    STRIPE_AVAILABLE = False
-    class StripeService:
-        def __init__(self):
-            pass
-        def create_checkout_session(self, *args, **kwargs):
-            return {"url": "https://billing.stripe.com/p/login/test_123"}
+# Database dependency (placeholder - need to set up proper DB session)
+def get_db():
+    # TODO: Implement proper database session
+    pass
 
-from models import get_db
+# Pydantic models for requests
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
-# Simple database initialization
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+    org_name: str
+    role: UserRole = UserRole.DEVELOPER
+
+class ProjectCreateRequest(BaseModel):
+    title: str
+    address: str = None
+    site_geometry: dict = None
+
+# Mock implementations for optional services
+class StripeService:
+    @staticmethod
+    async def get_billing_portal_url(org_id: int, return_url: str, db: Session):
+        return f"https://billing.stripe.com/p/login/test_{org_id}"
+
+# Environment flags for optional features
+PRODUCTION_AUTH_AVAILABLE = False
+
+# Simple database initialization function
+def init_database():
+    # TODO: Implement proper database initialization
+    pass
+
+# Initialize database on startup
+init_database()
 def init_database():
     """Initialize database tables if they don't exist"""
     try:
@@ -98,9 +110,9 @@ except ImportError as e:
     print(f"   Planning AI not available: {e}")
 
 try:
-    from auto_docs.router import router as auto_docs_router
-    app.include_router(auto_docs_router) 
-    print("   Auto-Docs module loaded")
+    # from auto_docs.router import router as auto_docs_router
+    # app.include_router(auto_docs_router) 
+    print("   Auto-Docs module (disabled for now)")
 except ImportError as e:
     print(f"   Auto-Docs not available: {e}")
 
@@ -118,11 +130,140 @@ try:
 except ImportError as e:
     print(f"   Offsets Marketplace not available: {e}")
 
+# Mock middleware function for optional features
+async def enforce_quota_middleware(request: Request, call_next):
+    """Simple quota middleware placeholder"""
+    return await call_next(request)
 
 print("   Authentication and billing systems loaded")
 app.middleware("http")(enforce_quota_middleware)
 
 print("\nDomus Professional Platform Ready")
+
+# =====================================
+# AUTHENTICATION ENDPOINTS
+# =====================================
+
+@app.post("/api/auth/signup")
+async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+    """Create new user account"""
+    try:
+        # For now, return mock response until DB is properly connected
+        return {
+            "token": "mock_token_" + request.email,
+            "user": {
+                "id": 1,
+                "email": request.email,
+                "role": request.role.value,
+                "org_id": 1,
+                "plan": "core"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/auth/login")
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    """User login"""
+    try:
+        # For now, return mock response until DB is properly connected
+        return {
+            "token": "mock_token_" + request.email,
+            "user": {
+                "id": 1,
+                "email": request.email,
+                "role": "super_admin",
+                "org_id": 1,
+                "plan": "enterprise"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/session")
+async def get_session():
+    """Get current user session info"""
+    try:
+        # For now, return mock super admin session
+        return {
+            "user": {
+                "id": 1,
+                "email": "admin@domusplanning.co.uk",
+                "role": "super_admin",
+                "org_id": 1,
+                "plan": "enterprise"
+            },
+            "org": {
+                "id": 1,
+                "name": "Domus Planning",
+                "plan": "enterprise"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# =====================================
+# PROJECTS ENDPOINTS
+# =====================================
+
+@app.get("/api/projects")
+async def get_projects():
+    """Get organization's projects"""
+    try:
+        # Return mock projects data
+        return [
+            {
+                "id": 1,
+                "title": "Riverside Development",
+                "address": "123 River Street, London",
+                "status": "active",
+                "ai_score": 78.5,
+                "created_at": "2024-10-01T10:00:00"
+            },
+            {
+                "id": 2,
+                "title": "Green Valley Homes",
+                "address": "456 Valley Road, Manchester",
+                "status": "draft",
+                "ai_score": 65.2,
+                "created_at": "2024-09-28T14:30:00"
+            }
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/projects")
+async def create_project(request: ProjectCreateRequest):
+    """Create new project"""
+    try:
+        # Return mock created project
+        return {
+            "id": 3,
+            "title": request.title,
+            "address": request.address,
+            "status": "draft",
+            "created_at": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/projects/{project_id}")
+async def get_project(project_id: int):
+    """Get specific project"""
+    try:
+        # Return mock project details
+        return {
+            "id": project_id,
+            "title": "Riverside Development",
+            "address": "123 River Street, London",
+            "site_geometry": {"type": "Polygon", "coordinates": []},
+            "status": "active",
+            "ai_score": 78.5,
+            "created_at": "2024-10-01T10:00:00",
+            "updated_at": "2024-10-02T15:20:00"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 print("   Professional planning intelligence and compliance automation")
 
 # Serve the clean frontend
@@ -417,14 +558,8 @@ async def create_checkout_session(
         if not plan_type:
             raise HTTPException(status_code=400, detail="Plan type required")
         
-        checkout_url = await StripeService.create_checkout_session(
-            org_id=current_user["org_id"],
-            plan_type=plan_type,
-            success_url=f"{request.base_url}billing/success",
-            cancel_url=f"{request.base_url}billing",
-            db=db
-        )
-        return {"checkout_url": checkout_url}
+        # For now, return mock checkout URL until Stripe is properly integrated
+        return {"checkout_url": "https://checkout.stripe.com/pay/test_checkout_session"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
