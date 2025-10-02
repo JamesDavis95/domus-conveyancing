@@ -6113,6 +6113,27 @@
     </div>
 
     <script>
+        // Debug function to test navigation
+        window.testNavigation = function() {
+            console.log('=== NAVIGATION DEBUG ===');
+            console.log('All pages:', document.querySelectorAll('.page').length);
+            document.querySelectorAll('.page').forEach(page => {
+                const isActive = page.classList.contains('active');
+                const isUnauthorized = page.classList.contains('unauthorized-page');
+                const display = window.getComputedStyle(page).display;
+                console.log(`Page ${page.id}: active=${isActive}, unauthorized=${isUnauthorized}, display=${display}`);
+            });
+            console.log('User allowed pages:', window.userAllowedPages);
+            console.log('Current user role:', window.currentUser.role);
+        };
+        
+        // Test showPage function
+        window.testShowPage = function(pageId) {
+            console.log('Testing showPage(' + pageId + ')');
+            showPage(pageId);
+            setTimeout(() => window.testNavigation(), 100);
+        };
+
         // ========================================
         // AUTHENTICATION & ROLE-BASED ACCESS CONTROL
         // ========================================
