@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus Conveyancing - Super Admin Dashboard</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --surface: #f8fafc;
+            --text: #1e293b;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--surface);
+            color: var(--text);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 30px;
+        }
+        
+        .nav-item {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            background: none;
+            border: none;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .nav-item:hover {
+            background: #f1f5f9;
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: #64748b;
+            font-size: 16px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .user-info {
+            padding: 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .user-role {
+            font-size: 14px;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">🏠 Domus</div>
+            
+            <div class="user-info">
+                <div class="user-name" id="userName">James Davis</div>
+                <div class="user-role" id="userRoleDisplay">Super Admin Account</div>
+            </div>
+            
+            <nav>
+                <button class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</button>
+                <button class="nav-item" onclick="showPage('projects')">🏗️ Projects</button>
+                <button class="nav-item" onclick="showPage('planning-ai')">🤖 Planning AI</button>
+                <button class="nav-item" onclick="showPage('marketplace')">🏪 Marketplace</button>
+                <button class="nav-item" onclick="showPage('documents')">📄 Documents</button>
+                <button class="nav-item" onclick="showPage('settings')">⚙️ Settings</button>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <!-- DASHBOARD PAGE -->
+            <div id="dashboard" class="page active">
+                <div class="page-header">
+                    <h1 class="page-title">Super Admin Dashboard</h1>
+                    <p class="page-subtitle">Complete platform administration with user management and system oversight</p>
+                </div>
+                
+                <div class="panel">
+                    <h3>📈 Platform Overview</h3>
+                    <p>Welcome to the Domus Planning Platform. You have full administrative access to all features and data.</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px;">
+                        <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid var(--primary);">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--primary);">47</div>
+                            <div style="color: #64748b;">Active Projects</div>
+                        </div>
+                        <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid var(--success);">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--success);">2,847</div>
+                            <div style="color: #64748b;">BNG Units Available</div>
+                        </div>
+                        <div style="background: #fffbeb; padding: 20px; border-radius: 8px; border-left: 4px solid var(--warning);">
+                            <div style="font-size: 24px; font-weight: bold; color: var(--warning);">£52.40</div>
+                            <div style="color: #64748b;">Avg. Unit Price</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PROJECTS PAGE -->
+            <div id="projects" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🏗️ Projects</h1>
+                    <p class="page-subtitle">Manage development projects with AI-powered planning intelligence</p>
+                </div>
+                
+                <div class="panel">
+                    <h3>📋 Active Projects</h3>
+                    <p>Here you can view and manage all development projects in the system.</p>
+                    
+                    <div style="margin-top: 20px;">
+                        <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 8px;">Riverside Development</div>
+                            <div style="color: #64748b; font-size: 14px;">Mixed-use development • 45 units • Planning submitted</div>
+                        </div>
+                        <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;">
+                            <div style="font-weight: 600; margin-bottom: 8px;">Green Valley Homes</div>
+                            <div style="color: #64748b; font-size: 14px;">Residential development • 28 units • In planning</div>
+                        </div>
+                        <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <div style="font-weight: 600; margin-bottom: 8px;">City Centre Office</div>
+                            <div style="color: #64748b; font-size: 14px;">Commercial development • 12,000 sqft • Approved</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PLANNING AI PAGE -->
+            <div id="planning-ai" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🤖 Planning AI</h1>
+                    <p class="page-subtitle">AI-powered site analysis and approval probability prediction</p>
+                </div>
+                
+                <div class="panel">
+                    <h3>🎯 Site Analysis</h3>
+                    <p>Use AI to analyze development potential and predict planning approval probability.</p>
+                    
+                    <div style="margin-top: 20px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 6px;">Site Address</label>
+                        <input type="text" placeholder="Enter site address or postcode" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;">
+                        
+                        <label style="display: block; font-weight: 500; margin-bottom: 6px;">Development Type</label>
+                        <select style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;">
+                            <option>Residential</option>
+                            <option>Commercial</option>
+                            <option>Mixed Use</option>
+                        </select>
+                        
+                        <button style="background: var(--primary); color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">🚀 Start Analysis</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MARKETPLACE PAGE -->
+            <div id="marketplace" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">🏪 BNG Marketplace</h1>
+                    <p class="page-subtitle">Biodiversity Net Gain units trading platform</p>
+                </div>
+                
+                <div class="panel">
+                    <h3>📊 Market Overview</h3>
+                    <p>Real-time marketplace for biodiversity net gain units.</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 20px;">
+                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Units Available</div>
+                            <div style="font-size: 32px; font-weight: bold; color: var(--primary);">2,847</div>
+                            <div style="color: #64748b; font-size: 14px;">Across all regions</div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Average Price</div>
+                            <div style="font-size: 32px; font-weight: bold; color: var(--success);">£52.40</div>
+                            <div style="color: #64748b; font-size: 14px;">Per unit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- DOCUMENTS PAGE -->
+            <div id="documents" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">📄 Documents</h1>
+                    <p class="page-subtitle">Document management and automated generation</p>
+                </div>
+                
+                <div class="panel">
+                    <h3>📂 Document Library</h3>
+                    <p>Manage planning documents, reports, and automated document generation.</p>
+                    
+                    <div style="margin-top: 20px;">
+                        <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600;">Planning Statement - Riverside Development</div>
+                                <div style="color: #64748b; font-size: 14px;">Created 2 days ago • PDF • 2.4 MB</div>
+                            </div>
+                            <button style="background: var(--primary); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Download</button>
+                        </div>
+                        <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600;">Heritage Impact Assessment</div>
+                                <div style="color: #64748b; font-size: 14px;">Created 1 week ago • PDF • 1.8 MB</div>
+                            </div>
+                            <button style="background: var(--primary); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SETTINGS PAGE -->
+            <div id="settings" class="page">
+                <div class="page-header">
+                    <h1 class="page-title">⚙️ Settings</h1>
+                    <p class="page-subtitle">Platform configuration and user management</p>
+                </div>
+                
+                <div class="panel">
+                    <h3>🔧 System Settings</h3>
+                    <p>Configure platform settings and manage user accounts.</p>
+                    
+                    <div style="margin-top: 20px;">
+                        <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;">
+                            <div style="font-weight: 600; margin-bottom: 8px;">User Management</div>
+                            <div style="color: #64748b; margin-bottom: 12px;">Manage user accounts and permissions</div>
+                            <button style="background: var(--primary); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Manage Users</button>
+                        </div>
+                        <div style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                            <div style="font-weight: 600; margin-bottom: 8px;">Platform Configuration</div>
+                            <div style="color: #64748b; margin-bottom: 12px;">Configure system-wide settings</div>
+                            <button style="background: var(--primary); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">Configure</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // SIMPLE, BULLETPROOF NAVIGATION
+        function showPage(pageId) {
+            console.log('🚨 showPage called:', pageId);
+            
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.style.display = 'none';
+                page.classList.remove('active');
+            });
+            
+            // Show target page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.style.display = 'block';
+                targetPage.classList.add('active');
+                console.log('✅ Page shown:', pageId);
+            }
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const activeNavItem = document.querySelector(`[onclick*="showPage('${pageId}')"]`);
+            if (activeNavItem) {
+                activeNavItem.classList.add('active');
+                console.log('✅ Nav updated:', pageId);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Clean navigation loaded');
+            showPage('dashboard');
+        });
+    </script>
+</body>
+</html>
