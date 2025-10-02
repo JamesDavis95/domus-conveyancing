@@ -3,9 +3,10 @@ from fastapi.responses import HTMLResponse
 from datetime import datetime
 import os
 
-print("🚀 MINIMAL DOMUS PLATFORM STARTING...")
+print("🚀 MINIMAL DOMUS PLATFORM STARTING - BUILD 2025-10-02...")
 print("   File: simple_main.py")
 print("   No middleware, no complex dependencies")
+print("   FORCE REBUILD DEPLOYMENT")
 
 app = FastAPI(title="Domus Planning Platform", version="4.0.0")
 
@@ -63,7 +64,12 @@ def health():
 
 @app.get("/test")
 def test():
-    return {"message": "SUCCESS", "file": "simple_main.py", "status": "working"}
+    return {
+        "message": "SUCCESS - RENDER DEPLOYMENT WORKING", 
+        "file": "simple_main.py", 
+        "build": "2025-10-02",
+        "status": "operational"
+    }
 
 if __name__ == "__main__":
     import uvicorn
