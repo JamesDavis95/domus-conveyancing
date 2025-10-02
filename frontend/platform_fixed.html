@@ -6574,19 +6574,6 @@
                 }
             });
         }
-            console.log(`Filtering documents for role: ${role}`);
-            
-            // In a real implementation, this would query user-specific documents
-            const documents = document.querySelectorAll('.document-item');
-            documents.forEach((doc, index) => {
-                // Simulate showing only user's documents
-                if (index < 3) { // Show first 3 as user's documents
-                    doc.style.display = 'block';
-                } else {
-                    doc.style.display = 'none'; // Hide other users' documents
-                }
-            });
-        }
 
         function filterLandPortfolioByRole(role) {
             // Only show land owned by current user
