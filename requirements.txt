@@ -1,2 +1,40 @@
+# Production Requirements - Complete Domus Platform
+# Core FastAPI and async support
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database and ORM
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Authentication and security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+
+# Payment processing
+stripe==7.6.0
+
+# Email services
+email-validator==2.1.0
+
+# HTTP client for external APIs
+httpx==0.25.2
+aiohttp==3.9.1
+
+# System monitoring
+psutil==5.9.6
+
+# Data processing and validation
+pydantic==2.5.0
+python-dateutil==2.8.2
+
+# File handling
+python-magic==0.4.27
+
+# PDF processing (lightweight alternatives for cloud deployment)
+reportlab==4.0.7
+
+# Async support
+asyncio-mqtt==0.13.0
