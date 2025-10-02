@@ -133,7 +133,18 @@ async def root():
     try:
         # Try to serve the clean production platform UI
         with open('frontend/platform_production.html', 'r', encoding='utf-8') as f:
-            return f.read()
+            html_content = f.read()
+            
+        # EMERGENCY FIX: Inject userRole element if missing (bypass cache issues)
+        if 'id="userRole"' not in html_content:
+            # Find the userRoleDisplay element and inject userRole after it
+            if 'id="userRoleDisplay"' in html_content:
+                html_content = html_content.replace(
+                    'id="userRoleDisplay"',
+                    'id="userRoleDisplay">\n                <!-- EMERGENCY INJECTION: userRole element -->\n                <input type="hidden" id="userRole" value="super_admin"'
+                )
+                
+        return html_content
     except Exception as e:
         print(f"Frontend file error: {e}")
         # Fallback to inline HTML for Render deployment
