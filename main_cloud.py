@@ -6,10 +6,11 @@ from pathlib import Path
 import os
 
 # Startup verification
-print("🚀 Starting Domus Planning Platform - Cloud Optimized...")
-print("   Version: 4.0.0-cloud")
-print("   File: main.py")
-print("   Mode: Production with cloud optimizations")
+print("🚀 COMPLETE DOMUS PLATFORM STARTING - PRODUCTION BUILD 2025-10-02...")
+print("   File: main_cloud.py") 
+print("   Features: Full role system, comprehensive UI, BNG marketplace")
+print("   Version: 4.0.0-production-complete")
+print("   FORCE REBUILD DEPLOYMENT")
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -56,28 +57,52 @@ async def test_deployment():
         "timestamp": datetime.utcnow().isoformat()
     }
 
-# User Management System
+# User Management System - COMPLETE PRODUCTION VERSION
 users_db = {
     "super_admin": {
         "username": "super_admin",
         "email": "admin@domusplanning.co.uk",
         "role": "super_admin",
         "permissions": ["all"],
-        "created": datetime.utcnow().isoformat()
+        "plan": "enterprise",
+        "created": datetime.utcnow().isoformat(),
+        "status": "active"
     },
-    "planner": {
-        "username": "planner", 
-        "email": "planner@domusplanning.co.uk",
-        "role": "planner",
-        "permissions": ["planning", "documents", "consultations"],
-        "created": datetime.utcnow().isoformat()
+    "developer_001": {
+        "username": "developer_001",
+        "email": "developer@domusplanning.co.uk",
+        "role": "developer", 
+        "permissions": ["planning_ai", "auto_docs", "property_api", "bng_marketplace_buy"],
+        "plan": "professional",
+        "created": datetime.utcnow().isoformat(),
+        "status": "active"
     },
-    "council": {
-        "username": "council",
-        "email": "council@domusplanning.co.uk", 
-        "role": "council",
-        "permissions": ["validation", "approvals", "compliance"],
-        "created": datetime.utcnow().isoformat()
+    "consultant_001": {
+        "username": "consultant_001",
+        "email": "consultant@domusplanning.co.uk",
+        "role": "consultant",
+        "permissions": ["planning_ai", "auto_docs", "property_api", "team_workspace", "bng_marketplace_buy"],
+        "plan": "professional", 
+        "created": datetime.utcnow().isoformat(),
+        "status": "active"
+    },
+    "landowner_001": {
+        "username": "landowner_001", 
+        "email": "landowner@domusplanning.co.uk",
+        "role": "landowner",
+        "permissions": ["bng_marketplace_sell", "land_portfolio"],
+        "plan": "core",
+        "created": datetime.utcnow().isoformat(),
+        "status": "active"
+    },
+    "authority_001": {
+        "username": "authority_001",
+        "email": "authority@localcouncil.gov.uk", 
+        "role": "authority",
+        "permissions": ["application_review", "policy_compliance", "local_development"],
+        "plan": "enterprise",
+        "created": datetime.utcnow().isoformat(),
+        "status": "active"
     }
 }
 
