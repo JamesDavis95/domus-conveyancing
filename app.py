@@ -19,6 +19,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+from pathlib import Path
 import random
 from sqlalchemy.orm import Session
 
@@ -129,16 +130,33 @@ app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Serve the production platform interface - v2"""
+    """Serve the FIXED platform interface - new file to bypass cache"""
     try:
-        # Read the production HTML file
-        html_path = Path(__file__).parent / "frontend" / "platform_production.html"
+        # Read the FIXED HTML file (new file to bypass any caching issues)
+        html_path = Path(__file__).parent / "frontend" / "platform_fixed.html"
         if html_path.exists():
             with open(html_path, 'r', encoding='utf-8') as file:
                 html_content = file.read()
-            return html_content
+            
+            # Add deployment timestamp to force refresh
+            timestamp = datetime.now().isoformat()
+            html_content = html_content.replace(
+                "<!-- CACHE BUST:", 
+                f"<!-- DEPLOYED {timestamp} - CACHE BUST:"
+            )
+            
+            return HTMLResponse(
+                content=html_content,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
+                    "X-Deploy-Time": timestamp,
+                    "X-File-Source": "platform_fixed.html"
+                }
+            )
         else:
-            return "<h1>Error: platform_production.html not found</h1>"
+            return "<h1>Error: platform_fixed.html not found</h1>"
     except Exception as e:
         return f"<h1>Error loading HTML: {str(e)}</h1>"
 @app.get("/login", response_class=HTMLResponse)
