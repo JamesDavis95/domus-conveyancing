@@ -4,6 +4,7 @@
     "builder": "nixpacks"
   },
   "deploy": {
-    "startCommand": "bash start.sh"
+    "startCommand": "bash start.sh",
+    "healthcheckPath": "/test"
   }
 }
