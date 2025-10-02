@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Float, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text, Float, Enum, JSON
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 import enum
@@ -9,6 +9,7 @@ class UserRole(enum.Enum):
     DEVELOPER = "developer"
     CONSULTANT = "consultant"
     LANDOWNER = "landowner"
+    AUTHORITY = "authority"
     ADMIN = "admin"
     SUPER_ADMIN = "super_admin"
 
@@ -22,6 +23,180 @@ class SubscriptionStatus(enum.Enum):
     CANCELLED = "cancelled"
     PAST_DUE = "past_due"
     UNPAID = "unpaid"
+
+class ProjectStatus(enum.Enum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ARCHIVED = "archived"
+
+class ContractStatus(enum.Enum):
+    DRAFT = "draft"
+    SIGNED = "signed"
+    PAYMENT_PENDING = "payment_pending"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+# CORE PLATFORM MODELS
+
+class Orgs(Base):
+    __tablename__ = "orgs"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    plan = Column(Enum(PlanType), default=PlanType.CORE)
+    billing_customer_id = Column(String(255), nullable=True)  # Stripe customer ID
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    users = relationship("Users", back_populates="org")
+    projects = relationship("Projects", back_populates="org")
+    marketplace_supply = relationship("MarketplaceSupply", back_populates="org")
+    marketplace_demand = relationship("MarketplaceDemand", back_populates="org")
+    contracts = relationship("Contracts", back_populates="org")
+
+class Users(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(Enum(UserRole), nullable=False)
+    plan = Column(Enum(PlanType), default=PlanType.CORE)
+    plan_expires_at = Column(DateTime, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs", back_populates="users")
+
+class Projects(Base):
+    __tablename__ = "projects"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    address = Column(Text, nullable=True)
+    site_geometry = Column(JSON, nullable=True)  # GeoJSON
+    lpa_code = Column(String(10), nullable=True)  # Local Planning Authority
+    status = Column(Enum(ProjectStatus), default=ProjectStatus.DRAFT)
+    ai_score = Column(Float, nullable=True)  # Approval probability 0-100
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs", back_populates="projects")
+    documents = relationship("Documents", back_populates="project")
+    bundles = relationship("Bundles", back_populates="project")
+
+class Documents(Base):
+    __tablename__ = "documents"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    type = Column(String(100), nullable=False)  # 'planning_statement', 'heritage_assessment', etc.
+    version = Column(Integer, default=1)
+    storage_url = Column(String(500), nullable=False)  # S3 URL
+    size = Column(Integer, nullable=True)  # File size in bytes
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects", back_populates="documents")
+
+class Bundles(Base):
+    __tablename__ = "bundles"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    storage_url = Column(String(500), nullable=False)  # ZIP file S3 URL
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects", back_populates="bundles")
+
+# MARKETPLACE MODELS
+
+class MarketplaceSupply(Base):
+    __tablename__ = "marketplace_supply"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    location = Column(String(255), nullable=False)
+    units_available = Column(Integer, nullable=False)
+    price_per_unit = Column(Float, nullable=False)
+    status = Column(String(50), default="active")
+    kyc_account_id = Column(String(255), nullable=True)  # Stripe Connect account
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs", back_populates="marketplace_supply")
+
+class MarketplaceDemand(Base):
+    __tablename__ = "marketplace_demand"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    region = Column(String(255), nullable=False)
+    units_required = Column(Integer, nullable=False)
+    budget = Column(Float, nullable=False)
+    status = Column(String(50), default="active")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs", back_populates="marketplace_demand")
+
+class Contracts(Base):
+    __tablename__ = "contracts"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    supply_id = Column(Integer, ForeignKey("marketplace_supply.id"), nullable=False)
+    demand_id = Column(Integer, ForeignKey("marketplace_demand.id"), nullable=False)
+    status = Column(Enum(ContractStatus), default=ContractStatus.DRAFT)
+    payment_intent_id = Column(String(255), nullable=True)  # Stripe Payment Intent
+    audit_json = Column(JSON, nullable=True)  # Full audit trail
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs", back_populates="contracts")
+    supply = relationship("MarketplaceSupply")
+    demand = relationship("MarketplaceDemand")
+
+# USAGE & QUOTAS
+
+class UsageCounters(Base):
+    __tablename__ = "usage_counters"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    month = Column(String(7), nullable=False)  # Format: "2024-10"
+    projects_used = Column(Integer, default=0)
+    docs_used = Column(Integer, default=0)
+    api_calls_used = Column(Integer, default=0)
+    
+    # Relationships
+    org = relationship("Orgs")
+
+# ENTERPRISE FEATURES
+
+class ApiKeys(Base):
+    __tablename__ = "api_keys"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    key_hash = Column(String(255), nullable=False, index=True)
+    status = Column(String(20), default="active")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs")
+
+# AUTHORITY PORTAL
+
+class AuthorityTokens(Base):
+    __tablename__ = "authority_tokens"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    token = Column(String(255), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+    
+    # Relationships
+    project = relationship("Projects")
+
+# LEGACY MODELS (keeping for backward compatibility)
 
 class Matters(Base):
     __tablename__ = "matters"
