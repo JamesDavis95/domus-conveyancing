@@ -6997,33 +6997,6 @@
             event.target.classList.add('primary');
         }
 
-        // Role view updates
-        function updateRoleView() {
-            const userRoleElement = document.getElementById('user-role');
-            if (!userRoleElement) {
-                // No role selector exists, skip update
-                return;
-            }
-            
-            const selectedRole = userRoleElement.value;
-            
-            // Hide all role content
-            document.querySelectorAll('.role-content').forEach(content => {
-                content.classList.remove('active');
-                content.style.display = 'none';
-            });
-            
-            // Show selected role content
-            const activeContent = document.getElementById(selectedRole + '-dashboard');
-            if (activeContent) {
-                activeContent.classList.add('active');
-                activeContent.style.display = 'block';
-            }
-            
-            // Update navigation visibility based on role
-            updateRoleBasedUI();
-        }
-        
         // Role-based UI customization with strict access control
         function updateRoleBasedUI() {
             // This function is now called only during authentication initialization
@@ -7062,7 +7035,7 @@
             checkOnboardingVisibility();
         });
         function updateRoleView() {
-            const role = document.getElementById('user-role')?.value;
+            const role = document.getElementById('userRole')?.value;
             const actions = document.getElementById('role-actions');
             
             // Only update if the actions element exists
@@ -7070,6 +7043,9 @@
                 console.log('role-actions element not found - skipping role view update');
                 return;
             }
+            
+            // Debug log to verify role value
+            console.log('updateRoleView: role =', role, 'actions element exists:', !!actions);
             
             // Update quick actions based on role
             if (role === 'developer') {
@@ -7089,6 +7065,12 @@
                     <button class="btn primary" onclick="showPage('offsets-supply')" style="margin-right: 8px;"> List Your Land</button>
                     <button class="btn outline" onclick="showPage('contracts-payments')" style="margin-right: 8px;"> My Contracts</button>
                     <button class="btn outline" onclick="showPage('property-explorer')"> Property Lookup</button>
+                `;
+            } else if (role === 'super_admin') {
+                actions.innerHTML = `
+                    <button class="btn primary" onclick="showPage('planning-ai')" style="margin-right: 8px;"> AI Analysis</button>
+                    <button class="btn outline" onclick="showPage('marketplace')" style="margin-right: 8px;"> Marketplace</button>
+                    <button class="btn outline" onclick="showPage('admin-panel')"> Admin Panel</button>
                 `;
             }
         }
