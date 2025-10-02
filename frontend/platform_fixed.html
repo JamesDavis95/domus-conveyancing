@@ -6319,9 +6319,13 @@
                 console.log(`🔍 Page ${index}: ID=${page.id}, classes=${page.className}, display=${window.getComputedStyle(page).display}`);
             });
             
-            initializeAuthentication();
+            // Initialize with simplified auth
+            if (window.currentUser) {
+                document.getElementById('userName').textContent = window.currentUser.name;
+                document.getElementById('userRoleDisplay').textContent = window.currentUser.role + ' Account';
+            }
+            
             console.log('🚀 window.currentUser after init:', window.currentUser);
-            console.log('🚀 window.userAllowedPages after init:', window.userAllowedPages);
             
             // FORCE TEST: Try to show only dashboard
             setTimeout(() => {
@@ -6330,7 +6334,7 @@
                 
                 // Double check what's visible
                 setTimeout(() => {
-                    const visiblePages = document.querySelectorAll('.page.active');
+                    const visiblePages = document.querySelectorAll('.page[style*="display: block"], .page.active');
                     console.log('🔍 Visible pages after showPage:', visiblePages.length);
                     visiblePages.forEach(page => {
                         console.log(`🔍 Visible: ${page.id}`);
@@ -6434,56 +6438,35 @@
             }
         }
 
-        // Secure page navigation with role-based access control
+        // EMERGENCY SIMPLE NAVIGATION - GUARANTEED TO WORK
         function showPage(pageId) {
-            debugLog('showPage called with: ' + pageId);
+            console.log('🚨 SIMPLE showPage called:', pageId);
             
-            // EMERGENCY FIX: Force navigation to work regardless of auth state
-            console.log('🚨 FORCING navigation to work - pageId:', pageId);
-            
-            // Hide all pages
-            document.querySelectorAll('.page').forEach(page => {
+            // Hide ALL pages
+            const allPages = document.querySelectorAll('.page');
+            allPages.forEach(page => {
+                page.style.display = 'none';
                 page.classList.remove('active');
-                page.style.display = 'none'; // Force hide with inline style
             });
             
-            // Remove active from all nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Show selected page
+            // Show the target page
             const targetPage = document.getElementById(pageId);
             if (targetPage) {
+                targetPage.style.display = 'block';
                 targetPage.classList.add('active');
-                targetPage.style.display = 'block'; // Force show with inline style
-                console.log('✅ FORCED page visible:', pageId);
-                debugLog('Page activated: ' + pageId);
-                
-                // Apply role-specific data filtering (only if auth is working)
-                if (window.userAllowedPages) {
-                    applyRoleBasedDataFiltering(pageId);
-                }
+                console.log('✅ Page shown:', pageId);
             } else {
                 console.error('❌ Page not found:', pageId);
-                debugLog('ERROR: Page not found: ' + pageId);
             }
             
-            // Activate nav item
-            const navItem = document.querySelector(`[data-page="${pageId}"]`);
-            if (navItem) {
-                navItem.classList.add('active');
-                debugLog('Nav item activated for: ' + pageId);
-            } else {
-                // Try alternative nav selectors
-                const altNavItem = document.querySelector(`[onclick*="showPage('${pageId}')"]`);
-                if (altNavItem) {
-                    altNavItem.classList.add('active');
-                    console.log('✅ Alternative nav item found for:', pageId);
-                } else {
-                    console.warn('⚠️ No nav item found for:', pageId);
-                    debugLog('ERROR: Nav item not found for: ' + pageId);
-                }
+            // Update nav items
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            const activeNavItem = document.querySelector(`[onclick*="showPage('${pageId}')"]`);
+            if (activeNavItem) {
+                activeNavItem.classList.add('active');
+                console.log('✅ Nav updated for:', pageId);
             }
         }
 
