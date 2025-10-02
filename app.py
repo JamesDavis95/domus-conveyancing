@@ -13,6 +13,7 @@ import os
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from pathlib import Path
@@ -89,6 +90,9 @@ app = FastAPI(
         "url": "https://domusplanning.co.uk"
     }
 )
+
+# Setup Jinja2 templates
+templates = Jinja2Templates(directory="templates")
 
 # Simple CORS for development
 app.add_middleware(
@@ -202,6 +206,50 @@ async def get_session():
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.get("/api/usage")
+async def get_usage():
+    """Get current usage information for the organization"""
+    try:
+        # Return mock usage data
+        return {
+            "org_id": 1,
+            "org_name": "Domus Planning",
+            "plan": "enterprise",
+            "quotas": {
+                "projects": {
+                    "current": 3,
+                    "limit": -1,
+                    "unlimited": True,
+                    "percentage": 0,
+                    "available": -1
+                },
+                "docs": {
+                    "current": 15,
+                    "limit": -1,
+                    "unlimited": True,
+                    "percentage": 0,
+                    "available": -1
+                },
+                "marketplace_posts": {
+                    "current": 2,
+                    "limit": -1,
+                    "unlimited": True,
+                    "percentage": 0,
+                    "available": -1
+                },
+                "contracts": {
+                    "current": 1,
+                    "limit": -1,
+                    "unlimited": True,
+                    "percentage": 0,
+                    "available": -1
+                }
+            },
+            "period": "monthly"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # =====================================
 # PROJECTS ENDPOINTS
 # =====================================
@@ -270,36 +318,29 @@ print("   Professional planning intelligence and compliance automation")
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
-async def root():
-    """Serve the CLEAN WORKING platform - completely rebuilt navigation"""
-    try:
-        # Read the CLEAN WORKING HTML file (completely rebuilt)
-        html_path = Path(__file__).parent / "frontend" / "platform_clean_working.html"
-        if html_path.exists():
-            with open(html_path, 'r', encoding='utf-8') as file:
-                html_content = file.read()
-            
-            # Add deployment timestamp to force refresh
-            timestamp = datetime.now().isoformat()
-            html_content = html_content.replace(
-                "<!-- CACHE BUST:", 
-                f"<!-- DEPLOYED {timestamp} - CACHE BUST:"
-            )
-            
-            return HTMLResponse(
-                content=html_content,
-                headers={
-                    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-                    "Pragma": "no-cache",
-                    "Expires": "0",
-                    "X-Deploy-Time": timestamp,
-                    "X-File-Source": "platform_clean_working.html"
-                }
-            )
-        else:
-            return "<h1>Error: platform_clean_working.html not found</h1>"
-    except Exception as e:
-        return f"<h1>Error loading HTML: {str(e)}</h1>"
+async def root(request: Request):
+    """Serve the main application shell"""
+    return templates.TemplateResponse("app_shell.html", {"request": request})
+
+# All authenticated app routes serve the same app shell
+@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/projects", response_class=HTMLResponse)
+@app.get("/projects/new", response_class=HTMLResponse)
+@app.get("/projects/{project_id}", response_class=HTMLResponse)
+@app.get("/planning-ai", response_class=HTMLResponse)
+@app.get("/auto-docs", response_class=HTMLResponse)
+@app.get("/documents", response_class=HTMLResponse)
+@app.get("/marketplace/supply", response_class=HTMLResponse)
+@app.get("/marketplace/demand", response_class=HTMLResponse)
+@app.get("/contracts", response_class=HTMLResponse)
+@app.get("/analytics", response_class=HTMLResponse)
+@app.get("/settings", response_class=HTMLResponse)
+@app.get("/settings/billing", response_class=HTMLResponse)
+@app.get("/settings/api-keys", response_class=HTMLResponse)
+@app.get("/admin", response_class=HTMLResponse)
+async def app_routes(request: Request):
+    """Serve the app shell for all authenticated routes"""
+    return templates.TemplateResponse("app_shell.html", {"request": request})
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
     """Serve the login page"""
