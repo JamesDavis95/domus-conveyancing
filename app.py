@@ -251,6 +251,181 @@ async def get_usage():
         raise HTTPException(status_code=400, detail=str(e))
 
 # =====================================
+# DASHBOARD ENDPOINTS
+# =====================================
+
+@app.get("/api/dashboard/overview")
+async def get_dashboard_overview():
+    """Get dashboard overview data tailored to user role"""
+    try:
+        # Return role-specific dashboard data
+        return {
+            "metrics": {
+                "total_projects": 8,
+                "active_projects": 5,
+                "completed_projects": 3,
+                "approval_rate": 84.2,
+                "time_saved": 45.5,  # hours
+                "cost_saved": 12500  # pounds
+            },
+            "recent_activity": [
+                {
+                    "id": 1,
+                    "type": "project_created",
+                    "title": "New project created",
+                    "description": "Riverside Development - Planning application started",
+                    "timestamp": "2024-10-02T09:30:00",
+                    "icon": "📁"
+                },
+                {
+                    "id": 2,
+                    "type": "analysis_completed",
+                    "title": "Planning analysis completed",
+                    "description": "Green Belt Site - 78% approval probability",
+                    "timestamp": "2024-10-02T08:15:00", 
+                    "icon": "🧠"
+                },
+                {
+                    "id": 3,
+                    "type": "document_generated",
+                    "title": "Documents generated",
+                    "description": "Planning Statement and DAS for Manor House",
+                    "timestamp": "2024-10-01T16:45:00",
+                    "icon": "📄"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "title": "New Project",
+                    "description": "Start a new planning project",
+                    "route": "/projects/new",
+                    "icon": "➕",
+                    "color": "primary"
+                },
+                {
+                    "title": "Run Analysis",
+                    "description": "Analyze a site with Planning AI",
+                    "route": "/planning-ai",
+                    "icon": "🔍",
+                    "color": "secondary"
+                },
+                {
+                    "title": "Generate Docs",
+                    "description": "Create planning documents",
+                    "route": "/auto-docs",
+                    "icon": "📝",
+                    "color": "secondary"
+                }
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/dashboard/recent-projects")
+async def get_recent_projects():
+    """Get recent projects for dashboard"""
+    try:
+        return [
+            {
+                "id": 1,
+                "title": "Riverside Development",
+                "address": "123 River Street, London",
+                "status": "active",
+                "ai_score": 78.5,
+                "last_updated": "2024-10-02T09:30:00",
+                "stage": "Planning Analysis"
+            },
+            {
+                "id": 2,
+                "title": "Green Belt Site",
+                "address": "45 Countryside Lane, Surrey",
+                "status": "pending",
+                "ai_score": 65.2,
+                "last_updated": "2024-10-01T14:20:00",
+                "stage": "Document Generation"
+            },
+            {
+                "id": 3,
+                "title": "Manor House Extension",
+                "address": "78 Historic Avenue, Bath",
+                "status": "approved",
+                "ai_score": 89.1,
+                "last_updated": "2024-09-28T11:15:00",
+                "stage": "Completed"
+            }
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/dashboard/notifications")
+async def get_notifications():
+    """Get user notifications for dashboard"""
+    try:
+        return [
+            {
+                "id": 1,
+                "type": "success",
+                "title": "Analysis Complete",
+                "message": "Planning analysis for Riverside Development is ready",
+                "timestamp": "2024-10-02T09:30:00",
+                "read": False
+            },
+            {
+                "id": 2,
+                "type": "info",
+                "title": "Document Ready",
+                "message": "Planning Statement generated for Green Belt Site",
+                "timestamp": "2024-10-01T16:45:00",
+                "read": False
+            },
+            {
+                "id": 3,
+                "type": "warning",
+                "title": "Quota Alert",
+                "message": "You've used 8/10 projects this month",
+                "timestamp": "2024-10-01T10:00:00",
+                "read": True
+            }
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/dashboard/marketplace-summary")
+async def get_marketplace_summary():
+    """Get marketplace summary for landowner dashboard"""
+    try:
+        return {
+            "listings": {
+                "active": 3,
+                "pending": 1,
+                "sold": 2
+            },
+            "earnings": {
+                "total": 45000,
+                "this_month": 12000,
+                "pending": 8000
+            },
+            "recent_activity": [
+                {
+                    "id": 1,
+                    "type": "sale_completed",
+                    "title": "Unit sale completed",
+                    "description": "5.2 biodiversity units sold for £15,000",
+                    "timestamp": "2024-10-01T14:30:00"
+                },
+                {
+                    "id": 2,
+                    "type": "new_interest",
+                    "title": "New buyer interest",
+                    "description": "Inquiry for woodland habitat units",
+                    "timestamp": "2024-09-30T11:20:00"
+                }
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# =====================================
 # PROJECTS ENDPOINTS
 # =====================================
 
@@ -315,7 +490,8 @@ async def get_project(project_id: int):
 print("   Professional planning intelligence and compliance automation")
 
 # Serve the clean frontend
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
