@@ -664,6 +664,12 @@
             </div>
         </nav>
 
+        <!-- Debug Panel for Render Testing -->
+        <div id="debug-panel" style="position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 10000; max-width: 300px;">
+            <div>🔍 DEBUG MODE ACTIVE</div>
+            <div id="debug-log"></div>
+        </div>
+
         <!-- Main Content -->
         <main class="main-content">
             <!-- Operational Dashboard Header -->
@@ -6226,9 +6232,17 @@
         };
 
         // Initialize authentication and role-based access control on page load
+        function debugLog(message) {
+            console.log(message);
+            const debugPanel = document.getElementById('debug-log');
+            if (debugPanel) {
+                debugPanel.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+            }
+        }
+
         function initializeAuthentication() {
-            console.log('🚀 DEBUGGING: Authentication initialization started');
-            console.log('🚀 DEBUGGING: Current user:', window.currentUser);
+            debugLog('🚀 Authentication initialization started');
+            debugLog('🚀 Current user: ' + JSON.stringify(window.currentUser));
             console.log('Initializing authentication for user:', window.currentUser.name, 'Role:', window.currentUser.role);
             
             // Update user display
@@ -6242,7 +6256,7 @@
             // Initialize dashboard for user's role
             updateDashboardForRole(window.currentUser.role);
             
-            console.log('🚀 DEBUGGING: Authentication initialization complete');
+            debugLog('🚀 Authentication initialization complete');
         }
 
         function capitalizeRole(role) {
@@ -6442,7 +6456,7 @@
 
         // Secure page navigation with role-based access control
         function showPage(pageId) {
-            console.log('showPage called with:', pageId);
+            debugLog('showPage called with: ' + pageId);
             
             // Temporarily disable permission check for debugging
             // if (window.userAllowedPages && !window.userAllowedPages.includes(pageId)) {
@@ -6465,18 +6479,21 @@
             const targetPage = document.getElementById(pageId);
             if (targetPage) {
                 targetPage.classList.add('active');
-                console.log('Page activated:', pageId);
+                debugLog('Page activated: ' + pageId);
                 
                 // Apply role-specific data filtering
                 applyRoleBasedDataFiltering(pageId);
             } else {
-                console.error('Page not found:', pageId);
+                debugLog('ERROR: Page not found: ' + pageId);
             }
             
             // Activate nav item
             const navItem = document.querySelector(`[data-page="${pageId}"]`);
             if (navItem) {
                 navItem.classList.add('active');
+                debugLog('Nav item activated for: ' + pageId);
+            } else {
+                debugLog('ERROR: Nav item not found for: ' + pageId);
             }
         }
 
