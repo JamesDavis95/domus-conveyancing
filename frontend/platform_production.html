@@ -742,103 +742,27 @@
 
             <!-- Dashboard Page -->
             <div id="dashboard" class="page active">
-                <!-- Role Selection -->
+                <!-- Super Admin Dashboard -->
                 <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                    <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Your Dashboard</h2>
-                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
-                        <label style="font-weight: 500;">Role:</label>
-                        <select id="user-role" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);" onchange="updateRoleView()">
-                            <option value="developer">Developer</option>
-                            <option value="consultant">Planning Consultant</option>
-                            <option value="landowner">Landowner</option>
-                            <option value="authority">Local Authority</option>
-                        </select>
-                    </div>
+                    <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Super Admin Dashboard</h2>
+                    <p style="color: var(--muted); margin: 0 0 16px 0;">Complete platform administration with user management and system oversight.</p>
                     
-                    <!-- Role-specific content -->
-                    <div id="role-dashboard">
-                        <!-- Developer Dashboard (default) -->
-                        <div id="developer-dashboard" class="role-content active">
-                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Developer Tools</h3>
-                            <p style="color: var(--muted); margin: 0 0 16px 0;">Plan, analyze, and deliver development projects with AI-powered planning intelligence.</p>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('projects')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">My Projects</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Track development sites and planning applications</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('planning-ai')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Site Analysis</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">AI approval scoring and constraint detection</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('marketplace')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Find BNG Offsets</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Browse biodiversity offset opportunities</p>
-                                </div>
-                            </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                        <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('admin-panel')">
+                            <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">🛠️ Admin Panel</h4>
+                            <p style="color: var(--muted); font-size: 13px; margin: 0;">User management and system administration</p>
                         </div>
-                        
-                        <!-- Consultant Dashboard -->
-                        <div id="consultant-dashboard" class="role-content">
-                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Consultant Toolkit</h3>
-                            <p style="color: var(--muted); margin: 0 0 16px 0;">Professional planning consultancy tools for client projects and team collaboration.</p>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('projects')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Client Projects</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Manage consultancy projects and deliverables</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('auto-docs')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Generate Documents</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Professional planning statements and reports</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('planning-ai')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Expert Analysis</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Advanced AI insights for professional advice</p>
-                                </div>
-                            </div>
+                        <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('projects')">
+                            <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">📊 All Projects</h4>
+                            <p style="color: var(--muted); font-size: 13px; margin: 0;">System-wide project oversight and monitoring</p>
                         </div>
-                        
-                        <!-- Landowner Dashboard -->
-                        <div id="landowner-dashboard" class="role-content">
-                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Landowner Hub</h3>
-                            <p style="color: var(--muted); margin: 0 0 16px 0;">Maximize your land value through development opportunities and offset trading.</p>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('marketplace')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">List Your Land</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Offer BNG offset opportunities to developers</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('planning-ai')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Development Potential</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Assess land development opportunities</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('property-api')">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Property Intelligence</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Comprehensive land and property data</p>
-                                </div>
-                            </div>
+                        <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('marketplace')">
+                            <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">🌿 Marketplace Admin</h4>
+                            <p style="color: var(--muted); font-size: 13px; margin: 0;">Oversee all marketplace transactions and listings</p>
                         </div>
-                        
-                        <!-- Authority Dashboard -->
-                        <div id="authority-dashboard" class="role-content">
-                            <h3 style="margin: 0 0 12px 0; color: var(--primary);">Authority Portal</h3>
-                            <p style="color: var(--muted); margin: 0 0 16px 0;">Planning application review tools and local development insights.</p>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Application Review</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Review and assess planning applications</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Local Development</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Track development activity in your area</p>
-                                </div>
-                                <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;">
-                                    <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">Policy Analysis</h4>
-                                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Local plan policy alignment tools</p>
-                                </div>
-                            </div>
+                        <div class="action-card" style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer;" onclick="showPage('planning-ai')">
+                            <h4 style="font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">🤖 AI System</h4>
+                            <p style="color: var(--muted); font-size: 13px; margin: 0;">AI analysis tools and system performance</p>
                         </div>
                     </div>
                 </div>
@@ -6209,24 +6133,24 @@
         // Role-based page access - users can ONLY access pages for their assigned role
         const ROLE_PERMISSIONS = {
             'developer': {
-                allowedPages: ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api'],
+                allowedPages: ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'marketplace'],
                 dashboardTitle: 'Developer Dashboard',
-                dashboardSubtitle: 'Streamline planning applications and development workflows with AI-powered insights'
+                dashboardSubtitle: 'Plan and deliver development projects with AI-powered insights'
             },
             'consultant': {
-                allowedPages: ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'property-api', 'team-workspace'],
-                dashboardTitle: 'Consultant Dashboard',
-                dashboardSubtitle: 'Professional planning consultancy toolkit with client collaboration features'
+                allowedPages: ['dashboard', 'projects', 'planning-ai', 'auto-docs', 'team-workspace', 'planning-history'],
+                dashboardTitle: 'Consultant Dashboard', 
+                dashboardSubtitle: 'Professional planning consultancy toolkit with client collaboration'
             },
             'landowner': {
-                allowedPages: ['dashboard', 'marketplace', 'land-portfolio', 'offset-contracts'],
+                allowedPages: ['dashboard', 'marketplace', 'land-portfolio', 'offset-contracts', 'property-explorer'],
                 dashboardTitle: '🌿 Landowner Dashboard',
-                dashboardSubtitle: 'Maximize your land asset value with planning intelligence and offset opportunities'
+                dashboardSubtitle: 'Maximize your land asset value through planning intelligence and offset opportunities'
             },
             'authority': {
-                allowedPages: ['dashboard', 'application-review', 'policy-compliance', 'local-development'],
+                allowedPages: ['dashboard', 'application-review', 'planning-analysis', 'planning-history', 'case-studies'],
                 dashboardTitle: 'Planning Authority Dashboard',
-                dashboardSubtitle: 'Efficient application processing and policy compliance management tools'
+                dashboardSubtitle: 'Efficient application processing and policy compliance management'
             },
             'super_admin': {
                 allowedPages: [
@@ -6239,7 +6163,7 @@
                     'property-explorer', 'planning-analysis', 'site-analysis', 'planning-analytics', 'my-sites', 'documents', 'case-studies'
                 ],
                 dashboardTitle: 'Super Admin Dashboard',
-                dashboardSubtitle: 'Complete platform administration with user management and permission controls'
+                dashboardSubtitle: 'Complete platform administration with user management and system oversight'
             }
         };
 
@@ -6560,40 +6484,86 @@
         }
 
         function filterProjectsByRole(role) {
-            // In a real app, this would filter projects API calls by user ID
             console.log(`Filtering projects for role: ${role}`);
             
-            // Simulate user-specific project filtering
+            // Role-based project access control
             const projects = document.querySelectorAll('.project-item');
             projects.forEach((project, index) => {
-                // Show only projects 1, 3, 5 for current user (simulation)
-                if (index % 2 === 0) {
+                const projectOwner = project.getAttribute('data-owner') || 'user1'; // Simulate project ownership
+                const currentUserId = window.currentUser.id;
+                
+                if (role === 'super_admin') {
+                    // Super admin sees all projects
                     project.style.display = 'block';
+                } else if (role === 'developer' || role === 'consultant') {
+                    // Users only see their own projects
+                    if (projectOwner === currentUserId || index % 3 === 0) { // Simulate user's projects
+                        project.style.display = 'block';
+                    } else {
+                        project.style.display = 'none';
+                    }
+                } else if (role === 'authority') {
+                    // Authorities see applications in their jurisdiction only
+                    if (index % 4 === 0) { // Simulate local authority area
+                        project.style.display = 'block';
+                    } else {
+                        project.style.display = 'none';
+                    }
                 } else {
+                    // Other roles don't see projects by default
                     project.style.display = 'none';
                 }
             });
         }
 
         function filterMarketplaceByRole(role) {
-            // Filter marketplace data based on role
             console.log(`Filtering marketplace for role: ${role}`);
             
+            // Hide sensitive marketplace data based on role
+            const listings = document.querySelectorAll('.marketplace-listing');
+            const contactDetails = document.querySelectorAll('.contact-details');
+            const priceDetails = document.querySelectorAll('.price-details');
+            
             if (role === 'landowner') {
-                // Show landowner-specific marketplace view
+                // Landowners see their own listings + can browse others (anonymized)
+                contactDetails.forEach(detail => detail.style.display = 'none'); // Hide others' contact info
                 showMarketplaceSection('list-land');
-                // Hide listings from other landowners (privacy)
-                hideOtherUsersListings();
             } else if (role === 'developer' || role === 'consultant') {
-                // Show developer/consultant-specific marketplace view
+                // Developers/consultants can browse but contact details are protected
+                contactDetails.forEach(detail => detail.style.display = 'none');
+                priceDetails.forEach(detail => detail.style.display = 'block'); // Show prices
                 showMarketplaceSection('browse');
-                // Show all available offsets but hide supplier contact details
-                anonymizeSupplierDetails();
+            } else if (role === 'authority') {
+                // Authorities see overview for regulatory purposes only
+                contactDetails.forEach(detail => detail.style.display = 'none');
+                priceDetails.forEach(detail => detail.style.display = 'none');
             }
         }
 
         function filterDocumentsByRole(role) {
-            // Only show documents created by current user
+            console.log(`Filtering documents for role: ${role}`);
+            
+            const documents = document.querySelectorAll('.document-item');
+            documents.forEach((doc, index) => {
+                const docOwner = doc.getAttribute('data-owner') || 'user1';
+                const currentUserId = window.currentUser.id;
+                const isPublic = doc.getAttribute('data-public') === 'true';
+                
+                if (role === 'super_admin') {
+                    // Super admin sees all documents
+                    doc.style.display = 'block';
+                } else if (docOwner === currentUserId) {
+                    // Always show user's own documents
+                    doc.style.display = 'block';
+                } else if (isPublic && (role === 'consultant' || role === 'authority')) {
+                    // Consultants and authorities can see public documents
+                    doc.style.display = 'block';
+                } else {
+                    // Hide other users' private documents
+                    doc.style.display = 'none';
+                }
+            });
+        }
             console.log(`Filtering documents for role: ${role}`);
             
             // In a real implementation, this would query user-specific documents
