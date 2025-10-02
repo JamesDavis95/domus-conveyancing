@@ -495,9 +495,9 @@
                     <button onclick="simulateLogout()" style="background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer;">Sign Out</button>
                 </div>
                 <!-- Hidden input to store current user role for JavaScript access -->
-                <!-- FORCE RENDER REBUILD NOW: 2025-10-02 16:35 CACHE BUST -->
+                <!-- EMERGENCY DEPLOY: 2025-10-02 20:45 - RENDER CACHE NUCLEAR BUST -->
                 <input type="hidden" id="userRole" value="super_admin">
-                <!-- ADDITIONAL CACHE BUST ELEMENT -->
+                <!-- DEPLOYMENT VERIFICATION: userRole element MUST exist -->
             </div>
             
             <div class="nav-section" data-section="overview" data-roles="developer,consultant,landowner,authority,super_admin">
@@ -6260,7 +6260,12 @@
             const userRoleElement = document.getElementById('userRole');
             if (userRoleElement) {
                 userRoleElement.value = window.currentUser.role;
+            } else {
+                console.error('🚨 CRITICAL: userRole element not found in DOM');
             }
+            
+            // Store role globally as backup
+            window.currentUserRole = window.currentUser.role;
             
             // Apply role-based restrictions
             enforceRoleBasedAccess();
@@ -6511,12 +6516,17 @@
 
         // Apply role-based data filtering to ensure users only see their own data
         function applyRoleBasedDataFiltering(pageId) {
+            let currentRole = 'super_admin'; // Default fallback
+            
             const userRoleElement = document.getElementById('userRole');
-            if (!userRoleElement) {
+            if (userRoleElement) {
+                currentRole = userRoleElement.value;
+            } else if (window.currentUserRole) {
+                currentRole = window.currentUserRole;
+                console.warn('Using backup role from window.currentUserRole:', currentRole);
+            } else {
                 console.warn('User role element not found, defaulting to super_admin');
-                return; // Skip filtering for super_admin or when role is undefined
             }
-            const currentRole = userRoleElement.value;
             
             // Super admin can see everything, so skip filtering
             if (currentRole === 'super_admin') {
