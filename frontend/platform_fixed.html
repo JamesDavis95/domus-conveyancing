@@ -8126,16 +8126,30 @@
             }
         }
         
-        // Hook into existing page navigation
-        const originalShowPage = window.showPage;
-        window.showPage = function(pageId) {
-            if (originalShowPage) originalShowPage(pageId);
-            
-            // Initialize analytics when marketplace page is shown
-            if (pageId === 'marketplace') {
+        // Initialize analytics when marketplace page is shown (via existing navigation)
+        // Note: This hooks into the existing showPage function rather than replacing it
+        function initializeMarketplaceAnalytics() {
+            if (document.getElementById('live-unit-price')) {
                 setTimeout(initializeLiveAnalytics, 100);
             }
-        };
+        }
+        
+        // Hook marketplace analytics into existing showPage by modifying the function prototype
+        document.addEventListener('DOMContentLoaded', function() {
+            // Store reference to original showPage
+            const originalShowPageFunction = window.showPage;
+            if (originalShowPageFunction) {
+                window.showPage = function(pageId) {
+                    // Call the original showPage function
+                    originalShowPageFunction(pageId);
+                    
+                    // Add marketplace analytics if needed
+                    if (pageId === 'marketplace') {
+                        initializeMarketplaceAnalytics();
+                    }
+                };
+            }
+        });
         
         // BNG Marketplace Refresh Function
         function refreshOffsetListings() {
