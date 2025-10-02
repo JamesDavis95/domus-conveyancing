@@ -12,7 +12,6 @@ class UserRole(Enum):
     LANDOWNER = "landowner"
     ADMIN = "admin"
     SUPER_ADMIN = "super_admin"
-    SUPER_ADMIN = "super_admin"
 
 class PlanType(Enum):
     CORE = "core"           # £29/month - Basic planning tools
