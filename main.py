@@ -1,3 +1,9 @@
+# Startup verification
+print("🚀 Starting Domus Planning Platform...")
+print("   Version: 4.0.0-production")
+print("   File: main.py")
+print("   Mode: Simple production deployment")
+
 """
 Production Domus Planning Platform
 Complete AI-powered planning intelligence system with BNG marketplace
@@ -46,6 +52,17 @@ if os.path.exists("frontend"):
     app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 # Health check endpoints
+@app.get("/test")
+async def test_deployment():
+    """Test endpoint to verify deployment"""
+    return {
+        "message": "✅ RENDER DEPLOYMENT SUCCESS",
+        "file": "main.py",
+        "timestamp": datetime.utcnow().isoformat(),
+        "platform": "Domus Planning Platform",
+        "status": "working"
+    }
+
 @app.get("/health")
 async def health_check():
     """Public health check endpoint"""
@@ -53,6 +70,8 @@ async def health_check():
         "status": "healthy",
         "platform": "Domus Planning Platform",
         "version": "4.0.0-production",
+        "file": "main.py",
+        "deployment": "render-simple",
         "timestamp": datetime.utcnow().isoformat(),
         "features": {
             "authentication": "enabled",
