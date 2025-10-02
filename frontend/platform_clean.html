@@ -664,12 +664,6 @@
             </div>
         </nav>
 
-        <!-- Debug Panel for Render Testing -->
-        <div id="debug-panel" style="position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 10000; max-width: 300px;">
-            <div>🔍 DEBUG MODE ACTIVE</div>
-            <div id="debug-log"></div>
-        </div>
-
         <!-- Main Content -->
         <main class="main-content">
             <!-- Operational Dashboard Header -->
@@ -6458,12 +6452,12 @@
         function showPage(pageId) {
             debugLog('showPage called with: ' + pageId);
             
-            // Temporarily disable permission check for debugging
-            // if (window.userAllowedPages && !window.userAllowedPages.includes(pageId)) {
-            //     console.warn(`Access denied: User role does not have permission to access page '${pageId}'`);
-            //     alert('Access Denied: You do not have permission to access this page.');
-            //     return;
-            // }
+            // Check if user has permission to access this page
+            if (window.userAllowedPages && !window.userAllowedPages.includes(pageId)) {
+                console.warn(`Access denied: User role does not have permission to access page '${pageId}'`);
+                alert('Access Denied: You do not have permission to access this page.');
+                return;
+            }
             
             // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
@@ -7018,8 +7012,14 @@
             checkOnboardingVisibility();
         });
         function updateRoleView() {
-            const role = document.getElementById('user-role').value;
+            const role = document.getElementById('user-role')?.value;
             const actions = document.getElementById('role-actions');
+            
+            // Only update if the actions element exists
+            if (!actions) {
+                console.log('role-actions element not found - skipping role view update');
+                return;
+            }
             
             // Update quick actions based on role
             if (role === 'developer') {
