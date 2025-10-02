@@ -494,6 +494,8 @@
                     </div>
                     <button onclick="simulateLogout()" style="background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer;">Sign Out</button>
                 </div>
+                <!-- Hidden input to store current user role for JavaScript access -->
+                <input type="hidden" id="userRole" value="super_admin">
             </div>
             
             <div class="nav-section" data-section="overview" data-roles="developer,consultant,landowner,authority,super_admin">
@@ -589,7 +591,7 @@
                     <span class="icon">🔗</span>
                     AI Matching
                 </button>
-                <button class="nav-item" data-page="contracts-payments" data-roles="developer,landowner,consultant" onclick="showPage('contracts-payments')">
+                <button class="nav-item" data-page="contracts-payments" data-roles="developer,landowner,consultant,super_admin" onclick="showPage('contracts-payments')">
                     <span class="icon">💳</span>
                     Contracts & Payments
                 </button>
@@ -597,16 +599,16 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Team Collaboration</div>
-                <button class="nav-item" data-page="team-workspace" data-roles="developer,consultant" onclick="showPage('team-workspace')">
+                <button class="nav-item" data-page="team-workspace" data-roles="developer,consultant,super_admin" onclick="showPage('team-workspace')">
                     <span class="icon">👥</span>
                     Team Workspace
                     <span class="role-indicator role-consultant">TEAM</span>
                 </button>
-                <button class="nav-item" data-page="project-sharing" data-roles="developer,landowner,consultant" onclick="showPage('project-sharing')">
+                <button class="nav-item" data-page="project-sharing" data-roles="developer,landowner,consultant,super_admin" onclick="showPage('project-sharing')">
                     <span class="icon">🔗</span>
                     Project Sharing
                 </button>
-                <button class="nav-item" data-page="activity-feed" data-roles="developer,consultant" onclick="showPage('activity-feed')">
+                <button class="nav-item" data-page="activity-feed" data-roles="developer,consultant,super_admin" onclick="showPage('activity-feed')">
                     <span class="icon">📈</span>
                     Activity Feed
                     <span style="background: var(--primary); color: white; border-radius: 12px; padding: 2px 6px; font-size: 10px; margin-left: 8px;">Live</span>
@@ -615,20 +617,20 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Analytics & Insights</div>
-                <button class="nav-item" data-page="planning-trends" data-roles="consultant,developer" onclick="showPage('planning-trends')">
+                <button class="nav-item" data-page="planning-trends" data-roles="consultant,developer,super_admin" onclick="showPage('planning-trends')">
                     <span class="icon">📊</span>
                     Planning Trends
                     <span class="role-indicator role-consultant">CON</span>
                 </button>
-                <button class="nav-item" data-page="offsets-reports" onclick="showPage('offsets-reports')">
+                <button class="nav-item" data-page="offsets-reports" data-roles="super_admin" onclick="showPage('offsets-reports')">
                     <span class="icon">📋</span>
                     Offsets Reports
                 </button>
-                <button class="nav-item" data-page="api-usage" onclick="showPage('api-usage')">
+                <button class="nav-item" data-page="api-usage" data-roles="super_admin" onclick="showPage('api-usage')">
                     <span class="icon">⚡</span>
                     API Usage
                 </button>
-                <button class="nav-item" data-page="notifications" onclick="showPage('notifications')">
+                <button class="nav-item" data-page="notifications" data-roles="super_admin" onclick="showPage('notifications')">
                     <span class="icon">🔔</span>
                     Notifications & Alerts
                     <span style="background: var(--danger); color: white; border-radius: 12px; padding: 2px 6px; font-size: 10px; margin-left: 8px;">3</span>
@@ -6244,6 +6246,12 @@
             document.getElementById('userInitials').textContent = window.currentUser.initials;
             document.getElementById('userRoleDisplay').textContent = capitalizeRole(window.currentUser.role) + ' Account';
             
+            // Update hidden userRole input for JavaScript access
+            const userRoleElement = document.getElementById('userRole');
+            if (userRoleElement) {
+                userRoleElement.value = window.currentUser.role;
+            }
+            
             // Apply role-based restrictions
             enforceRoleBasedAccess();
             
@@ -6493,7 +6501,17 @@
 
         // Apply role-based data filtering to ensure users only see their own data
         function applyRoleBasedDataFiltering(pageId) {
-            const currentRole = document.getElementById('userRole').value;
+            const userRoleElement = document.getElementById('userRole');
+            if (!userRoleElement) {
+                console.warn('User role element not found, defaulting to super_admin');
+                return; // Skip filtering for super_admin or when role is undefined
+            }
+            const currentRole = userRoleElement.value;
+            
+            // Super admin can see everything, so skip filtering
+            if (currentRole === 'super_admin') {
+                return;
+            }
             
             // Apply specific filtering based on page and role
             switch(pageId) {
@@ -6955,7 +6973,13 @@
 
         // Role view updates
         function updateRoleView() {
-            const selectedRole = document.getElementById('user-role').value;
+            const userRoleElement = document.getElementById('user-role');
+            if (!userRoleElement) {
+                // No role selector exists, skip update
+                return;
+            }
+            
+            const selectedRole = userRoleElement.value;
             
             // Hide all role content
             document.querySelectorAll('.role-content').forEach(content => {
