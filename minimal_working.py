@@ -126,6 +126,10 @@ async def root():
 </html>
 """)
 
+@app.get("/test")
+async def test():
+    return {"status": "NEW VERSION WORKING", "timestamp": "2025-10-02", "platform": "Railway Fixed"}
+
 @app.get("/health")
 async def health():
     return {
