@@ -6227,6 +6227,8 @@
 
         // Initialize authentication and role-based access control on page load
         function initializeAuthentication() {
+            console.log('🚀 DEBUGGING: Authentication initialization started');
+            console.log('🚀 DEBUGGING: Current user:', window.currentUser);
             console.log('Initializing authentication for user:', window.currentUser.name, 'Role:', window.currentUser.role);
             
             // Update user display
@@ -6239,6 +6241,8 @@
             
             // Initialize dashboard for user's role
             updateDashboardForRole(window.currentUser.role);
+            
+            console.log('🚀 DEBUGGING: Authentication initialization complete');
         }
 
         function capitalizeRole(role) {
