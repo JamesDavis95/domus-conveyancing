@@ -6311,9 +6311,32 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 DOM Content Loaded - Starting authentication...');
             console.log('🚀 window.currentUser before init:', window.currentUser);
+            
+            // IMMEDIATE DEBUG: Check page structure
+            const allPages = document.querySelectorAll('.page');
+            console.log('🔍 Found pages:', allPages.length);
+            allPages.forEach((page, index) => {
+                console.log(`🔍 Page ${index}: ID=${page.id}, classes=${page.className}, display=${window.getComputedStyle(page).display}`);
+            });
+            
             initializeAuthentication();
             console.log('🚀 window.currentUser after init:', window.currentUser);
             console.log('🚀 window.userAllowedPages after init:', window.userAllowedPages);
+            
+            // FORCE TEST: Try to show only dashboard
+            setTimeout(() => {
+                console.log('🧪 TESTING: Forcing page switch to dashboard...');
+                showPage('dashboard');
+                
+                // Double check what's visible
+                setTimeout(() => {
+                    const visiblePages = document.querySelectorAll('.page.active');
+                    console.log('🔍 Visible pages after showPage:', visiblePages.length);
+                    visiblePages.forEach(page => {
+                        console.log(`🔍 Visible: ${page.id}`);
+                    });
+                }, 100);
+            }, 500);
         });
 
         // ========================================
