@@ -129,7 +129,7 @@ app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Serve the production platform interface"""
+    """Serve the production platform interface - v2"""
     try:
         # Read the production HTML file
         html_path = Path(__file__).parent / "frontend" / "platform_production.html"
