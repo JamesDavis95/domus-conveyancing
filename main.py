@@ -11,21 +11,36 @@ import uvicorn
 from datetime import datetime
 
 # Create FastAPI app directly in main.py to ensure it works
-app = FastAPI(title="Domus Planning Platform", version="4.0.0")
+app = FastAPI(title="Domus Planning Platform", version="4.1.0-CACHE-CLEARED")
 
 # Serve static files
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Serve the production platform interface"""
+    """Serve the production platform interface with cache busting"""
     try:
         # Read the production HTML file
         html_path = Path(__file__).parent / "frontend" / "platform_production.html"
         if html_path.exists():
             with open(html_path, 'r', encoding='utf-8') as file:
                 html_content = file.read()
-            return html_content
+            
+            # Add cache-busting timestamp to the HTML
+            timestamp = datetime.now().isoformat()
+            html_content = html_content.replace(
+                "<head>", 
+                f'<head>\n    <!-- DEPLOYMENT TIMESTAMP: {timestamp} -->'
+            )
+            
+            return HTMLResponse(
+                content=html_content,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache", 
+                    "Expires": "0"
+                }
+            )
         else:
             return "<h1>Error: platform_production.html not found</h1>"
     except Exception as e:
@@ -38,8 +53,9 @@ async def health_check():
         "status": "operational",
         "timestamp": datetime.now().isoformat(),
         "platform": "Domus Planning AI System",
-        "version": "4.0.0",
-        "file": "main.py"
+        "version": "4.1.0-CACHE-CLEARED",
+        "file": "main.py",
+        "deployment": "2025-10-02-21:05"
     }
 
 @app.get("/debug-html")
