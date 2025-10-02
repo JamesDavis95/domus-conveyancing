@@ -130,10 +130,10 @@ app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Serve the FIXED platform interface - new file to bypass cache"""
+    """Serve the CLEAN WORKING platform - completely rebuilt navigation"""
     try:
-        # Read the FIXED HTML file (new file to bypass any caching issues)
-        html_path = Path(__file__).parent / "frontend" / "platform_fixed.html"
+        # Read the CLEAN WORKING HTML file (completely rebuilt)
+        html_path = Path(__file__).parent / "frontend" / "platform_clean_working.html"
         if html_path.exists():
             with open(html_path, 'r', encoding='utf-8') as file:
                 html_content = file.read()
@@ -152,11 +152,11 @@ async def root():
                     "Pragma": "no-cache",
                     "Expires": "0",
                     "X-Deploy-Time": timestamp,
-                    "X-File-Source": "platform_fixed.html"
+                    "X-File-Source": "platform_clean_working.html"
                 }
             )
         else:
-            return "<h1>Error: platform_fixed.html not found</h1>"
+            return "<h1>Error: platform_clean_working.html not found</h1>"
     except Exception as e:
         return f"<h1>Error loading HTML: {str(e)}</h1>"
 @app.get("/login", response_class=HTMLResponse)
