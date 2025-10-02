@@ -240,20 +240,6 @@ class Risks(Base):
     description = Column(Text, nullable=True)
 
     matter = relationship("Matters", back_populates="risks")
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.DEVELOPER)
-    is_active = Column(Boolean, default=True)
-    org_id = Column(Integer, ForeignKey("organizations.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_login = Column(DateTime, nullable=True)
-    
-    organization = relationship("Organization", back_populates="users")
-    usage_records = relationship("Usage", back_populates="user")
 
 class Organization(Base):
     __tablename__ = "organizations"
