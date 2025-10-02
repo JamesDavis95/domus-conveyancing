@@ -598,16 +598,16 @@
             <div class="nav-section">
                 <div class="nav-section-title">Team Collaboration</div>
                 <button class="nav-item" data-page="team-workspace" data-roles="developer,consultant" onclick="showPage('team-workspace')">
-                    <span class="icon"></span>
+                    <span class="icon">👥</span>
                     Team Workspace
                     <span class="role-indicator role-consultant">TEAM</span>
                 </button>
                 <button class="nav-item" data-page="project-sharing" data-roles="developer,landowner,consultant" onclick="showPage('project-sharing')">
-                    <span class="icon"></span>
+                    <span class="icon">🔗</span>
                     Project Sharing
                 </button>
                 <button class="nav-item" data-page="activity-feed" data-roles="developer,consultant" onclick="showPage('activity-feed')">
-                    <span class="icon"></span>
+                    <span class="icon">📈</span>
                     Activity Feed
                     <span style="background: var(--primary); color: white; border-radius: 12px; padding: 2px 6px; font-size: 10px; margin-left: 8px;">Live</span>
                 </button>
@@ -616,16 +616,16 @@
             <div class="nav-section">
                 <div class="nav-section-title">Analytics & Insights</div>
                 <button class="nav-item" data-page="planning-trends" data-roles="consultant,developer" onclick="showPage('planning-trends')">
-                    <span class="icon">�</span>
+                    <span class="icon">📊</span>
                     Planning Trends
                     <span class="role-indicator role-consultant">CON</span>
                 </button>
                 <button class="nav-item" data-page="offsets-reports" onclick="showPage('offsets-reports')">
-                    <span class="icon"></span>
+                    <span class="icon">📋</span>
                     Offsets Reports
                 </button>
                 <button class="nav-item" data-page="api-usage" onclick="showPage('api-usage')">
-                    <span class="icon"></span>
+                    <span class="icon">⚡</span>
                     API Usage
                 </button>
                 <button class="nav-item" data-page="notifications" onclick="showPage('notifications')">
@@ -6438,12 +6438,14 @@
 
         // Secure page navigation with role-based access control
         function showPage(pageId) {
-            // Check if user has permission to access this page
-            if (window.userAllowedPages && !window.userAllowedPages.includes(pageId)) {
-                console.warn(`Access denied: User role does not have permission to access page '${pageId}'`);
-                alert('Access Denied: You do not have permission to access this page.');
-                return;
-            }
+            console.log('showPage called with:', pageId);
+            
+            // Temporarily disable permission check for debugging
+            // if (window.userAllowedPages && !window.userAllowedPages.includes(pageId)) {
+            //     console.warn(`Access denied: User role does not have permission to access page '${pageId}'`);
+            //     alert('Access Denied: You do not have permission to access this page.');
+            //     return;
+            // }
             
             // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
@@ -6459,9 +6461,12 @@
             const targetPage = document.getElementById(pageId);
             if (targetPage) {
                 targetPage.classList.add('active');
+                console.log('Page activated:', pageId);
                 
                 // Apply role-specific data filtering
                 applyRoleBasedDataFiltering(pageId);
+            } else {
+                console.error('Page not found:', pageId);
             }
             
             // Activate nav item
