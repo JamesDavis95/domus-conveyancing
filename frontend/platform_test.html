@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Test - Domus</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .page { display: none; padding: 20px; border: 1px solid #ccc; margin: 10px 0; }
+        .page.active { display: block; }
+        .nav-btn { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .nav-btn.active { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Navigation Test</h1>
+    
+    <div id="userInfo">
+        <span id="userName">Loading...</span> - <span id="userRoleDisplay">Loading...</span>
+    </div>
+    
+    <nav>
+        <button class="nav-btn" onclick="showPage('dashboard')">Dashboard</button>
+        <button class="nav-btn" onclick="showPage('projects')">Projects</button>
+        <button class="nav-btn" onclick="showPage('marketplace')">Marketplace</button>
+    </nav>
+    
+    <div id="dashboard-page" class="page">
+        <h2>Dashboard Page</h2>
+        <p>This is the dashboard content.</p>
+    </div>
+    
+    <div id="projects-page" class="page">
+        <h2>Projects Page</h2>
+        <p>This is the projects content.</p>
+    </div>
+    
+    <div id="marketplace-page" class="page">
+        <h2>Marketplace Page</h2>
+        <p>This is the marketplace content.</p>
+    </div>
+    
+    <div id="debug-log" style="margin-top: 20px; padding: 10px; background: #f0f0f0; font-family: monospace; max-height: 200px; overflow-y: auto;"></div>
+
+    <script>
+        // Authentication setup
+        window.currentUser = {
+            id: 'superadmin_001',
+            name: 'James Davis',
+            email: 'james@domusconveyancing.com',
+            role: 'super_admin',
+            initials: 'JD'
+        };
+
+        const ROLE_PERMISSIONS = {
+            'super_admin': {
+                allowedPages: ['dashboard', 'projects', 'marketplace'],
+                dashboardTitle: 'Super Admin Dashboard',
+                dashboardSubtitle: 'Complete platform administration'
+            }
+        };
+
+        function debugLog(message) {
+            console.log(message);
+            const debugPanel = document.getElementById('debug-log');
+            if (debugPanel) {
+                debugPanel.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+        }
+
+        function initializeAuthentication() {
+            debugLog('🚀 Authentication initialization started');
+            debugLog('🚀 Current user: ' + JSON.stringify(window.currentUser));
+            
+            // Update user display
+            document.getElementById('userName').textContent = window.currentUser.name;
+            document.getElementById('userRoleDisplay').textContent = window.currentUser.role + ' Account';
+            
+            // Apply role-based restrictions
+            enforceRoleBasedAccess();
+            
+            debugLog('🚀 Authentication initialization complete');
+        }
+
+        function enforceRoleBasedAccess() {
+            const userRole = window.currentUser.role;
+            const permissions = ROLE_PERMISSIONS[userRole];
+            
+            if (!permissions) {
+                debugLog('❌ Invalid user role: ' + userRole);
+                return;
+            }
+
+            // Store allowed pages globally for security checks
+            window.userAllowedPages = permissions.allowedPages;
+            debugLog('✅ User allowed pages: ' + JSON.stringify(window.userAllowedPages));
+        }
+
+        function showPage(pageId) {
+            debugLog('🔄 Attempting to show page: ' + pageId);
+            
+            // Security check
+            if (window.userAllowedPages && !window.userAllowedPages.includes(pageId)) {
+                debugLog('🚫 Access denied for page: ' + pageId);
+                alert('Access denied: You don\'t have permission to view the ' + pageId + ' page.');
+                return;
+            }
+            
+            // Hide all pages
+            const allPages = document.querySelectorAll('.page');
+            allPages.forEach(page => {
+                page.classList.remove('active');
+                page.style.display = 'none';
+            });
+            
+            // Show the requested page
+            const targetPage = document.getElementById(pageId + '-page');
+            if (targetPage) {
+                targetPage.classList.add('active');
+                targetPage.style.display = 'block';
+                debugLog('✅ Successfully showed page: ' + pageId);
+                
+                // Update navigation active state
+                updateNavigation(pageId);
+            } else {
+                debugLog('❌ Page not found: ' + pageId + '-page');
+            }
+        }
+
+        function updateNavigation(activePageId) {
+            // Remove active state from all nav buttons
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active state to current page nav button
+            const activeNavBtn = document.querySelector(`[onclick*="showPage('${activePageId}')"]`);
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('active');
+            }
+        }
+
+        // Initialize authentication when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('🚀 DOM Content Loaded - Starting authentication...');
+            initializeAuthentication();
+            debugLog('🚀 window.currentUser after init: ' + JSON.stringify(window.currentUser));
+            debugLog('🚀 window.userAllowedPages after init: ' + JSON.stringify(window.userAllowedPages));
+            
+            // Show dashboard by default
+            showPage('dashboard');
+        });
+    </script>
+</body>
+</html>
