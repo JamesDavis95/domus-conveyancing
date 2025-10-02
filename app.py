@@ -150,6 +150,26 @@ async def login_page():
     except Exception as e:
         return f"<html><body><h1>Login Unavailable</h1><p>Please try again later.</p></body></html>"
 
+@app.get("/debug-html")
+async def debug_html():
+    """Debug endpoint to check what HTML content is being served"""
+    try:
+        html_path = Path(__file__).parent / "frontend" / "platform_production.html"
+        if html_path.exists():
+            with open(html_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            # Return just the dashboard section
+            start = content.find('<div id="dashboard" class="page active">')
+            end = content.find('</div>', start + 200)
+            if start != -1 and end != -1:
+                return {"dashboard_content": content[start:end+6]}
+            else:
+                return {"error": "Dashboard section not found", "file_size": len(content)}
+        else:
+            return {"error": "HTML file not found", "path": str(html_path)}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/health")
 async def health_check():
     """Simple health check for the 4-pillar system"""
