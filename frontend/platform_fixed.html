@@ -152,6 +152,10 @@
             display: block;
         }
         
+        .page.unauthorized-page {
+            display: none !important;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -6278,11 +6282,9 @@
             // Hide unauthorized pages for security
             document.querySelectorAll('.page').forEach(page => {
                 if (!allowedPages.includes(page.id)) {
-                    page.style.display = 'none'; // Hide unauthorized content
                     page.classList.add('unauthorized-page');
                     console.log('Hidden unauthorized page:', page.id);
                 } else {
-                    page.style.display = 'block';
                     page.classList.remove('unauthorized-page');
                     console.log('Authorized page available:', page.id);
                 }
