@@ -2846,6 +2846,11 @@ async def communications_hub(request: Request):
     """Communications Hub main page"""
     return templates.TemplateResponse("communications_hub.html", {"request": request})
 
+@app.get("/communications")
+async def communications(request: Request):
+    """Communications alias route"""
+    return templates.TemplateResponse("communications_hub.html", {"request": request})
+
 @app.get("/api/communications/inbox")
 async def get_inbox_messages():
     """Get inbox messages with filtering and pagination"""
@@ -4151,6 +4156,11 @@ async def task_management(request: Request):
     """Task Management main page"""
     return templates.TemplateResponse("task_management.html", {"request": request})
 
+@app.get("/tasks")
+async def tasks(request: Request):
+    """Tasks alias route"""
+    return templates.TemplateResponse("task_management.html", {"request": request})
+
 @app.get("/api/tasks/list")
 async def get_tasks_list():
     """Get comprehensive task list with filtering and sorting"""
@@ -5006,6 +5016,11 @@ class ReportExportRequest(BaseModel):
 @app.get("/reporting-analytics")
 async def reporting_analytics(request: Request):
     """Reporting & Analytics main page"""
+    return templates.TemplateResponse("reporting_analytics.html", {"request": request})
+
+@app.get("/reporting")
+async def reporting(request: Request):
+    """Reporting alias route"""
     return templates.TemplateResponse("reporting_analytics.html", {"request": request})
 
 @app.get("/api/analytics/overview")
