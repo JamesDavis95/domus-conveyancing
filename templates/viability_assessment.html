@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viability Assessment - Domus Platform</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        .viability-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .viability-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .viability-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .viability-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .preset-selector {
+            margin-bottom: 24px;
+        }
+        
+        .preset-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .results-panel {
+            grid-column: 1 / -1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .result-item {
+            background: white;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .result-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .result-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .viability-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-viable {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-marginal {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-unviable {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .sensitivity-section {
+            margin-top: 24px;
+        }
+        
+        .sensitivity-controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .sensitivity-item {
+            background: white;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="viability-container">
+        <div class="viability-header">
+            <div>
+                <h1>Viability Assessment</h1>
+                <p style="color: var(--muted); margin: 4px 0 0 0;">Financial appraisal and development viability analysis</p>
+            </div>
+            <div class="actions-bar">
+                <button class="btn btn-outline" onclick="loadPreset()">Load Preset</button>
+                <button class="btn btn-secondary" onclick="saveAsPreset()">Save as Preset</button>
+                <button class="btn btn-primary" onclick="runViabilityAssessment()">Run Assessment</button>
+            </div>
+        </div>
+        
+        <div class="viability-grid">
+            <!-- Development Inputs -->
+            <div class="viability-panel">
+                <h3 style="margin: 0 0 16px 0;">Development Inputs</h3>
+                
+                <div class="preset-selector">
+                    <label>Preset Template</label>
+                    <select id="presetSelector" onchange="applyPreset()">
+                        <option value="">Select preset...</option>
+                        <option value="residential">Residential Development</option>
+                        <option value="commercial">Commercial Office</option>
+                        <option value="mixed">Mixed Use</option>
+                        <option value="custom">Custom Configuration</option>
+                    </select>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Development Type</label>
+                        <select id="developmentType">
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="mixed">Mixed Use</option>
+                            <option value="industrial">Industrial</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Units / Floor Area</label>
+                        <input type="number" id="units" placeholder="50 units or sqm" value="50">
+                    </div>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>GDV per Unit (£)</label>
+                        <input type="number" id="gdvPerUnit" placeholder="400000" value="400000">
+                    </div>
+                    <div class="input-group">
+                        <label>Total GDV (£)</label>
+                        <input type="number" id="totalGdv" placeholder="20000000" value="20000000" readonly>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cost Inputs -->
+            <div class="viability-panel">
+                <h3 style="margin: 0 0 16px 0;">Cost Assumptions</h3>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Build Cost per sqm (£)</label>
+                        <input type="number" id="buildCostSqm" placeholder="1800" value="1800">
+                    </div>
+                    <div class="input-group">
+                        <label>Floor Area per Unit (sqm)</label>
+                        <input type="number" id="floorAreaPerUnit" placeholder="80" value="80">
+                    </div>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Professional Fees (%)</label>
+                        <input type="number" id="professionalFees" placeholder="12" value="12" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>Contingency (%)</label>
+                        <input type="number" id="contingency" placeholder="5" value="5" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Finance Rate (%)</label>
+                        <input type="number" id="financeRate" placeholder="6.5" value="6.5" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label>Profit Target (%)</label>
+                        <input type="number" id="profitTarget" placeholder="20" value="20" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>CIL Rate per sqm (£)</label>
+                        <input type="number" id="cilRate" placeholder="120" value="120">
+                    </div>
+                    <div class="input-group">
+                        <label>S106 Contributions (£)</label>
+                        <input type="number" id="s106Contributions" placeholder="250000" value="250000">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Panel -->
+        <div class="results-panel" id="resultsPanel" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0;">Viability Assessment Results</h3>
+                <div class="viability-status" id="viabilityStatus">
+                    Viable
+                </div>
+            </div>
+            
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-value" id="totalGdvResult">£20.0M</div>
+                    <div class="result-label">Total GDV</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="totalCostsResult">£15.2M</div>
+                    <div class="result-label">Total Costs</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="residualValueResult">£4.8M</div>
+                    <div class="result-label">Residual Value</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="profitMarginResult">24.0%</div>
+                    <div class="result-label">Profit Margin</div>
+                </div>
+            </div>
+            
+            <div class="sensitivity-section">
+                <h4 style="margin: 0 0 16px 0;">Sensitivity Analysis</h4>
+                <div class="sensitivity-controls">
+                    <div class="sensitivity-item">
+                        <div style="font-weight: 500; margin-bottom: 4px;">Build Cost +10%</div>
+                        <div style="font-size: 18px; color: var(--primary);" id="sensitivityBuildCost">21.2%</div>
+                        <div style="font-size: 12px; color: var(--muted);">Profit Margin</div>
+                    </div>
+                    <div class="sensitivity-item">
+                        <div style="font-weight: 500; margin-bottom: 4px;">Sales Rate -5%</div>
+                        <div style="font-size: 18px; color: var(--primary);" id="sensitivitySalesRate">19.1%</div>
+                        <div style="font-size: 12px; color: var(--muted);">Profit Margin</div>
+                    </div>
+                    <div class="sensitivity-item">
+                        <div style="font-weight: 500; margin-bottom: 4px;">Finance +1%</div>
+                        <div style="font-size: 18px; color: var(--primary);" id="sensitivityFinance">22.5%</div>
+                        <div style="font-size: 12px; color: var(--muted);">Profit Margin</div>
+                    </div>
+                    <div class="sensitivity-item">
+                        <div style="font-weight: 500; margin-bottom: 4px;">Program +6m</div>
+                        <div style="font-size: 18px; color: var(--primary);" id="sensitivityProgram">20.8%</div>
+                        <div style="font-size: 12px; color: var(--muted);">Profit Margin</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions-bar">
+                <button class="btn btn-outline" onclick="exportPDF()">Export PDF</button>
+                <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+                <button class="btn btn-secondary" onclick="addToSubmissionPack()">Add to Submission Pack</button>
+                <button class="btn btn-primary" onclick="saveScenario()">Save Scenario</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Calculate total GDV when inputs change
+        function updateTotalGdv() {
+            const units = document.getElementById('units').value || 0;
+            const gdvPerUnit = document.getElementById('gdvPerUnit').value || 0;
+            const totalGdv = units * gdvPerUnit;
+            document.getElementById('totalGdv').value = totalGdv;
+        }
+        
+        // Apply preset configuration
+        function applyPreset() {
+            const preset = document.getElementById('presetSelector').value;
+            
+            const presets = {
+                residential: {
+                    buildCostSqm: 1800,
+                    professionalFees: 12,
+                    contingency: 5,
+                    financeRate: 6.5,
+                    profitTarget: 20,
+                    cilRate: 120
+                },
+                commercial: {
+                    buildCostSqm: 2200,
+                    professionalFees: 15,
+                    contingency: 7,
+                    financeRate: 5.8,
+                    profitTarget: 18,
+                    cilRate: 185
+                },
+                mixed: {
+                    buildCostSqm: 2000,
+                    professionalFees: 13,
+                    contingency: 6,
+                    financeRate: 6.2,
+                    profitTarget: 19,
+                    cilRate: 150
+                }
+            };
+            
+            if (presets[preset]) {
+                Object.entries(presets[preset]).forEach(([key, value]) => {
+                    const element = document.getElementById(key);
+                    if (element) element.value = value;
+                });
+            }
+        }
+        
+        // Run viability assessment
+        async function runViabilityAssessment() {
+            try {
+                const inputs = {
+                    project_id: "{{ project_id }}",
+                    development_type: document.getElementById('developmentType').value,
+                    units: parseInt(document.getElementById('units').value),
+                    gdv_per_unit: parseFloat(document.getElementById('gdvPerUnit').value),
+                    total_gdv: parseFloat(document.getElementById('totalGdv').value),
+                    build_cost_sqm: parseFloat(document.getElementById('buildCostSqm').value),
+                    floor_area_per_unit: parseFloat(document.getElementById('floorAreaPerUnit').value),
+                    professional_fees_percent: parseFloat(document.getElementById('professionalFees').value),
+                    contingency_percent: parseFloat(document.getElementById('contingency').value),
+                    finance_rate_percent: parseFloat(document.getElementById('financeRate').value),
+                    profit_target_percent: parseFloat(document.getElementById('profitTarget').value),
+                    cil_rate_sqm: parseFloat(document.getElementById('cilRate').value),
+                    s106_contributions: parseFloat(document.getElementById('s106Contributions').value)
+                };
+                
+                const response = await fetch('/api/viability/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(inputs)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResults(result.assessment);
+                } else {
+                    alert('Assessment failed: ' + result.detail);
+                }
+            } catch (error) {
+                console.error('Assessment error:', error);
+                alert('Assessment failed. Please try again.');
+            }
+        }
+        
+        // Display assessment results
+        function displayResults(assessment) {
+            const resultsPanel = document.getElementById('resultsPanel');
+            resultsPanel.style.display = 'block';
+            
+            const outputs = assessment.outputs;
+            
+            // Update result values
+            document.getElementById('totalGdvResult').textContent = formatCurrency(outputs.gdv);
+            document.getElementById('totalCostsResult').textContent = formatCurrency(outputs.total_costs);
+            document.getElementById('residualValueResult').textContent = formatCurrency(outputs.residual_value);
+            document.getElementById('profitMarginResult').textContent = outputs.profit_percentage.toFixed(1) + '%';
+            
+            // Update viability status
+            const statusElement = document.getElementById('viabilityStatus');
+            statusElement.textContent = outputs.viability_status.charAt(0).toUpperCase() + outputs.viability_status.slice(1);
+            statusElement.className = 'viability-status status-' + outputs.viability_status;
+            
+            // Update sensitivity analysis (mock calculations)
+            const baseProfit = outputs.profit_percentage;
+            document.getElementById('sensitivityBuildCost').textContent = (baseProfit - 2.8).toFixed(1) + '%';
+            document.getElementById('sensitivitySalesRate').textContent = (baseProfit - 4.9).toFixed(1) + '%';
+            document.getElementById('sensitivityFinance').textContent = (baseProfit - 1.5).toFixed(1) + '%';
+            document.getElementById('sensitivityProgram').textContent = (baseProfit - 3.2).toFixed(1) + '%';
+        }
+        
+        // Format currency values
+        function formatCurrency(value) {
+            if (value >= 1000000) {
+                return '£' + (value / 1000000).toFixed(1) + 'M';
+            } else if (value >= 1000) {
+                return '£' + (value / 1000).toFixed(0) + 'K';
+            } else {
+                return '£' + value.toLocaleString();
+            }
+        }
+        
+        // Action functions
+        async function loadPreset() {
+            try {
+                const response = await fetch('/api/viability/presets');
+                const result = await response.json();
+                // Show preset selection modal
+                console.log('Available presets:', result.presets);
+            } catch (error) {
+                console.error('Failed to load presets:', error);
+            }
+        }
+        
+        function saveAsPreset() {
+            const name = prompt('Enter preset name:');
+            if (name) {
+                // Save current configuration as preset
+                console.log('Saving preset:', name);
+            }
+        }
+        
+        function exportPDF() {
+            console.log('Exporting PDF report...');
+        }
+        
+        function exportCSV() {
+            console.log('Exporting CSV data...');
+        }
+        
+        function addToSubmissionPack() {
+            console.log('Adding to submission pack...');
+        }
+        
+        function saveScenario() {
+            const name = prompt('Enter scenario name:');
+            if (name) {
+                console.log('Saving scenario:', name);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('units').addEventListener('input', updateTotalGdv);
+        document.getElementById('gdvPerUnit').addEventListener('input', updateTotalGdv);
+        
+        // Initialize
+        updateTotalGdv();
+    </script>
+</body>
+</html>

@@ -45,6 +45,9 @@ class Orgs(Base):
     name = Column(String(255), nullable=False)
     plan = Column(Enum(PlanType), default=PlanType.CORE)
     billing_customer_id = Column(String(255), nullable=True)  # Stripe customer ID
+    training_opt_in = Column(Boolean, default=False)  # AI training consent
+    white_label_config = Column(JSON, nullable=True)  # Enterprise branding
+    api_rate_limit = Column(Integer, default=1000)  # Requests per hour
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -86,6 +89,27 @@ class Projects(Base):
     org = relationship("Orgs", back_populates="projects")
     documents = relationship("Documents", back_populates="project")
     bundles = relationship("Bundles", back_populates="project")
+    analysis_snapshots = relationship("AnalysisSnapshots", back_populates="project")
+
+# PLANNING AI ANALYSIS & SNAPSHOTS
+
+class AnalysisSnapshots(Base):
+    __tablename__ = "analysis_snapshots"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    analysis_type = Column(String(50), nullable=False)  # full, objection_risk, appeals
+    score = Column(Float, nullable=True)  # 0-100 approval probability
+    analysis_json = Column(JSON, nullable=False)  # Full analysis data
+    citations_json = Column(JSON, nullable=False)  # Policy citations & precedents
+    confidence = Column(Float, nullable=True)  # 0-1 confidence score
+    model_version = Column(String(50), nullable=False)  # AI model version
+    lpa_context_json = Column(JSON, nullable=True)  # HDT/5YHLS/tilted balance
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects", back_populates="analysis_snapshots")
+    org = relationship("Orgs")
 
 class Documents(Base):
     __tablename__ = "documents"
@@ -166,9 +190,285 @@ class UsageCounters(Base):
     projects_used = Column(Integer, default=0)
     docs_used = Column(Integer, default=0)
     api_calls_used = Column(Integer, default=0)
+    viability_runs_used = Column(Integer, default=0)
+    bng_calculations_used = Column(Integer, default=0)
+    transport_assessments_used = Column(Integer, default=0)
+    environment_assessments_used = Column(Integer, default=0)
+    submission_packs_used = Column(Integer, default=0)
     
     # Relationships
     org = relationship("Orgs")
+
+# VIABILITY ASSESSMENT MODULE
+
+class ViabilityPresets(Base):
+    __tablename__ = "viability_presets"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    config_json = Column(JSON, nullable=False)  # All viability parameters
+    is_default = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs")
+    runs = relationship("ViabilityRuns", back_populates="preset")
+
+class ViabilityRuns(Base):
+    __tablename__ = "viability_runs"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    preset_id = Column(Integer, ForeignKey("viability_presets.id"), nullable=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    inputs_json = Column(JSON, nullable=False)  # All input parameters
+    outputs_json = Column(JSON, nullable=False)  # GDV, costs, residual, profit
+    scenario_name = Column(String(255), nullable=True)
+    storage_url = Column(String(500), nullable=True)  # S3 URL for exports
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects")
+    preset = relationship("ViabilityPresets", back_populates="runs")
+    org = relationship("Orgs")
+
+# BIODIVERSITY NET GAIN (BNG) MODULE
+
+class BNGBaselines(Base):
+    __tablename__ = "bng_baselines"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    baseline_data_json = Column(JSON, nullable=False)  # Habitat metrics
+    storage_url = Column(String(500), nullable=True)  # S3 URL for uploads
+    sha256_hash = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects")
+    org = relationship("Orgs")
+    calculations = relationship("BNGCalculations", back_populates="baseline")
+
+class BNGCalculations(Base):
+    __tablename__ = "bng_calculations"
+    id = Column(Integer, primary_key=True)
+    baseline_id = Column(Integer, ForeignKey("bng_baselines.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    scheme_data_json = Column(JSON, nullable=False)  # Proposed scheme
+    calculation_json = Column(JSON, nullable=False)  # Units, deficit/surplus
+    net_gain_percentage = Column(Float, nullable=True)
+    deficit_units = Column(Float, nullable=True)
+    surplus_units = Column(Float, nullable=True)
+    storage_url = Column(String(500), nullable=True)  # S3 URL for statements
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    baseline = relationship("BNGBaselines", back_populates="calculations")
+    project = relationship("Projects")
+    org = relationship("Orgs")
+
+# TRANSPORT & HIGHWAYS MODULE
+
+class TransportInputs(Base):
+    __tablename__ = "transport_inputs"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    development_type = Column(String(100), nullable=False)
+    units_or_floorspace = Column(Float, nullable=False)
+    trip_rates_json = Column(JSON, nullable=False)
+    parking_requirements_json = Column(JSON, nullable=False)
+    access_assumptions_json = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects")
+    org = relationship("Orgs")
+    assessments = relationship("TransportAssessments", back_populates="inputs")
+
+class TransportAssessments(Base):
+    __tablename__ = "transport_assessments"
+    id = Column(Integer, primary_key=True)
+    inputs_id = Column(Integer, ForeignKey("transport_inputs.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    assessment_json = Column(JSON, nullable=False)  # Trip generation, impacts
+    risk_score = Column(Float, nullable=True)  # 0-100
+    mitigations_json = Column(JSON, nullable=False)  # Recommended mitigations
+    storage_url = Column(String(500), nullable=True)  # S3 URL for statements
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    inputs = relationship("TransportInputs", back_populates="assessments")
+    project = relationship("Projects")
+    org = relationship("Orgs")
+
+# ENVIRONMENT & CLIMATE MODULE
+
+class EnvironmentRisks(Base):
+    __tablename__ = "environment_risks"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    assessment_type = Column(String(100), nullable=False)  # air_quality, climate, etc
+    risk_data_json = Column(JSON, nullable=False)  # Environmental indicators
+    risk_score = Column(Float, nullable=True)  # 0-100
+    mitigations_json = Column(JSON, nullable=False)  # Recommended mitigations
+    citations_json = Column(JSON, nullable=False)  # Policy citations
+    storage_url = Column(String(500), nullable=True)  # S3 URL for statements
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects")
+    org = relationship("Orgs")
+
+# SUBMISSION PACK MODULE
+
+class SubmissionPacks(Base):
+    __tablename__ = "submission_packs"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    pack_name = Column(String(255), nullable=False)
+    contents_json = Column(JSON, nullable=False)  # List of included documents
+    manifest_json = Column(JSON, nullable=False)  # SHA256 checksums
+    storage_url = Column(String(500), nullable=False)  # S3 URL for ZIP
+    sha256_hash = Column(String(64), nullable=False)
+    authority_token = Column(String(255), nullable=True, unique=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects")
+    org = relationship("Orgs")
+
+# OBJECTION RISK & APPEALS MODULE
+
+class ObjectionCorpus(Base):
+    __tablename__ = "objection_corpus"
+    id = Column(Integer, primary_key=True)
+    lpa_code = Column(String(10), nullable=False, index=True)
+    application_ref = Column(String(50), nullable=True)
+    theme = Column(String(100), nullable=False)  # traffic, design, etc
+    objection_text = Column(Text, nullable=False)
+    url = Column(String(500), nullable=True)
+    date_submitted = Column(DateTime, nullable=True)
+    embedding_vector = Column(JSON, nullable=True)  # For semantic search
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class AppealsCases(Base):
+    __tablename__ = "appeals_cases"
+    id = Column(Integer, primary_key=True)
+    lpa_code = Column(String(10), nullable=False, index=True)
+    appeal_ref = Column(String(50), nullable=False, unique=True)
+    application_ref = Column(String(50), nullable=True)
+    decision = Column(String(20), nullable=False)  # allowed, dismissed
+    appeal_type = Column(String(50), nullable=False)  # householder, etc
+    development_type = Column(String(100), nullable=True)
+    reasons_json = Column(JSON, nullable=False)  # Reasons for decision
+    inspector_report_url = Column(String(500), nullable=True)
+    decision_date = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+# LPA METRICS & ANALYTICS
+
+class LPAMetrics(Base):
+    __tablename__ = "lpa_metrics"
+    lpa_code = Column(String(10), primary_key=True)
+    lpa_name = Column(String(255), nullable=False)
+    decision_times_json = Column(JSON, nullable=False)  # Average times by type
+    approval_rate = Column(Float, nullable=True)  # 0-100
+    appeal_success_rate = Column(Float, nullable=True)  # 0-100
+    housing_delivery_test = Column(Float, nullable=True)
+    five_year_land_supply = Column(Float, nullable=True)
+    tilted_balance = Column(Boolean, default=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# ORG INSIGHTS & KNOWLEDGE GRAPH
+
+class OrgGraphNodes(Base):
+    __tablename__ = "org_graph_nodes"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    node_type = Column(String(50), nullable=False)  # risk, mitigation, success_factor
+    label = Column(String(255), nullable=False)
+    properties_json = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs")
+    project = relationship("Projects")
+
+class OrgGraphEdges(Base):
+    __tablename__ = "org_graph_edges"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    from_node_id = Column(Integer, ForeignKey("org_graph_nodes.id"), nullable=False)
+    to_node_id = Column(Integer, ForeignKey("org_graph_nodes.id"), nullable=False)
+    edge_type = Column(String(50), nullable=False)  # causes, mitigates, relates_to
+    weight = Column(Float, default=1.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs")
+    from_node = relationship("OrgGraphNodes", foreign_keys=[from_node_id])
+    to_node = relationship("OrgGraphNodes", foreign_keys=[to_node_id])
+
+# COLLABORATION MODULE
+
+class Collaborators(Base):
+    __tablename__ = "collaborators"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    email = Column(String(255), nullable=False)
+    role = Column(String(50), nullable=False)  # viewer, contributor, manager
+    invited_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    invited_at = Column(DateTime, default=datetime.utcnow)
+    accepted_at = Column(DateTime, nullable=True)
+    status = Column(String(20), default="pending")  # pending, active, revoked
+    
+    # Relationships
+    project = relationship("Projects")
+    org = relationship("Orgs")
+    inviter = relationship("Users")
+
+class Comments(Base):
+    __tablename__ = "comments"
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Null for authority
+    author_email = Column(String(255), nullable=True)  # For external users
+    context = Column(Enum(enum.Enum('CommentContext', 'doc analysis authority')), nullable=False)
+    body = Column(Text, nullable=False)
+    metadata_json = Column(JSON, nullable=True)  # Mentions, attachments, etc
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    project = relationship("Projects")
+    author = relationship("Users")
+
+# AUDIT & COMPLIANCE
+
+class AuditLogs(Base):
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True)
+    org_id = Column(Integer, ForeignKey("orgs.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action = Column(String(100), nullable=False)  # view, generate, comment, etc
+    resource_type = Column(String(50), nullable=False)  # project, document, etc
+    resource_id = Column(String(50), nullable=False)
+    metadata_json = Column(JSON, nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    org = relationship("Orgs")
+    user = relationship("Users")
 
 # ENTERPRISE FEATURES
 

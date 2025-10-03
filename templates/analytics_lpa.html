@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LPA Performance Analytics - Domus Platform</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analytics-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .metric-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        
+        .metric-change {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        
+        .change-positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .change-negative {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .change-neutral {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .chart-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .chart-controls {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .lpa-selector {
+            margin-bottom: 24px;
+        }
+        
+        .lpa-selector select {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .comparison-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 16px;
+        }
+        
+        .comparison-name {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .comparison-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .comparison-metric {
+            text-align: center;
+        }
+        
+        .comparison-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .comparison-label {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-primary);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .insights-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .insights-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+        }
+        
+        .insight-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .insight-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .performance-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .indicator {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .indicator-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .indicator-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-good {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-poor {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="analytics-container">
+        <div class="analytics-header">
+            <div>
+                <h1>LPA Performance Analytics</h1>
+                <p style="color: var(--muted); margin: 4px 0 0 0;">Local Planning Authority performance metrics and benchmarks</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
+                <button class="btn btn-outline" onclick="generateReport()">Generate Report</button>
+            </div>
+        </div>
+        
+        <div class="lpa-selector">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Select Local Planning Authority</label>
+            <select id="lpaSelector" onchange="loadLPAData()" style="width: 400px;">
+                <option value="E07000008">Cambridge City Council</option>
+                <option value="E07000009">East Cambridgeshire District Council</option>
+                <option value="E07000010">Fenland District Council</option>
+                <option value="E07000011">Huntingdonshire District Council</option>
+                <option value="E07000012">South Cambridgeshire District Council</option>
+                <option value="E09000001">City of London Corporation</option>
+                <option value="E09000007">Camden London Borough Council</option>
+                <option value="E09000033">Westminster City Council</option>
+            </select>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="analytics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="approvalRate">84.2%</div>
+                <div class="metric-label">Approval Rate</div>
+                <div class="metric-change change-positive" id="approvalChange">+2.1% vs last year</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-value" id="decisionTime">12.5</div>
+                <div class="metric-label">Avg Decision Time (weeks)</div>
+                <div class="metric-change change-negative" id="timeChange">+1.2 weeks vs target</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-value" id="appealSuccess">42%</div>
+                <div class="metric-label">Appeal Success Rate</div>
+                <div class="metric-change change-neutral" id="appealChange">-0.5% vs last year</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-value" id="applicationVolume">1,247</div>
+                <div class="metric-label">Applications (12 months)</div>
+                <div class="metric-change change-positive" id="volumeChange">+156 vs last year</div>
+            </div>
+        </div>
+        
+        <!-- Performance Indicators -->
+        <div class="performance-indicators">
+            <div class="indicator">
+                <div class="indicator-icon">🏠</div>
+                <div style="font-weight: 500; margin-bottom: 4px;">Housing Delivery Test</div>
+                <div style="font-size: 20px; font-weight: 600; color: var(--primary); margin-bottom: 8px;" id="hdtScore">95%</div>
+                <div class="indicator-status status-good">Good</div>
+            </div>
+            
+            <div class="indicator">
+                <div class="indicator-icon">📍</div>
+                <div style="font-weight: 500; margin-bottom: 4px;">5-Year Land Supply</div>
+                <div style="font-size: 20px; font-weight: 600; color: var(--primary); margin-bottom: 8px;" id="landSupply">4.2 years</div>
+                <div class="indicator-status status-warning">Below Target</div>
+            </div>
+            
+            <div class="indicator">
+                <div class="indicator-icon">⚖️</div>
+                <div style="font-weight: 500; margin-bottom: 4px;">Tilted Balance</div>
+                <div style="font-size: 20px; font-weight: 600; color: var(--primary); margin-bottom: 8px;">Active</div>
+                <div class="indicator-status status-warning">Engaged</div>
+            </div>
+            
+            <div class="indicator">
+                <div class="indicator-icon">📊</div>
+                <div style="font-weight: 500; margin-bottom: 4px;">Performance Rating</div>
+                <div style="font-size: 20px; font-weight: 600; color: var(--primary); margin-bottom: 8px;">B+</div>
+                <div class="indicator-status status-good">Above Average</div>
+            </div>
+        </div>
+        
+        <!-- Approval Rate Trends -->
+        <div class="chart-panel">
+            <div class="chart-header">
+                <h3 class="chart-title">Approval Rate Trends</h3>
+                <div class="chart-controls">
+                    <button class="btn btn-secondary" onclick="setTimeframe('6m')">6M</button>
+                    <button class="btn btn-secondary" onclick="setTimeframe('12m')">12M</button>
+                    <button class="btn btn-outline" onclick="setTimeframe('24m')">24M</button>
+                </div>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="approvalChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Decision Time Analysis -->
+        <div class="chart-panel">
+            <div class="chart-header">
+                <h3 class="chart-title">Decision Time Analysis</h3>
+                <div class="chart-controls">
+                    <button class="btn btn-secondary" onclick="toggleChartType('line')">Line</button>
+                    <button class="btn btn-outline" onclick="toggleChartType('bar')">Bar</button>
+                </div>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="decisionChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Regional Comparison -->
+        <div class="chart-panel">
+            <h3 style="margin: 0 0 20px 0;">Regional Comparison</h3>
+            <div class="comparison-grid" id="comparisonGrid">
+                <!-- Comparison items will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- AI Insights -->
+        <div class="insights-panel">
+            <h3 class="insights-title">📊 AI Performance Insights</h3>
+            <div class="insight-item">
+                <strong>Approval Rate Trend:</strong> Cambridge City shows consistent performance above regional average. Recent uptick in major applications suggests strong development pipeline.
+            </div>
+            <div class="insight-item">
+                <strong>Decision Time Analysis:</strong> Average determination time 15% slower than similar authorities. Consider pre-application engagement to streamline process.
+            </div>
+            <div class="insight-item">
+                <strong>Appeal Risk Assessment:</strong> 42% appeal success rate indicates balanced decision-making. Heritage applications show higher appeal risk.
+            </div>
+            <div class="insight-item">
+                <strong>Strategic Recommendation:</strong> Focus on major applications and heritage guidance could improve overall performance metrics by 8-12%.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let approvalChart, decisionChart;
+        
+        // Initialize charts
+        function initializeCharts() {
+            // Approval Rate Chart
+            const approvalCtx = document.getElementById('approvalChart').getContext('2d');
+            approvalChart = new Chart(approvalCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Approval Rate %',
+                        data: [82, 85, 78, 89, 84, 87, 82, 86, 88, 84, 83, 85],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Regional Average',
+                        data: [78, 79, 76, 81, 80, 82, 79, 81, 83, 80, 79, 81],
+                        borderColor: '#6b7280',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 70,
+                            max: 95
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+            
+            // Decision Time Chart
+            const decisionCtx = document.getElementById('decisionChart').getContext('2d');
+            decisionChart = new Chart(decisionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Householder', 'Minor Commercial', 'Major Residential', 'Major Commercial', 'Infrastructure'],
+                    datasets: [{
+                        label: 'Average Weeks',
+                        data: [6, 8, 14, 16, 22],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderRadius: 4
+                    }, {
+                        label: 'Government Target',
+                        data: [6, 8, 13, 13, 16],
+                        backgroundColor: 'rgba(107, 114, 128, 0.3)',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load LPA data
+        async function loadLPAData() {
+            const lpaCode = document.getElementById('lpaSelector').value;
+            
+            try {
+                const response = await fetch(`/api/analytics/lpa?lpa_code=${lpaCode}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateMetrics(result.lpa_analytics);
+                    updateComparison(lpaCode);
+                }
+            } catch (error) {
+                console.error('Failed to load LPA data:', error);
+            }
+        }
+        
+        // Update metrics display
+        function updateMetrics(data) {
+            const metrics = data.performance_metrics;
+            
+            document.getElementById('approvalRate').textContent = `${metrics.approval_rate_percent}%`;
+            document.getElementById('decisionTime').textContent = `${metrics.average_decision_time_weeks}`;
+            document.getElementById('appealSuccess').textContent = `${metrics.appeal_success_rate_percent}%`;
+            document.getElementById('applicationVolume').textContent = '1,247'; // Mock value
+            
+            document.getElementById('hdtScore').textContent = `${metrics.housing_delivery_test_percent}%`;
+            document.getElementById('landSupply').textContent = `${metrics.five_year_land_supply_years} years`;
+            
+            // Update charts with new data
+            if (data.trend_data) {
+                approvalChart.data.datasets[0].data = data.trend_data.approval_rates_12m;
+                approvalChart.update();
+                
+                decisionChart.data.datasets[0].data = data.trend_data.decision_times_12m.slice(0, 5);
+                decisionChart.update();
+            }
+        }
+        
+        // Update regional comparison
+        function updateComparison(selectedLPA) {
+            const comparisonData = [
+                { name: 'Cambridge City', approval: 84, time: 12.5, current: selectedLPA === 'E07000008' },
+                { name: 'South Cambridgeshire', approval: 78, time: 11.2, current: false },
+                { name: 'East Cambridgeshire', approval: 82, time: 13.8, current: false },
+                { name: 'Westminster City', approval: 76, time: 14.2, current: selectedLPA === 'E09000033' },
+                { name: 'Camden Borough', approval: 73, time: 15.1, current: false }
+            ];
+            
+            const grid = document.getElementById('comparisonGrid');
+            grid.innerHTML = comparisonData.map(lpa => `
+                <div class="comparison-item" style="${lpa.current ? 'border-color: var(--primary); background: #eff6ff;' : ''}">
+                    <div class="comparison-name">${lpa.name} ${lpa.current ? '(Selected)' : ''}</div>
+                    <div class="comparison-metrics">
+                        <div class="comparison-metric">
+                            <div class="comparison-value">${lpa.approval}%</div>
+                            <div class="comparison-label">Approval</div>
+                        </div>
+                        <div class="comparison-metric">
+                            <div class="comparison-value">${lpa.time}</div>
+                            <div class="comparison-label">Weeks</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Chart control functions
+        function setTimeframe(period) {
+            console.log('Setting timeframe:', period);
+            // Update chart data based on timeframe
+        }
+        
+        function toggleChartType(type) {
+            console.log('Toggling chart type:', type);
+            decisionChart.config.type = type;
+            decisionChart.update();
+        }
+        
+        // Export functions
+        function exportData() {
+            console.log('Exporting analytics data...');
+        }
+        
+        function generateReport() {
+            console.log('Generating performance report...');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadLPAData();
+        });
+    </script>
+</body>
+</html>

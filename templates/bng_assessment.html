@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BNG Assessment - Domus Platform</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        .bng-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .bng-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .bng-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .bng-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+        
+        .baseline-summary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .habitat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .habitat-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .habitat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .habitat-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+        
+        .calculation-panel {
+            grid-column: 1 / -1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .bng-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .bng-result.compliant {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+        
+        .bng-result.deficit {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .result-content {
+            flex: 1;
+        }
+        
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .result-subtitle {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
+        .result-value {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: right;
+        }
+        
+        .compliant .result-value {
+            color: #22c55e;
+        }
+        
+        .deficit .result-value {
+            color: #ef4444;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .marketplace-cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 24px;
+        }
+        
+        .marketplace-cta h4 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+        
+        .marketplace-cta p {
+            margin: 0 0 16px 0;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="bng-container">
+        <div class="bng-header">
+            <div>
+                <h1>Biodiversity Net Gain Assessment</h1>
+                <p style="color: var(--muted); margin: 4px 0 0 0;">Calculate BNG requirements and identify offset opportunities</p>
+            </div>
+            <div class="actions-bar">
+                <button class="btn btn-outline" onclick="exportStatement()">Export Statement</button>
+                <button class="btn btn-primary" onclick="calculateBNG()">Calculate BNG</button>
+            </div>
+        </div>
+        
+        <div class="bng-grid">
+            <!-- Baseline Upload -->
+            <div class="bng-panel">
+                <h3 style="margin: 0 0 16px 0;">Baseline Assessment</h3>
+                
+                <div class="upload-area" onclick="uploadBaseline()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+                    <h4 style="margin: 0 0 8px 0;">Upload Baseline Data</h4>
+                    <p style="color: var(--muted); margin: 0;">Drop habitat survey data here or click to browse</p>
+                    <p style="color: var(--muted); font-size: 12px; margin: 8px 0 0 0;">Supports: .xlsx, .csv, .json</p>
+                    <input type="file" id="baselineFile" accept=".xlsx,.csv,.json" style="display: none;" onchange="processBaseline(event)">
+                </div>
+                
+                <div class="baseline-summary" id="baselineSummary" style="display: none;">
+                    <h4 style="margin: 0 0 12px 0;">Baseline Summary</h4>
+                    <div class="habitat-grid">
+                        <div class="habitat-item">
+                            <div class="habitat-value" id="habitatUnits">0</div>
+                            <div class="habitat-label">Habitat Units</div>
+                        </div>
+                        <div class="habitat-item">
+                            <div class="habitat-value" id="hedgerowUnits">0</div>
+                            <div class="habitat-label">Hedgerow Units</div>
+                        </div>
+                        <div class="habitat-item">
+                            <div class="habitat-value" id="watercourseUnits">0</div>
+                            <div class="habitat-label">Watercourse Units</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Scheme Configuration -->
+            <div class="bng-panel">
+                <h3 style="margin: 0 0 16px 0;">Proposed Scheme</h3>
+                
+                <div class="input-group">
+                    <label>Development Type</label>
+                    <select id="developmentType">
+                        <option value="residential">Residential</option>
+                        <option value="commercial">Commercial</option>
+                        <option value="industrial">Industrial</option>
+                        <option value="infrastructure">Infrastructure</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>Site Area (hectares)</label>
+                    <input type="number" id="siteArea" placeholder="2.5" value="2.5" step="0.1">
+                </div>
+                
+                <div class="input-group">
+                    <label>Habitat Retention (%)</label>
+                    <input type="number" id="habitatRetention" placeholder="30" value="30" step="1">
+                </div>
+                
+                <div class="input-group">
+                    <label>Onsite Enhancement (%)</label>
+                    <input type="number" id="onsiteEnhancement" placeholder="15" value="15" step="1">
+                </div>
+                
+                <div class="input-group">
+                    <label>Net Gain Target (%)</label>
+                    <input type="number" id="netGainTarget" placeholder="10" value="10" step="1" readonly>
+                </div>
+                
+                <div class="input-group">
+                    <label>Assessment Methodology</label>
+                    <select id="methodology">
+                        <option value="metric_4">Biodiversity Metric 4.0</option>
+                        <option value="metric_3_1">Biodiversity Metric 3.1</option>
+                        <option value="custom">Custom Methodology</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calculation Results -->
+        <div class="calculation-panel" id="calculationPanel" style="display: none;">
+            <h3 style="margin: 0 0 24px 0;">BNG Calculation Results</h3>
+            
+            <div class="bng-result" id="bngResultPanel">
+                <div class="result-content">
+                    <div class="result-title" id="resultTitle">BNG Compliant</div>
+                    <div class="result-subtitle" id="resultSubtitle">Scheme meets 10% biodiversity net gain requirement</div>
+                </div>
+                <div class="result-value" id="resultValue">+12.5%</div>
+            </div>
+            
+            <div class="habitat-grid">
+                <div class="habitat-item">
+                    <div class="habitat-value" id="baselineTotal">100.0</div>
+                    <div class="habitat-label">Baseline Units</div>
+                </div>
+                <div class="habitat-item">
+                    <div class="habitat-value" id="postDevTotal">112.5</div>
+                    <div class="habitat-label">Post-Dev Units</div>
+                </div>
+                <div class="habitat-item">
+                    <div class="habitat-value" id="requiredTotal">110.0</div>
+                    <div class="habitat-label">Required Units</div>
+                </div>
+                <div class="habitat-item">
+                    <div class="habitat-value" id="surplusDeficit">+2.5</div>
+                    <div class="habitat-label">Surplus/Deficit</div>
+                </div>
+                <div class="habitat-item">
+                    <div class="habitat-value" id="onsiteDelivery">80%</div>
+                    <div class="habitat-label">Onsite Delivery</div>
+                </div>
+                <div class="habitat-item">
+                    <div class="habitat-value" id="offsetRequirement">0</div>
+                    <div class="habitat-label">Offset Required</div>
+                </div>
+            </div>
+            
+            <div class="marketplace-cta" id="marketplaceCta" style="display: none;">
+                <h4>Offset Required</h4>
+                <p>Your scheme requires <span id="offsetUnits">15.2</span> biodiversity units to achieve compliance.</p>
+                <button class="btn" style="background: white; color: var(--primary);" onclick="createMarketplaceDemand()">
+                    Find Offsets in Marketplace
+                </button>
+            </div>
+            
+            <div class="actions-bar" style="margin-top: 24px;">
+                <button class="btn btn-outline" onclick="exportBNGStatement()">Export BNG Statement</button>
+                <button class="btn btn-outline" onclick="downloadMetric()">Download Metric</button>
+                <button class="btn btn-secondary" onclick="addToSubmissionPack()">Add to Submission Pack</button>
+                <button class="btn btn-primary" onclick="saveCalculation()">Save Calculation</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentBaseline = null;
+        
+        // Upload baseline data
+        function uploadBaseline() {
+            document.getElementById('baselineFile').click();
+        }
+        
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.target.closest('.upload-area').classList.add('dragover');
+        }
+        
+        function handleDrop(event) {
+            event.preventDefault();
+            const uploadArea = event.target.closest('.upload-area');
+            uploadArea.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                processBaselineFile(files[0]);
+            }
+        }
+        
+        function processBaseline(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processBaselineFile(file);
+            }
+        }
+        
+        async function processBaselineFile(file) {
+            try {
+                // Mock baseline processing
+                currentBaseline = {
+                    habitat_units: Math.random() * 50 + 50,
+                    hedgerow_units: Math.random() * 20 + 10,
+                    watercourse_units: Math.random() * 15 + 5
+                };
+                
+                // Update baseline summary
+                document.getElementById('habitatUnits').textContent = currentBaseline.habitat_units.toFixed(1);
+                document.getElementById('hedgerowUnits').textContent = currentBaseline.hedgerow_units.toFixed(1);
+                document.getElementById('watercourseUnits').textContent = currentBaseline.watercourse_units.toFixed(1);
+                
+                document.getElementById('baselineSummary').style.display = 'block';
+                
+                // Auto-calculate if scheme data is available
+                if (document.getElementById('siteArea').value) {
+                    calculateBNG();
+                }
+            } catch (error) {
+                console.error('Baseline processing error:', error);
+                alert('Failed to process baseline file. Please check the format.');
+            }
+        }
+        
+        // Calculate BNG
+        async function calculateBNG() {
+            if (!currentBaseline) {
+                alert('Please upload baseline data first.');
+                return;
+            }
+            
+            try {
+                const inputs = {
+                    project_id: "{{ project_id }}",
+                    baseline_id: "baseline-" + Date.now(),
+                    baseline_units: currentBaseline.habitat_units + currentBaseline.hedgerow_units + currentBaseline.watercourse_units,
+                    site_area: parseFloat(document.getElementById('siteArea').value),
+                    habitat_retention: parseFloat(document.getElementById('habitatRetention').value),
+                    onsite_enhancement: parseFloat(document.getElementById('onsiteEnhancement').value),
+                    net_gain_target: parseFloat(document.getElementById('netGainTarget').value),
+                    methodology: document.getElementById('methodology').value
+                };
+                
+                const response = await fetch('/api/bng/calc', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(inputs)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayBNGResults(result.calculation);
+                } else {
+                    alert('Calculation failed: ' + result.detail);
+                }
+            } catch (error) {
+                console.error('BNG calculation error:', error);
+                alert('Calculation failed. Please try again.');
+            }
+        }
+        
+        // Display BNG results
+        function displayBNGResults(calculation) {
+            const resultsPanel = document.getElementById('calculationPanel');
+            resultsPanel.style.display = 'block';
+            
+            const results = calculation.results;
+            
+            // Update main result
+            const resultPanel = document.getElementById('bngResultPanel');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultSubtitle = document.getElementById('resultSubtitle');
+            const resultValue = document.getElementById('resultValue');
+            
+            if (results.compliant) {
+                resultPanel.className = 'bng-result compliant';
+                resultTitle.textContent = 'BNG Compliant';
+                resultSubtitle.textContent = `Scheme achieves ${results.net_gain_percentage}% biodiversity net gain`;
+                resultValue.textContent = `+${results.net_gain_percentage}%`;
+                document.getElementById('marketplaceCta').style.display = 'none';
+            } else {
+                resultPanel.className = 'bng-result deficit';
+                resultTitle.textContent = 'BNG Deficit';
+                resultSubtitle.textContent = `Offset required to achieve ${results.net_gain_percentage}% target`;
+                resultValue.textContent = `-${Math.abs(results.deficit_units).toFixed(1)} units`;
+                document.getElementById('offsetUnits').textContent = Math.abs(results.deficit_units).toFixed(1);
+                document.getElementById('marketplaceCta').style.display = 'block';
+            }
+            
+            // Update detailed metrics
+            document.getElementById('baselineTotal').textContent = results.baseline_units.toFixed(1);
+            document.getElementById('postDevTotal').textContent = results.post_development_units.toFixed(1);
+            document.getElementById('requiredTotal').textContent = results.required_units.toFixed(1);
+            
+            const surplus = results.surplus_units || 0;
+            const deficit = results.deficit_units || 0;
+            document.getElementById('surplusDeficit').textContent = surplus > 0 ? `+${surplus.toFixed(1)}` : `-${Math.abs(deficit).toFixed(1)}`;
+            
+            document.getElementById('onsiteDelivery').textContent = '75%'; // Mock value
+            document.getElementById('offsetRequirement').textContent = Math.max(0, deficit).toFixed(1);
+        }
+        
+        // Action functions
+        async function createMarketplaceDemand() {
+            try {
+                const offsetUnits = parseFloat(document.getElementById('offsetUnits').textContent);
+                
+                const demandData = {
+                    project_id: "{{ project_id }}",
+                    bng_units_required: offsetUnits,
+                    region: "South East England",
+                    budget_per_unit: 15000,
+                    total_budget: offsetUnits * 15000
+                };
+                
+                console.log('Creating marketplace demand:', demandData);
+                
+                // Redirect to marketplace with pre-filled data
+                window.location.href = `/offsets-marketplace?demand=${encodeURIComponent(JSON.stringify(demandData))}`;
+            } catch (error) {
+                console.error('Failed to create marketplace demand:', error);
+            }
+        }
+        
+        function exportBNGStatement() {
+            console.log('Exporting BNG statement...');
+        }
+        
+        function downloadMetric() {
+            console.log('Downloading biodiversity metric...');
+        }
+        
+        function addToSubmissionPack() {
+            console.log('Adding to submission pack...');
+        }
+        
+        function saveCalculation() {
+            console.log('Saving BNG calculation...');
+        }
+        
+        function exportStatement() {
+            console.log('Exporting statement...');
+        }
+        
+        // Initialize with mock baseline for demo
+        setTimeout(() => {
+            currentBaseline = {
+                habitat_units: 85.5,
+                hedgerow_units: 15.2,
+                watercourse_units: 8.3
+            };
+            
+            document.getElementById('habitatUnits').textContent = currentBaseline.habitat_units.toFixed(1);
+            document.getElementById('hedgerowUnits').textContent = currentBaseline.hedgerow_units.toFixed(1);
+            document.getElementById('watercourseUnits').textContent = currentBaseline.watercourse_units.toFixed(1);
+            document.getElementById('baselineSummary').style.display = 'block';
+        }, 1000);
+    </script>
+</body>
+</html>
