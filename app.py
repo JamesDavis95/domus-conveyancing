@@ -4983,6 +4983,928 @@ async def get_task_dashboard():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard: {str(e)}")
 
+# ================================
+# REPORTING & ANALYTICS SYSTEM
+# ================================
+
+class CustomReportCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    data_sources: List[str] = []
+    schedule: str = "manual"  # manual, daily, weekly, monthly
+    recipients: List[str] = []
+    chart_types: List[str] = []
+    filters: dict = {}
+
+class ReportExportRequest(BaseModel):
+    report_type: str
+    format: str = "pdf"  # pdf, excel, csv
+    date_range: dict = {}
+    filters: dict = {}
+
+@app.get("/reporting-analytics")
+async def reporting_analytics(request: Request):
+    """Reporting & Analytics main page"""
+    return templates.TemplateResponse("reporting_analytics.html", {"request": request})
+
+@app.get("/api/analytics/overview")
+async def get_analytics_overview():
+    """Get comprehensive analytics overview data"""
+    try:
+        overview_data = {
+            "key_metrics": {
+                "total_revenue": {
+                    "value": 2340000,
+                    "formatted": "£2.34M",
+                    "change_percentage": 23.4,
+                    "change_direction": "up",
+                    "period": "vs last month"
+                },
+                "active_projects": {
+                    "value": 187,
+                    "change_percentage": 6.8,
+                    "change_direction": "up",
+                    "change_absolute": 12,
+                    "period": "new this month"
+                },
+                "client_satisfaction": {
+                    "value": 94,
+                    "formatted": "94%",
+                    "change_percentage": 2.1,
+                    "change_direction": "up",
+                    "target": 95,
+                    "period": "improvement"
+                },
+                "team_efficiency": {
+                    "value": 87,
+                    "formatted": "87%",
+                    "change_percentage": -3.2,
+                    "change_direction": "down",
+                    "target": 90,
+                    "period": "below target"
+                }
+            },
+            "kpi_dashboard": {
+                "monthly_recurring_revenue": {
+                    "value": 89200,
+                    "formatted": "£89.2K",
+                    "growth_rate": 15.3,
+                    "trend": "up",
+                    "target": 95000
+                },
+                "planning_applications": {
+                    "value": 67,
+                    "period": "this month",
+                    "growth": 8,
+                    "trend": "up",
+                    "completion_rate": 94
+                },
+                "avg_project_duration": {
+                    "value": 4.2,
+                    "unit": "weeks",
+                    "improvement": 2,
+                    "trend": "down",
+                    "target": 4.0
+                },
+                "client_rating": {
+                    "value": 4.7,
+                    "max": 5.0,
+                    "reviews_count": 156,
+                    "trend": "stable",
+                    "distribution": {
+                        "5_star": 78,
+                        "4_star": 67,
+                        "3_star": 9,
+                        "2_star": 2,
+                        "1_star": 0
+                    }
+                }
+            },
+            "revenue_trends": {
+                "monthly_data": [
+                    {"month": "Jan", "revenue": 180000, "projects": 15},
+                    {"month": "Feb", "revenue": 195000, "projects": 18},
+                    {"month": "Mar", "revenue": 210000, "projects": 22},
+                    {"month": "Apr", "revenue": 185000, "projects": 16},
+                    {"month": "May", "revenue": 220000, "projects": 25},
+                    {"month": "Jun", "revenue": 235000, "projects": 28},
+                    {"month": "Jul", "revenue": 245000, "projects": 30},
+                    {"month": "Aug", "revenue": 225000, "projects": 26},
+                    {"month": "Sep", "revenue": 260000, "projects": 32}
+                ],
+                "forecast": {
+                    "oct": 275000,
+                    "nov": 290000,
+                    "dec": 310000
+                }
+            },
+            "project_distribution": {
+                "planning_applications": {"count": 84, "percentage": 45, "revenue": 1053000},
+                "design_projects": {"count": 47, "percentage": 25, "revenue": 585000},
+                "consultancy": {"count": 37, "percentage": 20, "revenue": 468000},
+                "environmental": {"count": 19, "percentage": 10, "revenue": 234000}
+            },
+            "performance_alerts": [
+                {
+                    "type": "warning",
+                    "title": "Team Efficiency Below Target",
+                    "message": "Current efficiency at 87%, target is 90%. Consider workload redistribution.",
+                    "priority": "medium"
+                },
+                {
+                    "type": "success",
+                    "title": "Revenue Target Exceeded",
+                    "message": "September revenue exceeded target by 23%. Strong performance in planning applications.",
+                    "priority": "low"
+                }
+            ]
+        }
+        
+        return {
+            "success": True,
+            "overview": overview_data,
+            "last_updated": datetime.now().isoformat(),
+            "refresh_interval": 300  # 5 minutes
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch overview analytics: {str(e)}")
+
+@app.get("/api/analytics/financial")
+async def get_financial_analytics():
+    """Get comprehensive financial analytics data"""
+    try:
+        financial_data = {
+            "revenue_metrics": {
+                "total_revenue": {
+                    "current_period": 2340000,
+                    "previous_period": 1895000,
+                    "growth_percentage": 23.5,
+                    "annual_target": 2900000,
+                    "target_achievement": 80.7
+                },
+                "outstanding_invoices": {
+                    "total": 456000,
+                    "aging": {
+                        "0_30_days": 289000,
+                        "31_60_days": 123000,
+                        "61_90_days": 32000,
+                        "over_90_days": 12000
+                    },
+                    "collection_rate": 94.2
+                },
+                "profit_margins": {
+                    "gross_margin": 68.5,
+                    "net_margin": 23.8,
+                    "operating_margin": 28.4,
+                    "benchmark_comparison": {
+                        "industry_average": 22.1,
+                        "performance": "above_average"
+                    }
+                }
+            },
+            "cash_flow": {
+                "monthly_data": [
+                    {"month": "Jan", "inflow": 195000, "outflow": 145000, "net": 50000},
+                    {"month": "Feb", "inflow": 210000, "outflow": 158000, "net": 52000},
+                    {"month": "Mar", "inflow": 225000, "outflow": 167000, "net": 58000},
+                    {"month": "Apr", "inflow": 198000, "outflow": 152000, "net": 46000},
+                    {"month": "May", "inflow": 235000, "outflow": 172000, "net": 63000},
+                    {"month": "Jun", "inflow": 250000, "outflow": 181000, "net": 69000},
+                    {"month": "Jul", "inflow": 260000, "outflow": 189000, "net": 71000},
+                    {"month": "Aug", "inflow": 240000, "outflow": 175000, "net": 65000},
+                    {"month": "Sep", "inflow": 275000, "outflow": 195000, "net": 80000}
+                ],
+                "forecast": {
+                    "next_quarter": {
+                        "projected_inflow": 825000,
+                        "projected_outflow": 592000,
+                        "projected_net": 233000
+                    }
+                }
+            },
+            "expense_breakdown": {
+                "personnel": {"amount": 1245000, "percentage": 53.2},
+                "overhead": {"amount": 387000, "percentage": 16.5},
+                "technology": {"amount": 156000, "percentage": 6.7},
+                "marketing": {"amount": 89000, "percentage": 3.8},
+                "professional_services": {"amount": 123000, "percentage": 5.3},
+                "other": {"amount": 340000, "percentage": 14.5}
+            },
+            "financial_ratios": {
+                "liquidity": {
+                    "current_ratio": 2.8,
+                    "quick_ratio": 2.1,
+                    "cash_ratio": 1.4
+                },
+                "efficiency": {
+                    "asset_turnover": 1.8,
+                    "receivables_turnover": 8.2,
+                    "inventory_turnover": "N/A"
+                },
+                "profitability": {
+                    "roi": 34.7,
+                    "roe": 28.9,
+                    "roa": 19.3
+                }
+            },
+            "budget_performance": {
+                "revenue": {
+                    "budgeted": 2200000,
+                    "actual": 2340000,
+                    "variance": 140000,
+                    "variance_percentage": 6.4
+                },
+                "expenses": {
+                    "budgeted": 1680000,
+                    "actual": 1785000,
+                    "variance": -105000,
+                    "variance_percentage": -6.3
+                },
+                "profit": {
+                    "budgeted": 520000,
+                    "actual": 555000,
+                    "variance": 35000,
+                    "variance_percentage": 6.7
+                }
+            }
+        }
+        
+        return {
+            "success": True,
+            "financial": financial_data,
+            "currency": "GBP",
+            "period": "September 2024",
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch financial analytics: {str(e)}")
+
+@app.get("/api/analytics/projects")
+async def get_project_analytics():
+    """Get comprehensive project analytics data"""
+    try:
+        project_data = {
+            "project_overview": {
+                "total_projects": 187,
+                "active_projects": 89,
+                "completed_this_month": 23,
+                "overdue_projects": 5,
+                "average_duration": 4.2,
+                "success_rate": 94.7
+            },
+            "project_status_distribution": {
+                "planning": {"count": 34, "percentage": 18.2},
+                "in_progress": {"count": 89, "percentage": 47.6},
+                "review": {"count": 27, "percentage": 14.4},
+                "completed": {"count": 32, "percentage": 17.1},
+                "on_hold": {"count": 5, "percentage": 2.7}
+            },
+            "project_types": {
+                "residential_planning": {"count": 67, "avg_duration": 3.8, "success_rate": 96.2},
+                "commercial_planning": {"count": 45, "avg_duration": 5.1, "success_rate": 92.4},
+                "mixed_use": {"count": 28, "avg_duration": 6.3, "success_rate": 89.7},
+                "infrastructure": {"count": 23, "avg_duration": 8.2, "success_rate": 91.3},
+                "environmental": {"count": 24, "avg_duration": 4.7, "success_rate": 95.8}
+            },
+            "timeline_performance": {
+                "on_time": {"count": 154, "percentage": 82.4},
+                "ahead_of_schedule": {"count": 18, "percentage": 9.6},
+                "behind_schedule": {"count": 15, "percentage": 8.0}
+            },
+            "budget_performance": {
+                "under_budget": {"count": 78, "percentage": 41.7, "avg_savings": 8.3},
+                "on_budget": {"count": 89, "percentage": 47.6},
+                "over_budget": {"count": 20, "percentage": 10.7, "avg_overrun": 12.4}
+            },
+            "client_satisfaction_by_project": {
+                "excellent": {"count": 89, "percentage": 47.6},
+                "very_good": {"count": 67, "percentage": 35.8},
+                "good": {"count": 23, "percentage": 12.3},
+                "fair": {"count": 6, "percentage": 3.2},
+                "poor": {"count": 2, "percentage": 1.1}
+            },
+            "top_performing_projects": [
+                {
+                    "id": "proj_001",
+                    "name": "Riverside Residential Development",
+                    "client": "Green Valley Homes",
+                    "type": "Residential Planning",
+                    "status": "Completed",
+                    "performance_score": 98.5,
+                    "budget_variance": -5.2,
+                    "timeline_variance": -8,
+                    "client_satisfaction": 5.0
+                },
+                {
+                    "id": "proj_002", 
+                    "name": "City Centre Plaza",
+                    "client": "Urban Developments Ltd",
+                    "type": "Commercial Planning",
+                    "status": "In Progress",
+                    "performance_score": 96.8,
+                    "budget_variance": 2.1,
+                    "timeline_variance": -3,
+                    "client_satisfaction": 4.8
+                },
+                {
+                    "id": "proj_003",
+                    "name": "Heritage Conservation Project",
+                    "client": "Historic Buildings Trust",
+                    "type": "Environmental",
+                    "status": "Review",
+                    "performance_score": 95.2,
+                    "budget_variance": -12.3,
+                    "timeline_variance": 5,
+                    "client_satisfaction": 4.9
+                }
+            ],
+            "resource_utilization": {
+                "team_capacity": 85.7,
+                "equipment_utilization": 78.3,
+                "subcontractor_efficiency": 91.2,
+                "bottlenecks": [
+                    "Senior Planning Officer availability",
+                    "Environmental assessment backlog"
+                ]
+            },
+            "monthly_trends": {
+                "new_projects": [12, 15, 18, 14, 21, 19, 23, 17, 20],
+                "completed_projects": [8, 11, 16, 12, 18, 15, 19, 14, 23],
+                "revenue_per_project": [12500, 13200, 14100, 11800, 15600, 14900, 16200, 13800, 16800]
+            }
+        }
+        
+        return {
+            "success": True,
+            "projects": project_data,
+            "analysis_period": "Last 12 months",
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch project analytics: {str(e)}")
+
+@app.get("/api/analytics/performance")
+async def get_performance_analytics():
+    """Get comprehensive team and operational performance analytics"""
+    try:
+        performance_data = {
+            "team_performance": {
+                "overall_efficiency": 87.3,
+                "productivity_score": 92.1,
+                "quality_rating": 94.7,
+                "collaboration_index": 89.6,
+                "individual_performance": [
+                    {
+                        "employee_id": "emp_001",
+                        "name": "Sarah Johnson",
+                        "role": "Senior Planning Officer",
+                        "efficiency": 96.2,
+                        "quality": 98.1,
+                        "projects_completed": 34,
+                        "client_rating": 4.9,
+                        "performance_trend": "up"
+                    },
+                    {
+                        "employee_id": "emp_002",
+                        "name": "Michael Brown",
+                        "role": "Project Manager",
+                        "efficiency": 91.8,
+                        "quality": 93.4,
+                        "projects_completed": 28,
+                        "client_rating": 4.7,
+                        "performance_trend": "stable"
+                    },
+                    {
+                        "employee_id": "emp_003",
+                        "name": "Emma Wilson",
+                        "role": "Environmental Consultant",
+                        "efficiency": 88.7,
+                        "quality": 96.2,
+                        "projects_completed": 19,
+                        "client_rating": 4.8,
+                        "performance_trend": "up"
+                    }
+                ]
+            },
+            "operational_metrics": {
+                "process_efficiency": {
+                    "application_processing": 82.4,
+                    "client_communication": 91.7,
+                    "document_management": 88.9,
+                    "quality_assurance": 94.3,
+                    "project_delivery": 87.1
+                },
+                "time_to_completion": {
+                    "planning_applications": 3.8,
+                    "environmental_assessments": 5.2,
+                    "design_reviews": 2.9,
+                    "consultation_reports": 4.1,
+                    "compliance_checks": 1.7
+                },
+                "error_rates": {
+                    "documentation_errors": 2.1,
+                    "calculation_errors": 0.8,
+                    "communication_errors": 1.4,
+                    "process_deviations": 3.2,
+                    "client_complaints": 1.1
+                }
+            },
+            "quality_metrics": {
+                "client_satisfaction": {
+                    "overall_rating": 4.7,
+                    "response_time_rating": 4.5,
+                    "quality_rating": 4.8,
+                    "communication_rating": 4.6,
+                    "value_rating": 4.7,
+                    "nps_score": 67
+                },
+                "internal_quality": {
+                    "peer_review_scores": 94.3,
+                    "compliance_rate": 98.7,
+                    "rework_percentage": 4.2,
+                    "first_time_right": 91.8
+                },
+                "continuous_improvement": {
+                    "suggestions_implemented": 23,
+                    "process_improvements": 12,
+                    "training_completion": 96.4,
+                    "certification_maintenance": 100.0
+                }
+            },
+            "efficiency_trends": {
+                "monthly_efficiency": [85.2, 86.1, 87.8, 84.9, 88.3, 89.1, 90.2, 87.6, 89.4],
+                "productivity_trends": [88.7, 90.2, 91.5, 89.8, 92.3, 93.1, 94.2, 91.8, 92.1],
+                "quality_trends": [92.1, 93.4, 94.2, 93.8, 94.9, 95.1, 94.7, 94.3, 94.7]
+            },
+            "benchmarking": {
+                "industry_comparison": {
+                    "efficiency": {"our_score": 87.3, "industry_average": 82.1, "top_quartile": 91.5},
+                    "quality": {"our_score": 94.7, "industry_average": 89.3, "top_quartile": 96.2},
+                    "client_satisfaction": {"our_score": 4.7, "industry_average": 4.2, "top_quartile": 4.8},
+                    "profitability": {"our_score": 23.8, "industry_average": 18.5, "top_quartile": 26.3}
+                }
+            },
+            "improvement_opportunities": [
+                {
+                    "area": "Team Efficiency",
+                    "current_score": 87.3,
+                    "target_score": 90.0,
+                    "improvement_potential": 2.7,
+                    "recommended_actions": [
+                        "Implement workflow automation",
+                        "Reduce meeting time by 20%",
+                        "Streamline approval processes"
+                    ]
+                },
+                {
+                    "area": "Technology Adoption",
+                    "current_score": 78.4,
+                    "target_score": 85.0,
+                    "improvement_potential": 6.6,
+                    "recommended_actions": [
+                        "Upgrade project management tools",
+                        "Implement AI-assisted document review",
+                        "Deploy mobile field applications"
+                    ]
+                }
+            ]
+        }
+        
+        return {
+            "success": True,
+            "performance": performance_data,
+            "evaluation_period": "Last 12 months",
+            "benchmarks_updated": "Q3 2024",
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch performance analytics: {str(e)}")
+
+@app.get("/api/analytics/clients")
+async def get_client_analytics():
+    """Get comprehensive client analytics data"""
+    try:
+        client_data = {
+            "client_overview": {
+                "total_clients": 156,
+                "active_clients": 89,
+                "new_clients_this_month": 12,
+                "client_retention_rate": 89.7,
+                "average_client_value": 15600,
+                "lifetime_value": 67800
+            },
+            "client_acquisition": {
+                "monthly_data": [
+                    {"month": "Jan", "new_clients": 8, "referrals": 3, "marketing": 5},
+                    {"month": "Feb", "new_clients": 11, "referrals": 5, "marketing": 6},
+                    {"month": "Mar", "new_clients": 15, "referrals": 7, "marketing": 8},
+                    {"month": "Apr", "new_clients": 9, "referrals": 4, "marketing": 5},
+                    {"month": "May", "new_clients": 13, "referrals": 6, "marketing": 7},
+                    {"month": "Jun", "new_clients": 16, "referrals": 8, "marketing": 8},
+                    {"month": "Jul", "new_clients": 18, "referrals": 9, "marketing": 9},
+                    {"month": "Aug", "new_clients": 14, "referrals": 6, "marketing": 8},
+                    {"month": "Sep", "new_clients": 12, "referrals": 5, "marketing": 7}
+                ],
+                "acquisition_channels": {
+                    "referrals": {"count": 53, "percentage": 45.7, "cost_per_acquisition": 250},
+                    "website": {"count": 28, "percentage": 24.1, "cost_per_acquisition": 180},
+                    "social_media": {"count": 18, "percentage": 15.5, "cost_per_acquisition": 320},
+                    "professional_network": {"count": 12, "percentage": 10.3, "cost_per_acquisition": 150},
+                    "events": {"count": 5, "percentage": 4.3, "cost_per_acquisition": 480}
+                }
+            },
+            "client_retention": {
+                "retention_by_year": {
+                    "year_1": 94.2,
+                    "year_2": 87.8,
+                    "year_3": 82.1,
+                    "year_4": 78.6,
+                    "year_5_plus": 74.3
+                },
+                "churn_analysis": {
+                    "total_churn_rate": 10.3,
+                    "churn_reasons": {
+                        "cost_concerns": 34.6,
+                        "service_quality": 12.8,
+                        "business_closure": 23.1,
+                        "competitor_switch": 15.4,
+                        "project_completion": 14.1
+                    },
+                    "at_risk_clients": 8,
+                    "prevention_actions": [
+                        "Regular check-ins with high-value clients",
+                        "Proactive service quality monitoring",
+                        "Competitive pricing reviews"
+                    ]
+                }
+            },
+            "client_segmentation": {
+                "by_value": {
+                    "high_value": {"count": 23, "avg_revenue": 45600, "total_revenue": 1048800},
+                    "medium_value": {"count": 67, "avg_revenue": 18200, "total_revenue": 1219400},
+                    "low_value": {"count": 66, "avg_revenue": 6800, "total_revenue": 448800}
+                },
+                "by_type": {
+                    "property_developers": {"count": 45, "avg_project_value": 28900},
+                    "local_authorities": {"count": 12, "avg_project_value": 67500},
+                    "private_individuals": {"count": 67, "avg_project_value": 8400},
+                    "commercial_entities": {"count": 32, "avg_project_value": 34200}
+                },
+                "by_geography": {
+                    "london": {"count": 34, "revenue": 678900},
+                    "south_east": {"count": 28, "revenue": 456700},
+                    "south_west": {"count": 23, "revenue": 389200},
+                    "midlands": {"count": 18, "revenue": 298600},
+                    "north": {"count": 15, "revenue": 234500},
+                    "other": {"count": 38, "revenue": 659100}
+                }
+            },
+            "client_satisfaction": {
+                "overall_satisfaction": 4.7,
+                "satisfaction_distribution": {
+                    "5_stars": 78,
+                    "4_stars": 56,
+                    "3_stars": 18,
+                    "2_stars": 3,
+                    "1_star": 1
+                },
+                "satisfaction_by_service": {
+                    "planning_applications": 4.8,
+                    "environmental_assessments": 4.6,
+                    "design_consultancy": 4.7,
+                    "project_management": 4.5,
+                    "compliance_support": 4.9
+                },
+                "nps_analysis": {
+                    "net_promoter_score": 67,
+                    "promoters": 89,
+                    "passives": 56,
+                    "detractors": 11,
+                    "industry_benchmark": 52
+                }
+            },
+            "top_clients": [
+                {
+                    "id": "client_001",
+                    "name": "Green Valley Developments",
+                    "projects": 23,
+                    "total_revenue": 456700,
+                    "satisfaction": 4.9,
+                    "retention_years": 5.2,
+                    "last_project": "2024-09-15",
+                    "status": "Active"
+                },
+                {
+                    "id": "client_002",
+                    "name": "Urban Planning Associates",
+                    "projects": 18,
+                    "total_revenue": 387200,
+                    "satisfaction": 4.8,
+                    "retention_years": 3.8,
+                    "last_project": "2024-09-28",
+                    "status": "Active"
+                },
+                {
+                    "id": "client_003",
+                    "name": "Heritage Construction Ltd",
+                    "projects": 15,
+                    "total_revenue": 298600,
+                    "satisfaction": 4.6,
+                    "retention_years": 4.1,
+                    "last_project": "2024-08-22",
+                    "status": "Active"
+                }
+            ],
+            "client_feedback_analysis": {
+                "common_praise": [
+                    "Professional and knowledgeable team",
+                    "Excellent communication throughout projects",
+                    "Delivers on time and within budget",
+                    "Proactive problem solving"
+                ],
+                "areas_for_improvement": [
+                    "Initial response time could be faster",
+                    "More frequent project updates requested",
+                    "Clearer pricing structure needed"
+                ],
+                "recent_testimonials": [
+                    {
+                        "client": "Sarah Mitchell, Planning Director",
+                        "company": "Riverside Developments",
+                        "text": "Domus delivered exceptional results on our complex heritage site. Their expertise made the difference.",
+                        "rating": 5
+                    },
+                    {
+                        "client": "Mark Thompson, CEO",
+                        "company": "Thompson Estates",
+                        "text": "Outstanding service from start to finish. Highly recommend for any planning challenges.",
+                        "rating": 5
+                    }
+                ]
+            }
+        }
+        
+        return {
+            "success": True,
+            "clients": client_data,
+            "analysis_period": "Last 24 months",
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch client analytics: {str(e)}")
+
+@app.get("/api/analytics/custom-reports")
+async def get_custom_reports():
+    """Get list of custom reports"""
+    try:
+        custom_reports = [
+            {
+                "id": "report_001",
+                "name": "Monthly Executive Summary",
+                "description": "Comprehensive monthly overview for executive team including KPIs, financial performance, and strategic insights",
+                "schedule": "Monthly",
+                "last_run": "2024-10-01",
+                "next_run": "2024-11-01",
+                "data_points": 47,
+                "recipients": 5,
+                "status": "Active",
+                "data_sources": ["financial", "projects", "clients"],
+                "charts": ["revenue_trend", "project_status", "client_satisfaction"],
+                "created_by": "Admin",
+                "created_date": "2024-01-15"
+            },
+            {
+                "id": "report_002",
+                "name": "Project Performance Dashboard",
+                "description": "Weekly project performance tracking with timeline, budget, and quality metrics",
+                "schedule": "Weekly",
+                "last_run": "2024-09-30",
+                "next_run": "2024-10-07",
+                "data_points": 23,
+                "recipients": 8,
+                "status": "Active",
+                "data_sources": ["projects", "tasks"],
+                "charts": ["timeline_performance", "budget_variance", "quality_scores"],
+                "created_by": "Project Manager",
+                "created_date": "2024-02-20"
+            },
+            {
+                "id": "report_003",
+                "name": "Client Satisfaction Analysis",
+                "description": "Quarterly client satisfaction trends with NPS analysis and improvement recommendations",
+                "schedule": "Quarterly",
+                "last_run": "2024-07-01",
+                "next_run": "2024-10-01",
+                "data_points": 18,
+                "recipients": 6,
+                "status": "Active",
+                "data_sources": ["clients", "communications"],
+                "charts": ["satisfaction_trends", "nps_analysis", "feedback_sentiment"],
+                "created_by": "Client Success Manager",
+                "created_date": "2024-01-30"
+            },
+            {
+                "id": "report_004",
+                "name": "Financial Compliance Report",
+                "description": "Monthly financial compliance and audit preparation report",
+                "schedule": "Monthly",
+                "last_run": "2024-09-30",
+                "next_run": "2024-10-31",
+                "data_points": 31,
+                "recipients": 3,
+                "status": "Active",
+                "data_sources": ["financial"],
+                "charts": ["compliance_metrics", "audit_readiness", "risk_indicators"],
+                "created_by": "Finance Director",
+                "created_date": "2024-03-10"
+            },
+            {
+                "id": "report_005",
+                "name": "Team Performance Review",
+                "description": "Bi-weekly team performance analysis with productivity and efficiency metrics",
+                "schedule": "Bi-weekly",
+                "last_run": "2024-09-28",
+                "next_run": "2024-10-12",
+                "data_points": 15,
+                "recipients": 4,
+                "status": "Draft",
+                "data_sources": ["performance", "tasks"],
+                "charts": ["team_efficiency", "individual_performance", "workload_distribution"],
+                "created_by": "HR Manager",
+                "created_date": "2024-09-15"
+            }
+        ]
+        
+        report_templates = [
+            {
+                "id": "template_001",
+                "name": "Executive Dashboard",
+                "description": "High-level KPIs and strategic metrics",
+                "category": "Executive",
+                "data_sources": ["financial", "projects", "clients", "performance"],
+                "default_charts": ["revenue_trend", "project_overview", "client_satisfaction"]
+            },
+            {
+                "id": "template_002",
+                "name": "Operational Report",
+                "description": "Detailed operational metrics and performance indicators",
+                "category": "Operations",
+                "data_sources": ["projects", "tasks", "performance"],
+                "default_charts": ["project_timeline", "team_utilization", "efficiency_metrics"]
+            },
+            {
+                "id": "template_003",
+                "name": "Financial Analysis",
+                "description": "Comprehensive financial performance and forecasting",
+                "category": "Finance",
+                "data_sources": ["financial"],
+                "default_charts": ["cash_flow", "profit_margins", "budget_variance"]
+            }
+        ]
+        
+        return {
+            "success": True,
+            "reports": custom_reports,
+            "templates": report_templates,
+            "statistics": {
+                "total_reports": len(custom_reports),
+                "active_reports": len([r for r in custom_reports if r["status"] == "Active"]),
+                "scheduled_reports": len([r for r in custom_reports if r["schedule"] != "Manual"]),
+                "total_recipients": sum(r["recipients"] for r in custom_reports)
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch custom reports: {str(e)}")
+
+@app.post("/api/analytics/custom-reports")
+async def create_custom_report(report: CustomReportCreate):
+    """Create a new custom report"""
+    try:
+        report_id = f"report_{int(time.time())}"
+        
+        # Validate data sources
+        valid_sources = ["financial", "projects", "clients", "performance", "tasks", "communications"]
+        invalid_sources = [src for src in report.data_sources if src not in valid_sources]
+        if invalid_sources:
+            raise HTTPException(status_code=400, detail=f"Invalid data sources: {invalid_sources}")
+        
+        # Calculate estimated data points
+        data_points = len(report.data_sources) * 10 + len(report.chart_types) * 5
+        
+        return {
+            "success": True,
+            "report_id": report_id,
+            "report": {
+                "name": report.name,
+                "description": report.description,
+                "data_sources": report.data_sources,
+                "schedule": report.schedule,
+                "recipients": report.recipients,
+                "estimated_data_points": data_points,
+                "created_date": datetime.now().isoformat()
+            },
+            "next_steps": [
+                "Configure chart layouts and visualizations",
+                "Set up data filters and parameters",
+                "Test report generation",
+                "Schedule automated delivery"
+            ],
+            "estimated_setup_time": "15-30 minutes"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create custom report: {str(e)}")
+
+@app.post("/api/analytics/export")
+async def export_report(export_request: ReportExportRequest):
+    """Export analytics report in specified format"""
+    try:
+        # Validate export format
+        valid_formats = ["pdf", "excel", "csv", "json"]
+        if export_request.format not in valid_formats:
+            raise HTTPException(status_code=400, detail=f"Invalid export format: {export_request.format}")
+        
+        # Generate export file
+        export_id = f"export_{int(time.time())}"
+        filename = f"{export_request.report_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export_request.format}"
+        
+        return {
+            "success": True,
+            "export_id": export_id,
+            "filename": filename,
+            "download_url": f"/api/analytics/downloads/{export_id}",
+            "file_size": "2.4 MB",
+            "expires_at": (datetime.now() + timedelta(hours=24)).isoformat(),
+            "format": export_request.format,
+            "includes": [
+                "Executive summary",
+                "Key performance indicators",
+                "Detailed analytics data",
+                "Charts and visualizations",
+                "Recommendations"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to export report: {str(e)}")
+
+@app.get("/api/analytics/insights")
+async def get_analytics_insights():
+    """Get AI-powered business insights and recommendations"""
+    try:
+        insights = {
+            "key_insights": [
+                {
+                    "category": "Revenue",
+                    "insight": "Revenue growth has accelerated 23% this month, driven primarily by an increase in high-value commercial planning projects",
+                    "confidence": 94,
+                    "impact": "High",
+                    "recommendation": "Consider expanding commercial planning team capacity to meet growing demand"
+                },
+                {
+                    "category": "Efficiency",
+                    "insight": "Team efficiency is 3% below target, with bottlenecks identified in the technical review process",
+                    "confidence": 87,
+                    "impact": "Medium",
+                    "recommendation": "Implement parallel review workflows for non-critical technical assessments"
+                },
+                {
+                    "category": "Client Satisfaction",
+                    "insight": "Client satisfaction scores show strong correlation with project communication frequency",
+                    "confidence": 91,
+                    "impact": "Medium",
+                    "recommendation": "Standardize weekly client update protocols across all projects"
+                }
+            ],
+            "predictions": {
+                "revenue_forecast": {
+                    "next_month": {"value": 275000, "confidence": 89},
+                    "next_quarter": {"value": 825000, "confidence": 82},
+                    "year_end": {"value": 3200000, "confidence": 75}
+                },
+                "client_churn_risk": {
+                    "high_risk_clients": 3,
+                    "predicted_churn": 2.8,
+                    "prevention_success_rate": 78
+                }
+            },
+            "anomaly_detection": [
+                {
+                    "metric": "Project completion time",
+                    "anomaly": "Environmental assessments taking 32% longer than historical average",
+                    "severity": "Medium",
+                    "suggested_investigation": "Review environmental assessment workflow for bottlenecks"
+                }
+            ]
+        }
+        
+        return {
+            "success": True,
+            "insights": insights,
+            "generated_at": datetime.now().isoformat(),
+            "ai_model_version": "v2.1.3"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch insights: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     print("\nStarting Domus Professional Platform...")
