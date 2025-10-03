@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus Planning Platform - AI Operating System</title>
+    <meta name="description" content="Enterprise Planning Intelligence System with AI-powered planning assistance, document automation, and comprehensive project management">
+    <meta name="keywords" content="planning, AI, property development, planning applications, UK planning system">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/static/css/global.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            margin: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 3rem;
+        }
+        
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .loading {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏗️</div>
+        <h1>Domus Planning Platform</h1>
+        <p class="subtitle">AI Operating System for Planning Intelligence</p>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-title">Planning AI</div>
+                <div class="feature-description">Intelligent site analysis and constraint identification</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📄</div>
+                <div class="feature-title">Auto-Docs</div>
+                <div class="feature-description">Automated document generation and management</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🏢</div>
+                <div class="feature-title">Enterprise Ready</div>
+                <div class="feature-description">Multi-tenant architecture with white-label capabilities</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <a href="/dashboard" class="btn" onclick="showLoading()">
+                Enter Platform
+            </a>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading Domus Platform...</p>
+        </div>
+    </div>
+    
+    <script>
+        function showLoading() {
+            document.querySelector('.container > div:not(.loading)').style.display = 'none';
+            document.querySelector('.features').style.display = 'none';
+            document.querySelector('.loading').style.display = 'block';
+        }
+        
+        // Auto-redirect after 3 seconds if no interaction
+        setTimeout(() => {
+            if (window.location.pathname === '/') {
+                window.location.href = '/dashboard';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
