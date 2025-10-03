@@ -15,7 +15,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import random
 from sqlalchemy.orm import Session
@@ -433,58 +433,244 @@ async def get_marketplace_summary():
 async def get_projects():
     """Get organization's projects"""
     try:
-        # Return mock projects data
+        # Return enhanced mock projects data
         return [
             {
                 "id": 1,
-                "title": "Riverside Development",
-                "address": "123 River Street, London",
-                "status": "active",
-                "ai_score": 78.5,
-                "created_at": "2024-10-01T10:00:00"
+                "name": "Riverside Development",
+                "description": "Mixed-use development with 50 residential units and commercial space",
+                "address": "123 River Street, London SW1A 1AA",
+                "postcode": "SW1A 1AA",
+                "council": "Westminster City Council",
+                "type": "mixed",
+                "status": "planning",
+                "units": 50,
+                "area": 2500,
+                "value": 15000000,
+                "ai_score": 78,
+                "progress": 45,
+                "created_at": datetime.now() - timedelta(days=15),
+                "updated_at": datetime.now() - timedelta(days=2),
+                "owner_name": "Thames Development Ltd",
+                "latitude": 51.5074,
+                "longitude": -0.1278
             },
             {
                 "id": 2,
-                "title": "Green Valley Homes",
-                "address": "456 Valley Road, Manchester",
-                "status": "draft",
-                "ai_score": 65.2,
-                "created_at": "2024-09-28T14:30:00"
+                "name": "Green Valley Homes",
+                "description": "Sustainable housing development with 25 eco-friendly homes",
+                "address": "456 Valley Road, Manchester M1 2AB",
+                "postcode": "M1 2AB",
+                "council": "Manchester City Council",
+                "type": "residential",
+                "status": "submitted",
+                "units": 25,
+                "area": 1800,
+                "value": 8500000,
+                "ai_score": 85,
+                "progress": 70,
+                "created_at": datetime.now() - timedelta(days=8),
+                "updated_at": datetime.now() - timedelta(days=1),
+                "owner_name": "Eco Homes Ltd",
+                "latitude": 53.4808,
+                "longitude": -2.2426
+            },
+            {
+                "id": 3,
+                "name": "City Centre Plaza",
+                "description": "Commercial development with retail and office spaces",
+                "address": "789 High Street, Birmingham B1 3CD",
+                "postcode": "B1 3CD",
+                "council": "Birmingham City Council",
+                "type": "commercial",
+                "status": "approved",
+                "units": 0,
+                "area": 3200,
+                "value": 22000000,
+                "ai_score": 92,
+                "progress": 100,
+                "created_at": datetime.now() - timedelta(days=30),
+                "updated_at": datetime.now() - timedelta(days=5),
+                "owner_name": "Urban Developments",
+                "latitude": 52.4862,
+                "longitude": -1.8904
             }
         ]
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+class ProjectCreateData(BaseModel):
+    name: str
+    description: str = ""
+    address: str
+    postcode: str = ""
+    council: str = ""
+    type: str
+    units: int = 0
+    area: float = 0
+    value: float = 0
+    planning_status: str = "planning"
+    application_ref: str = ""
+    target_date: str = ""
+
 @app.post("/api/projects")
-async def create_project(request: ProjectCreateRequest):
+async def create_project(project_data: ProjectCreateData):
     """Create new project"""
     try:
-        # Return mock created project
-        return {
-            "id": 3,
-            "title": request.title,
-            "address": request.address,
-            "status": "draft",
-            "created_at": datetime.now().isoformat()
+        # Generate mock ID and timestamps
+        new_id = random.randint(100, 999)
+        now = datetime.now()
+        
+        # Calculate AI score based on project characteristics
+        base_score = 60
+        score_adjustments = 0
+        
+        # Type-based scoring
+        if project_data.type == "residential":
+            score_adjustments += 10
+        elif project_data.type == "affordable_housing":
+            score_adjustments += 15
+        elif project_data.type == "commercial":
+            score_adjustments += 5
+        
+        # Size-based scoring
+        if project_data.units > 0 and project_data.units <= 50:
+            score_adjustments += 8
+        
+        # Area-based scoring
+        if project_data.area > 0 and project_data.area < 5000:
+            score_adjustments += 5
+        
+        ai_score = min(100, max(20, base_score + score_adjustments + random.randint(-10, 15)))
+        
+        new_project = {
+            "id": new_id,
+            "name": project_data.name,
+            "description": project_data.description,
+            "address": project_data.address,
+            "postcode": project_data.postcode,
+            "council": project_data.council,
+            "type": project_data.type,
+            "status": project_data.planning_status,
+            "units": project_data.units,
+            "area": project_data.area,
+            "value": project_data.value,
+            "ai_score": ai_score,
+            "progress": 5,  # New project starts at 5%
+            "created_at": now,
+            "updated_at": now,
+            "application_ref": project_data.application_ref,
+            "target_date": project_data.target_date,
+            "latitude": 51.5074 + random.uniform(-0.1, 0.1),  # Mock coordinates
+            "longitude": -0.1278 + random.uniform(-0.1, 0.1)
         }
+        
+        return new_project
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/projects/{project_id}")
 async def get_project(project_id: int):
-    """Get specific project"""
+    """Get specific project details"""
     try:
-        # Return mock project details
-        return {
+        # Return comprehensive mock project details
+        project = {
             "id": project_id,
-            "title": "Riverside Development",
-            "address": "123 River Street, London",
-            "site_geometry": {"type": "Polygon", "coordinates": []},
-            "status": "active",
-            "ai_score": 78.5,
-            "created_at": "2024-10-01T10:00:00",
-            "updated_at": "2024-10-02T15:20:00"
+            "name": "Riverside Development",
+            "description": "Mixed-use development with 50 residential units and commercial space",
+            "address": "123 River Street, London SW1A 1AA",
+            "postcode": "SW1A 1AA",
+            "council": "Westminster City Council",
+            "type": "mixed",
+            "status": "planning",
+            "units": 50,
+            "area": 2500,
+            "value": 15000000,
+            "ai_score": 78,
+            "progress": 45,
+            "created_at": datetime.now() - timedelta(days=15),
+            "updated_at": datetime.now() - timedelta(days=2),
+            "latitude": 51.5074,
+            "longitude": -0.1278,
+            "application_ref": "23/01234/FUL",
+            "target_date": "2024-12-15",
+            "constraints": [
+                "Conservation Area nearby",
+                "Flood Risk Zone 2",
+                "Tree Preservation Orders"
+            ],
+            "ai_reasoning": "Strong fundamentals with good local support but moderate constraints require careful design",
+            "documents": [
+                {
+                    "id": 1,
+                    "name": "Site Survey Report.pdf",
+                    "size": "2.4 MB",
+                    "uploaded_at": datetime.now() - timedelta(days=5),
+                    "type": "survey"
+                },
+                {
+                    "id": 2,
+                    "name": "Planning Statement.pdf",
+                    "size": "1.8 MB", 
+                    "uploaded_at": datetime.now() - timedelta(days=3),
+                    "type": "planning"
+                }
+            ],
+            "timeline": [
+                {
+                    "title": "Project Created",
+                    "date": datetime.now() - timedelta(days=15),
+                    "description": "Initial project setup completed"
+                },
+                {
+                    "title": "Site Survey",
+                    "date": datetime.now() - timedelta(days=10),
+                    "description": "Comprehensive site survey conducted"
+                },
+                {
+                    "title": "AI Analysis",
+                    "date": datetime.now() - timedelta(days=5),
+                    "description": "Planning AI analysis completed with 78% approval score"
+                }
+            ],
+            "ai_analyses": ["Initial assessment", "Constraint analysis"]
         }
+        
+        return project
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.put("/api/projects/{project_id}")
+async def update_project(project_id: int, project_data: ProjectCreateData):
+    """Update existing project"""
+    try:
+        # Return updated project data
+        updated_project = {
+            "id": project_id,
+            "name": project_data.name,
+            "description": project_data.description,
+            "address": project_data.address,
+            "postcode": project_data.postcode,
+            "council": project_data.council,
+            "type": project_data.type,
+            "status": project_data.planning_status,
+            "units": project_data.units,
+            "area": project_data.area,
+            "value": project_data.value,
+            "updated_at": datetime.now(),
+            "application_ref": project_data.application_ref,
+            "target_date": project_data.target_date
+        }
+        
+        return updated_project
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/api/projects/{project_id}")
+async def delete_project(project_id: int):
+    """Delete project"""
+    try:
+        return {"message": "Project deleted successfully", "id": project_id}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 print("   Professional planning intelligence and compliance automation")
@@ -498,11 +684,8 @@ async def root(request: Request):
     """Serve the main application shell"""
     return templates.TemplateResponse("app_shell.html", {"request": request})
 
-# All authenticated app routes serve the same app shell
+# All authenticated app routes serve the same app shell except projects which have dedicated templates
 @app.get("/dashboard", response_class=HTMLResponse)
-@app.get("/projects", response_class=HTMLResponse)
-@app.get("/projects/new", response_class=HTMLResponse)
-@app.get("/projects/{project_id}", response_class=HTMLResponse)
 @app.get("/planning-ai", response_class=HTMLResponse)
 @app.get("/auto-docs", response_class=HTMLResponse)
 @app.get("/documents", response_class=HTMLResponse)
@@ -517,6 +700,113 @@ async def root(request: Request):
 async def app_routes(request: Request):
     """Serve the app shell for all authenticated routes"""
     return templates.TemplateResponse("app_shell.html", {"request": request})
+
+# Projects-specific template routes
+@app.get("/projects", response_class=HTMLResponse)
+async def projects_page(request: Request):
+    """Serve the projects listing page"""
+    # Mock projects data
+    projects = [
+        {
+            "id": 1,
+            "name": "Riverside Development",
+            "description": "Mixed-use development with 50 residential units and commercial space",
+            "address": "123 River Street, London SW1A 1AA",
+            "status": "planning",
+            "ai_score": 78,
+            "progress": 45,
+            "created_at": datetime.now() - timedelta(days=15),
+            "owner_name": "Thames Development Ltd"
+        },
+        {
+            "id": 2,
+            "name": "Green Valley Homes",
+            "description": "Sustainable housing development with 25 eco-friendly homes",
+            "address": "456 Valley Road, Manchester M1 2AB",
+            "status": "submitted",
+            "ai_score": 85,
+            "progress": 70,
+            "created_at": datetime.now() - timedelta(days=8),
+            "owner_name": "Eco Homes Ltd"
+        },
+        {
+            "id": 3,
+            "name": "City Centre Plaza",
+            "description": "Commercial development with retail and office spaces",
+            "address": "789 High Street, Birmingham B1 3CD",
+            "status": "approved",
+            "ai_score": 92,
+            "progress": 100,
+            "created_at": datetime.now() - timedelta(days=30),
+            "owner_name": "Urban Developments"
+        }
+    ]
+    return templates.TemplateResponse("projects.html", {"request": request, "projects": projects})
+
+@app.get("/projects/new", response_class=HTMLResponse)
+async def new_project_page(request: Request):
+    """Serve the new project creation page"""
+    return templates.TemplateResponse("projects_new.html", {"request": request})
+
+@app.get("/projects/{project_id}", response_class=HTMLResponse)
+async def project_detail_page(request: Request, project_id: int):
+    """Serve the project detail page"""
+    # Mock project data
+    project = {
+        "id": project_id,
+        "name": "Riverside Development",
+        "description": "Mixed-use development with 50 residential units and commercial space",
+        "address": "123 River Street, London SW1A 1AA",
+        "postcode": "SW1A 1AA",
+        "council": "Westminster City Council",
+        "type": "mixed",
+        "status": "planning",
+        "units": 50,
+        "area": 2500,
+        "value": 15000000,
+        "ai_score": 78,
+        "progress": 45,
+        "created_at": datetime.now() - timedelta(days=15),
+        "latitude": 51.5074,
+        "longitude": -0.1278,
+        "constraints": [
+            "Conservation Area nearby",
+            "Flood Risk Zone 2",
+            "Tree Preservation Orders"
+        ],
+        "ai_reasoning": "Strong fundamentals with good local support but moderate constraints require careful design",
+        "documents": [
+            {
+                "name": "Site Survey Report.pdf",
+                "size": "2.4 MB",
+                "uploaded_at": datetime.now() - timedelta(days=5)
+            },
+            {
+                "name": "Planning Statement.pdf", 
+                "size": "1.8 MB",
+                "uploaded_at": datetime.now() - timedelta(days=3)
+            }
+        ],
+        "timeline": [
+            {
+                "title": "Project Created",
+                "date": datetime.now() - timedelta(days=15),
+                "description": "Initial project setup completed"
+            },
+            {
+                "title": "Site Survey",
+                "date": datetime.now() - timedelta(days=10),
+                "description": "Comprehensive site survey conducted"
+            },
+            {
+                "title": "AI Analysis",
+                "date": datetime.now() - timedelta(days=5),
+                "description": "Planning AI analysis completed with 78% approval score"
+            }
+        ],
+        "ai_analyses": ["Initial assessment", "Constraint analysis"]
+    }
+    return templates.TemplateResponse("projects_detail.html", {"request": request, "project": project, "now": datetime.now})
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
     """Serve the login page"""
@@ -887,6 +1177,390 @@ async def get_dashboard_stats(
                 "api_calls": {"current": 2847, "limit": "unlimited"}
             }
         }
+
+# =============================================================================
+# PROJECTS MODULE - Core project management functionality
+# =============================================================================
+
+# Projects Page Routes
+@app.get("/projects")
+async def projects_page(request: Request):
+    """Projects listing page"""
+    return templates.TemplateResponse("projects_list.html", {"request": request})
+
+@app.get("/projects/new")
+async def new_project_page(request: Request):
+    """New project creation page"""
+    return templates.TemplateResponse("project_new.html", {"request": request})
+
+@app.get("/projects/{project_id}")
+async def project_detail_page(request: Request, project_id: str):
+    """Individual project detail page"""
+    return templates.TemplateResponse("project_detail.html", {"request": request, "project_id": project_id})
+
+# Projects API Endpoints
+@app.get("/api/projects")
+async def get_projects(
+    search: str = None,
+    status: str = None,
+    type: str = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    """Get projects with optional filtering"""
+    # Mock project data - in production this would query the database
+    projects = [
+        {
+            "id": "proj_001",
+            "name": "Residential Development - Oak Street",
+            "address": "123 Oak Street, Manchester, M1 2AB",
+            "type": "residential",
+            "status": "planning",
+            "ai_score": 78,
+            "document_count": 5,
+            "created_at": (datetime.now() - timedelta(days=7)).isoformat(),
+            "updated_at": (datetime.now() - timedelta(hours=2)).isoformat(),
+            "local_authority": "Manchester City Council",
+            "site_area": 2.5,
+            "units_proposed": 24,
+            "latitude": 53.4808,
+            "longitude": -2.2426
+        },
+        {
+            "id": "proj_002", 
+            "name": "Commercial Hub - City Centre",
+            "address": "45 Market Street, Leeds, LS1 3AB",
+            "type": "commercial",
+            "status": "submitted",
+            "ai_score": 65,
+            "document_count": 8,
+            "created_at": (datetime.now() - timedelta(days=14)).isoformat(),
+            "updated_at": (datetime.now() - timedelta(days=3)).isoformat(),
+            "local_authority": "Leeds City Council",
+            "site_area": 1.2,
+            "units_proposed": 0,
+            "latitude": 53.7997,
+            "longitude": -1.5492
+        },
+        {
+            "id": "proj_003",
+            "name": "Mixed Use Development - Riverside",
+            "address": "78 Riverside Drive, Birmingham, B2 4AB",
+            "type": "mixed_use",
+            "status": "under_review",
+            "ai_score": 82,
+            "document_count": 12,
+            "created_at": (datetime.now() - timedelta(days=21)).isoformat(),
+            "updated_at": (datetime.now() - timedelta(days=1)).isoformat(),
+            "local_authority": "Birmingham City Council",
+            "site_area": 3.8,
+            "units_proposed": 45,
+            "latitude": 52.4862,
+            "longitude": -1.8904
+        }
+    ]
+    
+    # Apply filters
+    filtered_projects = projects
+    
+    if search:
+        search_lower = search.lower()
+        filtered_projects = [
+            p for p in filtered_projects 
+            if search_lower in p["name"].lower() or search_lower in p["address"].lower()
+        ]
+    
+    if status:
+        filtered_projects = [p for p in filtered_projects if p["status"] == status]
+    
+    if type:
+        filtered_projects = [p for p in filtered_projects if p["type"] == type]
+    
+    # Apply pagination
+    total = len(filtered_projects)
+    filtered_projects = filtered_projects[offset:offset + limit]
+    
+    return {
+        "projects": filtered_projects,
+        "total": total,
+        "limit": limit,
+        "offset": offset
+    }
+
+@app.post("/api/projects")
+async def create_project(project_data: dict):
+    """Create a new project"""
+    # TODO: Add proper validation and database storage
+    # For now, return a mock response
+    project_id = f"proj_{len(project_data.get('name', '').split())}{datetime.now().timestamp():.0f}"
+    
+    # Simulate project creation
+    new_project = {
+        "id": project_id,
+        "name": project_data.get("name"),
+        "address": project_data.get("address"),
+        "type": project_data.get("type"),
+        "status": project_data.get("status", "planning"),
+        "description": project_data.get("description"),
+        "local_authority": project_data.get("local_authority"),
+        "site_area": project_data.get("site_area"),
+        "units_proposed": project_data.get("units_proposed"),
+        "floors": project_data.get("floors"),
+        "parking_spaces": project_data.get("parking_spaces"),
+        "latitude": project_data.get("latitude"),
+        "longitude": project_data.get("longitude"),
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+        "ai_score": None,
+        "document_count": 0
+    }
+    
+    return new_project
+
+@app.get("/api/projects/{project_id}")
+async def get_project(project_id: str):
+    """Get a specific project by ID"""
+    # Mock project data - in production this would query the database
+    mock_projects = {
+        "proj_001": {
+            "id": "proj_001",
+            "name": "Residential Development - Oak Street",
+            "address": "123 Oak Street, Manchester, M1 2AB",
+            "type": "residential",
+            "status": "planning",
+            "description": "A sustainable residential development featuring 24 affordable housing units with integrated green spaces and sustainable transport links.",
+            "ai_score": 78,
+            "document_count": 5,
+            "created_at": (datetime.now() - timedelta(days=7)).isoformat(),
+            "updated_at": (datetime.now() - timedelta(hours=2)).isoformat(),
+            "local_authority": "Manchester City Council",
+            "site_area": 2.5,
+            "units_proposed": 24,
+            "floors": 3,
+            "parking_spaces": 18,
+            "latitude": 53.4808,
+            "longitude": -2.2426,
+            "estimated_timeline": "18-24 months"
+        }
+    }
+    
+    if project_id not in mock_projects:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    return mock_projects[project_id]
+
+@app.get("/api/projects/{project_id}/activity")
+async def get_project_activity(project_id: str):
+    """Get activity timeline for a project"""
+    activity = [
+        {
+            "id": 1,
+            "description": "Project created",
+            "timestamp": (datetime.now() - timedelta(days=7)).isoformat(),
+            "icon": "plus-circle"
+        },
+        {
+            "id": 2,
+            "description": "Site survey completed and uploaded",
+            "timestamp": (datetime.now() - timedelta(days=5)).isoformat(),
+            "icon": "file-upload"
+        },
+        {
+            "id": 3,
+            "description": "AI analysis completed - 78% approval probability",
+            "timestamp": (datetime.now() - timedelta(days=3)).isoformat(),
+            "icon": "brain"
+        },
+        {
+            "id": 4,
+            "description": "Planning documents generated",
+            "timestamp": (datetime.now() - timedelta(hours=6)).isoformat(),
+            "icon": "file-plus"
+        }
+    ]
+    
+    return activity
+
+@app.get("/api/projects/{project_id}/ai-analysis")
+async def get_project_ai_analysis(project_id: str):
+    """Get AI analysis for a project"""
+    analysis = {
+        "score": 78,
+        "positive_factors": [
+            "Site located within designated development area",
+            "Adequate transport infrastructure nearby",
+            "Meets local housing density requirements",
+            "Environmental impact assessment favorable"
+        ],
+        "risk_factors": [
+            "Site partially within flood risk zone 2",
+            "Heritage building 200m away - potential constraints",
+            "Local parking capacity may be insufficient"
+        ],
+        "recommendations": [
+            "Include sustainable drainage system (SuDS)",
+            "Consider heritage impact assessment",
+            "Propose additional cycle parking",
+            "Engage early with local community"
+        ],
+        "policy_context": "The development aligns with the Local Plan's objectives for sustainable housing delivery. Key policy considerations include LP-H1 (Housing Delivery), LP-E3 (Environmental Protection), and LP-T2 (Transport Infrastructure). The site's location supports the council's strategic housing objectives while maintaining environmental standards."
+    }
+    
+    return analysis
+
+@app.get("/api/projects/{project_id}/documents")
+async def get_project_documents(project_id: str):
+    """Get documents for a project"""
+    documents = [
+        {
+            "id": "doc_001",
+            "name": "Site Survey Report",
+            "type": "pdf",
+            "size": "2.3 MB",
+            "uploaded_at": (datetime.now() - timedelta(days=5)).isoformat()
+        },
+        {
+            "id": "doc_002",
+            "name": "Planning Application Form",
+            "type": "pdf",
+            "size": "1.8 MB", 
+            "uploaded_at": (datetime.now() - timedelta(days=3)).isoformat()
+        },
+        {
+            "id": "doc_003",
+            "name": "Site Plans",
+            "type": "dwg",
+            "size": "5.2 MB",
+            "uploaded_at": (datetime.now() - timedelta(days=2)).isoformat()
+        },
+        {
+            "id": "doc_004",
+            "name": "Environmental Impact Assessment",
+            "type": "docx",
+            "size": "3.1 MB",
+            "uploaded_at": (datetime.now() - timedelta(hours=12)).isoformat()
+        }
+    ]
+    
+    return documents
+
+@app.get("/api/projects/{project_id}/timeline")
+async def get_project_timeline(project_id: str):
+    """Get project timeline/milestones"""
+    timeline = [
+        {
+            "title": "Project Initiation",
+            "description": "Project created and initial data entered",
+            "date": (datetime.now() - timedelta(days=7)).isoformat(),
+            "completed": True
+        },
+        {
+            "title": "Site Analysis",
+            "description": "Site survey, constraints analysis, and AI assessment",
+            "date": (datetime.now() - timedelta(days=3)).isoformat(),
+            "completed": True
+        },
+        {
+            "title": "Document Preparation",
+            "description": "Planning application documents generation",
+            "date": datetime.now().isoformat(),
+            "completed": False
+        },
+        {
+            "title": "Planning Submission",
+            "description": "Submit planning application to local authority",
+            "date": (datetime.now() + timedelta(days=14)).isoformat(),
+            "completed": False
+        },
+        {
+            "title": "Authority Review",
+            "description": "Local authority review and consultation period",
+            "date": (datetime.now() + timedelta(days=28)).isoformat(),
+            "completed": False
+        },
+        {
+            "title": "Decision",
+            "description": "Planning decision received",
+            "date": (datetime.now() + timedelta(days=56)).isoformat(),
+            "completed": False
+        }
+    ]
+    
+    return timeline
+
+# Planning AI and Constraints API
+@app.get("/api/planning/constraints")
+async def get_planning_constraints(lat: float, lng: float):
+    """Get planning constraints for a location"""
+    # Mock constraints data - in production this would query GIS services
+    constraints = [
+        {
+            "name": "Conservation Area",
+            "icon": "landmark",
+            "severity": "medium",
+            "distance": "150m away"
+        },
+        {
+            "name": "Flood Risk Zone 2",
+            "icon": "water",
+            "severity": "high", 
+            "distance": "Site partially affected"
+        },
+        {
+            "name": "Green Belt",
+            "icon": "tree",
+            "severity": "low",
+            "distance": "500m away"
+        },
+        {
+            "name": "Tree Preservation Order",
+            "icon": "leaf",
+            "severity": "medium",
+            "distance": "3 protected trees on site"
+        }
+    ]
+    
+    return constraints
+
+@app.post("/api/planning/ai-analysis")
+async def get_planning_ai_analysis(project_data: dict):
+    """Get AI analysis for project data"""
+    # Mock AI analysis - in production this would call actual AI service
+    base_score = 60
+    
+    # Adjust score based on project characteristics
+    score_adjustments = 0
+    factors = []
+    
+    # Type adjustments
+    if project_data.get("type") == "residential":
+        score_adjustments += 10
+        factors.append("residential development priority")
+    elif project_data.get("type") == "affordable_housing":
+        score_adjustments += 15
+        factors.append("affordable housing need")
+    
+    # Size adjustments
+    units = int(project_data.get("units_proposed", 0))
+    if units > 0 and units <= 50:
+        score_adjustments += 5
+        factors.append("appropriate development scale")
+    
+    # Site area
+    site_area = float(project_data.get("site_area", 0))
+    if site_area > 0 and site_area < 5:
+        score_adjustments += 8
+        factors.append("suitable site size")
+    
+    final_score = min(100, base_score + score_adjustments)
+    
+    analysis = {
+        "score": final_score,
+        "factors": factors,
+        "recommendations": "Consider sustainable design features and early community engagement"
+    }
+    
+    return analysis
 
 if __name__ == "__main__":
     import uvicorn

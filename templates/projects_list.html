@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Projects - Domus Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation and layout will be injected by JavaScript -->
+    <div id="app-container"></div>
+    
+    <!-- Main Projects Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">All Projects</h1>
+                    <p class="text-gray-600 mt-1">Manage your planning projects and applications</p>
+                </div>
+                <button id="new-project-btn" class="btn-primary">
+                    <i class="fas fa-plus mr-2"></i>New Project
+                </button>
+            </div>
+            
+            <!-- Filters and Search -->
+            <div class="flex gap-4 mt-6 flex-wrap">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Search projects..." 
+                           class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                <select id="status-filter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Statuses</option>
+                    <option value="planning">Planning</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="under_review">Under Review</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <select id="type-filter" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Types</option>
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="industrial">Industrial</option>
+                    <option value="mixed_use">Mixed Use</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Projects Grid -->
+        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Projects will be loaded dynamically -->
+        </div>
+        
+        <!-- Empty State -->
+        <div id="empty-state" class="text-center py-12 hidden">
+            <i class="fas fa-building text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
+            <p class="text-gray-600 mb-6">Get started by creating your first planning project</p>
+            <button class="btn-primary" onclick="window.location.href='/projects/new'">
+                <i class="fas fa-plus mr-2"></i>Create Project
+            </button>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+            <p class="text-gray-600">Loading projects...</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the app shell
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAppShell('projects');
+            loadProjects();
+            
+            // Event listeners
+            document.getElementById('new-project-btn').addEventListener('click', () => {
+                window.location.href = '/projects/new';
+            });
+            
+            document.getElementById('search-input').addEventListener('input', debounce(loadProjects, 300));
+            document.getElementById('status-filter').addEventListener('change', loadProjects);
+            document.getElementById('type-filter').addEventListener('change', loadProjects);
+        });
+        
+        async function loadProjects() {
+            const searchTerm = document.getElementById('search-input').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
+            
+            try {
+                document.getElementById('loading-state').classList.remove('hidden');
+                document.getElementById('projects-grid').classList.add('hidden');
+                document.getElementById('empty-state').classList.add('hidden');
+                
+                const params = new URLSearchParams();
+                if (searchTerm) params.append('search', searchTerm);
+                if (statusFilter) params.append('status', statusFilter);
+                if (typeFilter) params.append('type', typeFilter);
+                
+                const response = await fetch(`/api/projects?${params}`);
+                const projects = await response.json();
+                
+                document.getElementById('loading-state').classList.add('hidden');
+                
+                if (projects.length === 0) {
+                    document.getElementById('empty-state').classList.remove('hidden');
+                } else {
+                    renderProjects(projects);
+                    document.getElementById('projects-grid').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                document.getElementById('loading-state').classList.add('hidden');
+                // Show error state
+            }
+        }
+        
+        function renderProjects(projects) {
+            const grid = document.getElementById('projects-grid');
+            grid.innerHTML = projects.map(project => `
+                <div class="project-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                     onclick="window.location.href='/projects/${project.id}'">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 truncate">${project.name}</h3>
+                            <span class="status-badge status-${project.status}">
+                                ${formatStatus(project.status)}
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                <span class="truncate">${project.address}</span>
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-tag mr-2"></i>
+                                <span>${formatProjectType(project.type)}</span>
+                            </div>
+                            ${project.ai_score ? `
+                            <div class="flex items-center text-sm">
+                                <i class="fas fa-brain mr-2 text-purple-500"></i>
+                                <span class="text-gray-600">AI Score:</span>
+                                <span class="ml-1 font-semibold ${getScoreColor(project.ai_score)}">${project.ai_score}%</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-sm text-gray-500">
+                            <span>Updated ${formatDate(project.updated_at)}</span>
+                            <div class="flex items-center">
+                                <i class="fas fa-file-alt mr-1"></i>
+                                <span>${project.document_count || 0} docs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function formatStatus(status) {
+            const statusMap = {
+                'planning': 'Planning',
+                'submitted': 'Submitted',
+                'under_review': 'Under Review',
+                'approved': 'Approved',
+                'rejected': 'Rejected',
+                'completed': 'Completed'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function formatProjectType(type) {
+            const typeMap = {
+                'residential': 'Residential',
+                'commercial': 'Commercial',
+                'industrial': 'Industrial',
+                'mixed_use': 'Mixed Use'
+            };
+            return typeMap[type] || type;
+        }
+        
+        function getScoreColor(score) {
+            if (score >= 80) return 'text-green-600';
+            if (score >= 60) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) return 'yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+            return date.toLocaleDateString();
+        }
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>
