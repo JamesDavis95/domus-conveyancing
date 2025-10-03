@@ -306,6 +306,13 @@ async def get_dashboard_overview():
                     "route": "/auto-docs",
                     "icon": "📝",
                     "color": "secondary"
+                },
+                {
+                    "title": "Property Data",
+                    "description": "UK property intelligence & analytics",
+                    "route": "/property-api",
+                    "icon": "🏠",
+                    "color": "secondary"
                 }
             ]
         }
@@ -675,7 +682,7 @@ async def root(request: Request):
     """Serve the main application shell"""
     return templates.TemplateResponse("app_shell.html", {"request": request})
 
-# All authenticated app routes serve the same app shell except projects, planning-ai, and auto-docs which have dedicated templates
+# All authenticated app routes serve the same app shell except projects, planning-ai, auto-docs, and property-api which have dedicated templates
 @app.get("/dashboard", response_class=HTMLResponse)
 @app.get("/documents", response_class=HTMLResponse)
 @app.get("/marketplace/supply", response_class=HTMLResponse)
@@ -808,6 +815,12 @@ async def planning_ai_page(request: Request):
 async def auto_docs_page(request: Request):
     """Serve the Auto-Docs generator page"""
     return templates.TemplateResponse("auto_docs.html", {"request": request})
+
+# Property API template route
+@app.get("/property-api", response_class=HTMLResponse)
+async def property_api_page(request: Request):
+    """Serve the Property API intelligence page"""
+    return templates.TemplateResponse("property_api.html", {"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
@@ -1440,23 +1453,373 @@ async def get_document_templates():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    recommendations = await generate_recommendations(site_input, constraints, score)
 
-    # Generate document
+# PROPERTY API ENDPOINTS
+# ===========================================
+
+class PropertySearchRequest(BaseModel):
+    address: str = ""
+    postcode: str = ""
+    property_type: str = ""
+    price_range: str = ""
+    bedrooms: int = None
+
+class PropertyValuationRequest(BaseModel):
+    address: str
+    postcode: str
+    property_type: str = ""
+    bedrooms: int = None
+    bathrooms: int = None
+    garden: bool = False
+
+@app.post("/api/property-api/search")
+async def search_properties(search_request: PropertySearchRequest):
+    """Search UK properties with comprehensive data"""
     try:
-        doc = await document_generator.generate_document(
-            document_type=document_type,
-            site_input=site_input,
-            constraints=constraints,
-            score=score,
-            recommendations=recommendations,
-            custom_options=custom_options,
-            output_format=OutputFormat(output_format.upper())
-        )
-        return doc
+        # Mock property search results with realistic UK data
+        properties = [
+            {
+                "id": "PROP001",
+                "address": "123 Oak Avenue, Manchester M1 2AB",
+                "postcode": "M1 2AB",
+                "type": "Terraced",
+                "bedrooms": 3,
+                "bathrooms": 2,
+                "price": "£485,000",
+                "estimated_value": 485000,
+                "price_per_sqft": "£312",
+                "floor_area": 1554,
+                "garden": True,
+                "parking": True,
+                "council": "Manchester City Council",
+                "council_tax_band": "D",
+                "epc_rating": "C",
+                "tenure": "Freehold",
+                "coordinates": [53.4808, -2.2426],
+                "description": "Spacious Victorian terrace with period features, modern kitchen, and south-facing garden",
+                "images": ["/images/prop1_1.jpg", "/images/prop1_2.jpg"],
+                "last_sold": "2019-06-15",
+                "last_price": "£415,000",
+                "price_change": "+16.9%",
+                "days_on_market": 42,
+                "local_amenities": ["Primary School 0.2mi", "Train Station 0.5mi", "Shopping Centre 0.8mi"],
+                "planning_restrictions": ["Conservation Area nearby", "Article 4 Direction applies"]
+            },
+            {
+                "id": "PROP002", 
+                "address": "45 Elm Grove, Manchester M1 3CD",
+                "postcode": "M1 3CD",
+                "type": "Semi-Detached",
+                "bedrooms": 4,
+                "bathrooms": 3,
+                "price": "£520,000",
+                "estimated_value": 520000,
+                "price_per_sqft": "£298",
+                "floor_area": 1745,
+                "garden": True,
+                "parking": True,
+                "council": "Manchester City Council",
+                "council_tax_band": "E", 
+                "epc_rating": "B",
+                "tenure": "Freehold",
+                "coordinates": [53.4828, -2.2456],
+                "description": "Modern semi-detached home with open plan living, fitted kitchen, and driveway parking",
+                "images": ["/images/prop2_1.jpg", "/images/prop2_2.jpg"],
+                "last_sold": "2020-03-22",
+                "last_price": "£475,000",
+                "price_change": "+9.5%",
+                "days_on_market": 28,
+                "local_amenities": ["Secondary School 0.3mi", "Hospital 1.2mi", "Park 0.1mi"],
+                "planning_restrictions": ["Tree Preservation Order", "Flood Risk Zone 2"]
+            },
+            {
+                "id": "PROP003",
+                "address": "67 Birch Close, Manchester M1 4EF", 
+                "postcode": "M1 4EF",
+                "type": "Flat",
+                "bedrooms": 2,
+                "bathrooms": 1,
+                "price": "£375,000",
+                "estimated_value": 375000,
+                "price_per_sqft": "£395",
+                "floor_area": 949,
+                "garden": False,
+                "parking": True,
+                "council": "Manchester City Council",
+                "council_tax_band": "C",
+                "epc_rating": "B",
+                "tenure": "Leasehold",
+                "coordinates": [53.4788, -2.2396],
+                "description": "Contemporary apartment with balcony, underground parking, and communal gardens",
+                "images": ["/images/prop3_1.jpg", "/images/prop3_2.jpg"],
+                "last_sold": "2021-09-10",
+                "last_price": "£340,000",
+                "price_change": "+10.3%",
+                "days_on_market": 35,
+                "local_amenities": ["Gym 0.1mi", "Restaurants 0.2mi", "Metro 0.4mi"],
+                "planning_restrictions": ["High-rise development nearby", "Noise abatement zone"]
+            }
+        ]
+        
+        # Filter properties based on search criteria
+        filtered_properties = properties
+        if search_request.property_type:
+            filtered_properties = [p for p in filtered_properties if p["type"].lower() == search_request.property_type.lower()]
+        
+        return {
+            "success": True,
+            "total_found": len(filtered_properties),
+            "properties": filtered_properties,
+            "search_criteria": {
+                "address": search_request.address,
+                "postcode": search_request.postcode,
+                "property_type": search_request.property_type,
+                "price_range": search_request.price_range
+            },
+            "market_summary": {
+                "average_price": "£493,333",
+                "price_change_12m": "+8.9%",
+                "average_days_on_market": 35,
+                "total_listings": 248
+            }
+        }
     except Exception as e:
-        return {"error": f"Document generation failed: {e}"}
+        raise HTTPException(status_code=500, detail=f"Property search failed: {str(e)}")
 
+@app.post("/api/property-api/valuation")
+async def get_property_valuation(valuation_request: PropertyValuationRequest):
+    """Get comprehensive property valuation with market analysis"""
+    try:
+        # Calculate mock valuation based on inputs
+        base_value = 450000
+        
+        # Adjust for property type
+        type_multipliers = {
+            "detached": 1.3,
+            "semi-detached": 1.1, 
+            "terraced": 1.0,
+            "flat": 0.8,
+            "bungalow": 1.2
+        }
+        
+        multiplier = type_multipliers.get(valuation_request.property_type.lower(), 1.0)
+        bedroom_bonus = (valuation_request.bedrooms or 3) * 25000
+        bathroom_bonus = (valuation_request.bathrooms or 2) * 15000
+        garden_bonus = 20000 if valuation_request.garden else 0
+        
+        estimated_value = int((base_value * multiplier) + bedroom_bonus + bathroom_bonus + garden_bonus)
+        lower_estimate = int(estimated_value * 0.9)
+        upper_estimate = int(estimated_value * 1.15)
+        
+        return {
+            "success": True,
+            "property": {
+                "address": valuation_request.address,
+                "postcode": valuation_request.postcode,
+                "type": valuation_request.property_type,
+                "bedrooms": valuation_request.bedrooms,
+                "bathrooms": valuation_request.bathrooms
+            },
+            "valuation": {
+                "estimated_value": estimated_value,
+                "lower_estimate": lower_estimate,
+                "upper_estimate": upper_estimate,
+                "confidence": "High",
+                "valuation_date": datetime.now().strftime("%Y-%m-%d"),
+                "methodology": "Automated Valuation Model (AVM)"
+            },
+            "market_analysis": {
+                "recent_sales": [
+                    {"address": "125 Oak Avenue", "price": 470000, "date": "2024-08-15", "difference": "+3.2%"},
+                    {"address": "121 Oak Avenue", "price": 455000, "date": "2024-07-22", "difference": "-0.8%"},
+                    {"address": "119 Oak Avenue", "price": 492000, "date": "2024-06-10", "difference": "+7.8%"}
+                ],
+                "local_trends": {
+                    "price_change_3m": "+2.1%",
+                    "price_change_12m": "+8.4%",
+                    "average_days_on_market": 38,
+                    "sales_volume": 24
+                },
+                "comparable_properties": {
+                    "similar_type_average": estimated_value + random.randint(-15000, 15000),
+                    "same_street_average": estimated_value + random.randint(-25000, 25000),
+                    "postcode_average": estimated_value + random.randint(-35000, 35000)
+                }
+            },
+            "factors": {
+                "positive": ["Good local amenities", "Transport links", "School catchment"],
+                "negative": ["Busy road nearby", "Limited parking"],
+                "neutral": ["Standard condition", "Typical for area"]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Valuation failed: {str(e)}")
+
+@app.get("/api/property-api/ownership/{postcode}")
+async def get_property_ownership(postcode: str):
+    """Get Land Registry ownership data"""
+    try:
+        # Mock Land Registry data
+        ownership_data = {
+            "success": True,
+            "postcode": postcode.upper(),
+            "properties": [
+                {
+                    "title_number": "ABC123456",
+                    "address": f"123 Example Street, {postcode.upper()}",
+                    "tenure": "Freehold",
+                    "registered_owner": "John Smith",
+                    "proprietor_address": "Same as property address",
+                    "registration_date": "2019-06-15",
+                    "last_sale_price": "£415,000",
+                    "last_sale_date": "2019-06-15",
+                    "property_description": "A dwelling-house known as 123 Example Street",
+                    "charges": [],
+                    "restrictions": [],
+                    "notes": ["Property benefits from right of way over adjacent land"]
+                }
+            ],
+            "land_registry_url": f"https://landregistry.data.gov.uk/app/ukhpi/browse?from=&location=http%3A%2F%2Flandregistry.data.gov.uk%2Fid%2Fregion%2Funited-kingdom&to=&lang=en",
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        return ownership_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ownership lookup failed: {str(e)}")
+
+@app.get("/api/property-api/planning-history/{postcode}")
+async def get_planning_history(postcode: str):
+    """Get planning application history for area"""
+    try:
+        planning_applications = [
+            {
+                "reference": "2024/0123/FULL",
+                "address": f"123 Example Street, {postcode.upper()}",
+                "proposal": "Single storey rear extension",
+                "application_type": "Full Planning Permission",
+                "submitted_date": "2024-02-15",
+                "decision": "Approved",
+                "decision_date": "2024-04-12",
+                "case_officer": "Sarah Johnson",
+                "agent": "ABC Planning Consultants",
+                "applicant": "Mr. John Smith",
+                "status": "Completed",
+                "documents_url": "/planning/docs/2024-0123",
+                "consultation_responses": 3,
+                "objections": 0,
+                "comments": ["No objections from neighbours", "Complies with local policy"]
+            },
+            {
+                "reference": "2023/0987/FULL",
+                "address": f"125 Example Street, {postcode.upper()}", 
+                "proposal": "Two storey side extension",
+                "application_type": "Full Planning Permission",
+                "submitted_date": "2023-11-08",
+                "decision": "Refused",
+                "decision_date": "2024-01-22",
+                "case_officer": "Michael Brown",
+                "agent": "XYZ Architects",
+                "applicant": "Mrs. Jane Doe",
+                "status": "Refused",
+                "documents_url": "/planning/docs/2023-0987",
+                "consultation_responses": 8,
+                "objections": 4,
+                "refusal_reasons": [
+                    "Excessive bulk and scale",
+                    "Adverse impact on neighbour amenity", 
+                    "Poor design quality"
+                ],
+                "comments": ["Strong local opposition", "Officer recommendation to refuse"]
+            },
+            {
+                "reference": "2023/0654/FUL",
+                "address": f"127 Example Street, {postcode.upper()}",
+                "proposal": "Loft conversion with rear dormer window",
+                "application_type": "Full Planning Permission", 
+                "submitted_date": "2023-08-20",
+                "decision": "Approved",
+                "decision_date": "2023-10-15",
+                "case_officer": "Lisa Wilson",
+                "agent": "DEF Planning Services",
+                "applicant": "Mr. David Jones",
+                "status": "Approved",
+                "documents_url": "/planning/docs/2023-0654",
+                "consultation_responses": 2,
+                "objections": 0,
+                "conditions": [
+                    "Materials to match existing",
+                    "Work to commence within 3 years",
+                    "Permitted development rights removed"
+                ]
+            }
+        ]
+        
+        return {
+            "success": True,
+            "postcode": postcode.upper(),
+            "total_applications": len(planning_applications),
+            "applications": planning_applications,
+            "summary": {
+                "approved": 2,
+                "refused": 1,
+                "pending": 0,
+                "withdrawn": 0,
+                "success_rate": "67%"
+            },
+            "trends": {
+                "most_common_type": "Extensions",
+                "average_decision_time": "68 days",
+                "recent_activity": "Moderate"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Planning history lookup failed: {str(e)}")
+
+@app.get("/api/property-api/market-analytics/{area}")
+async def get_market_analytics(area: str):
+    """Get comprehensive market analytics for area"""
+    try:
+        return {
+            "success": True,
+            "area": area,
+            "market_data": {
+                "current_stats": {
+                    "average_price": "£487,250",
+                    "median_price": "£465,000", 
+                    "price_per_sqft": "£315",
+                    "total_sales_12m": 284,
+                    "average_days_on_market": 42,
+                    "sale_success_rate": "87%"
+                },
+                "price_trends": {
+                    "1_month": "+1.2%",
+                    "3_months": "+3.8%", 
+                    "6_months": "+6.1%",
+                    "12_months": "+8.9%",
+                    "5_years": "+34.2%"
+                },
+                "property_types": {
+                    "terraced": {"count": 156, "avg_price": "£445,000", "change": "+7.8%"},
+                    "semi_detached": {"count": 89, "avg_price": "£525,000", "change": "+9.2%"},
+                    "detached": {"count": 34, "avg_price": "£675,000", "change": "+11.1%"},
+                    "flat": {"count": 73, "avg_price": "£385,000", "change": "+6.4%"}
+                },
+                "local_features": {
+                    "schools": {"primary": 8, "secondary": 3, "ofsted_good_plus": "85%"},
+                    "transport": {"train_stations": 2, "bus_routes": 12, "tube_zones": "N/A"},
+                    "amenities": {"shops": 45, "restaurants": 23, "parks": 6},
+                    "crime_rate": "Below average", 
+                    "air_quality": "Good"
+                },
+                "forecasts": {
+                    "next_6_months": "+2.5%",
+                    "next_12_months": "+4.8%",
+                    "confidence": "Medium"
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Market analytics failed: {str(e)}")
 
 # Property data lookup endpoint (fixed)
 @app.post("/api/property/lookup")
