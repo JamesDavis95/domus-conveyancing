@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporting & Analytics - Domus Professional Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .analytics-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analytics-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .analytics-nav {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            padding: 1rem;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .nav-pills .nav-link {
+            color: var(--primary-color);
+            margin: 0 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--gradient-primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .metric-card.success::before { background: var(--gradient-success); }
+        .metric-card.warning::before { background: var(--gradient-warning); }
+        .metric-card.info::before { background: var(--gradient-info); }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-change {
+            font-size: 0.9rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .metric-change.positive {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+        }
+
+        .metric-change.negative {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--accent-color);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-bg);
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-control-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .chart-control-btn:hover,
+        .chart-control-btn.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+        }
+
+        .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .kpi-icon.revenue { background: var(--gradient-success); }
+        .kpi-icon.projects { background: var(--gradient-primary); }
+        .kpi-icon.efficiency { background: var(--gradient-warning); }
+        .kpi-icon.satisfaction { background: var(--gradient-info); }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .kpi-trend.up { color: var(--success-color); }
+        .kpi-trend.down { color: var(--accent-color); }
+        .kpi-trend.stable { color: var(--info-color); }
+
+        .report-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+        }
+
+        .report-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .report-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .report-subtitle {
+            opacity: 0.8;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .report-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .report-btn:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .report-content {
+            padding: 1.5rem;
+        }
+
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .report-stat {
+            text-align: center;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+        }
+
+        .report-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .report-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin: 0 auto 1rem;
+        }
+
+        .progress-ring-circle {
+            fill: none;
+            stroke: var(--light-bg);
+            stroke-width: 8;
+        }
+
+        .progress-ring-progress {
+            fill: none;
+            stroke: var(--secondary-color);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dasharray 0.5s ease;
+        }
+
+        .progress-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            color: var(--primary-color);
+            min-width: 100px;
+        }
+
+        .date-range-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .date-input {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .quick-filter {
+            background: var(--light-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            margin: 0.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .quick-filter:hover,
+        .quick-filter.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .export-options {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .export-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: var(--light-bg);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .table-search {
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            width: 250px;
+        }
+
+        .table-responsive {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .performance-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .performance-excellent {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+        }
+
+        .performance-good {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .performance-fair {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+
+        .performance-poor {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--accent-color);
+        }
+
+        .alert-banner {
+            background: var(--gradient-warning);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+
+        .alert-content h6 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+
+        .alert-content p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .real-time-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--success-color);
+            font-size: 0.9rem;
+        }
+
+        .real-time-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success-color);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .analytics-header {
+                padding: 1rem 0;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-value {
+                font-size: 2rem;
+            }
+            
+            .chart-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: start;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Analytics Header -->
+    <div class="analytics-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-chart-line me-3"></i>Reporting & Analytics Dashboard
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Business intelligence with KPIs, charts, and automated reports</p>
+                    <div class="real-time-indicator mt-2">
+                        <div class="real-time-dot"></div>
+                        <span>Live data updated every 5 minutes</span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light me-2" onclick="refreshDashboard()">
+                        <i class="fas fa-refresh me-2"></i>Refresh
+                    </button>
+                    <button class="btn btn-outline-light" onclick="exportDashboard()">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Navigation Tabs -->
+        <div class="analytics-nav">
+            <ul class="nav nav-pills justify-content-center" id="analyticsTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview">
+                        <i class="fas fa-tachometer-alt me-2"></i>Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="financial-tab" data-bs-toggle="pill" href="#financial">
+                        <i class="fas fa-pound-sign me-2"></i>Financial
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="projects-tab" data-bs-toggle="pill" href="#projects">
+                        <i class="fas fa-project-diagram me-2"></i>Projects
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="performance-tab" data-bs-toggle="pill" href="#performance">
+                        <i class="fas fa-chart-bar me-2"></i>Performance
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="clients-tab" data-bs-toggle="pill" href="#clients">
+                        <i class="fas fa-users me-2"></i>Clients
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="custom-tab" data-bs-toggle="pill" href="#custom">
+                        <i class="fas fa-cogs me-2"></i>Custom Reports
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="analyticsTabContent">
+            <!-- Overview Tab -->
+            <div class="tab-pane fade show active" id="overview">
+                <!-- Alert Banner -->
+                <div class="alert-banner">
+                    <i class="fas fa-info-circle alert-icon"></i>
+                    <div class="alert-content">
+                        <h6>Monthly Performance Review Available</h6>
+                        <p>Your September performance report is ready. Revenue up 23% with 94% client satisfaction.</p>
+                    </div>
+                    <button class="btn btn-sm btn-light ms-auto">View Report</button>
+                </div>
+
+                <!-- Key Metrics -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card">
+                            <div class="metric-value">£2.34M</div>
+                            <div class="metric-label">Total Revenue</div>
+                            <div class="metric-change positive">
+                                <i class="fas fa-arrow-up me-1"></i>23% vs last month
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card success">
+                            <div class="metric-value">187</div>
+                            <div class="metric-label">Active Projects</div>
+                            <div class="metric-change positive">
+                                <i class="fas fa-arrow-up me-1"></i>12 new this month
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card warning">
+                            <div class="metric-value">94%</div>
+                            <div class="metric-label">Client Satisfaction</div>
+                            <div class="metric-change positive">
+                                <i class="fas fa-arrow-up me-1"></i>2% improvement
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card info">
+                            <div class="metric-value">87%</div>
+                            <div class="metric-label">Team Efficiency</div>
+                            <div class="metric-change negative">
+                                <i class="fas fa-arrow-down me-1"></i>3% below target
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Dashboard -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon revenue">
+                            <i class="fas fa-pound-sign"></i>
+                        </div>
+                        <div class="kpi-value">£89.2K</div>
+                        <div class="kpi-label">Monthly Recurring Revenue</div>
+                        <div class="kpi-trend up">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            <span>15.3% growth</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon projects">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="kpi-value">67</div>
+                        <div class="kpi-label">Planning Applications</div>
+                        <div class="kpi-trend up">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            <span>8 this week</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon efficiency">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="kpi-value">4.2</div>
+                        <div class="kpi-label">Avg. Project Duration (weeks)</div>
+                        <div class="kpi-trend down">
+                            <i class="fas fa-arrow-down me-1"></i>
+                            <span>2 days faster</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon satisfaction">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="kpi-value">4.7</div>
+                        <div class="kpi-label">Client Rating (out of 5)</div>
+                        <div class="kpi-trend stable">
+                            <i class="fas fa-minus me-1"></i>
+                            <span>No change</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <div class="col-xl-8 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Revenue & Project Trends</h5>
+                                <div class="chart-controls">
+                                    <button class="chart-control-btn active" data-period="30d">30 Days</button>
+                                    <button class="chart-control-btn" data-period="90d">90 Days</button>
+                                    <button class="chart-control-btn" data-period="1y">1 Year</button>
+                                </div>
+                            </div>
+                            <canvas id="revenueTrendChart" width="400" height="250"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Project Distribution</h5>
+                            </div>
+                            <canvas id="projectDistributionChart" width="200" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Tab -->
+            <div class="tab-pane fade" id="financial">
+                <!-- Financial Filters -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label class="filter-label">Period:</label>
+                        <div class="date-range-picker">
+                            <input type="date" class="date-input" id="startDate" value="2024-09-01">
+                            <span>to</span>
+                            <input type="date" class="date-input" id="endDate" value="2024-10-03">
+                        </div>
+                        <div>
+                            <span class="quick-filter active" data-range="7d">Last 7 days</span>
+                            <span class="quick-filter" data-range="30d">Last 30 days</span>
+                            <span class="quick-filter" data-range="90d">Last 90 days</span>
+                            <span class="quick-filter" data-range="1y">Last year</span>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Export:</label>
+                        <div class="export-options">
+                            <button class="export-btn" onclick="exportFinancialReport('pdf')">
+                                <i class="fas fa-file-pdf"></i>PDF Report
+                            </button>
+                            <button class="export-btn" onclick="exportFinancialReport('excel')">
+                                <i class="fas fa-file-excel"></i>Excel Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Metrics -->
+                <div class="row mb-4">
+                    <div class="col-xl-2 col-md-4 mb-3">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">£2.34M</div>
+                                    <div class="report-subtitle">Total Revenue</div>
+                                </div>
+                            </div>
+                            <div class="report-content">
+                                <div class="progress-ring">
+                                    <svg class="progress-ring" width="120" height="120">
+                                        <circle class="progress-ring-circle" cx="60" cy="60" r="50"></circle>
+                                        <circle class="progress-ring-progress" cx="60" cy="60" r="50" 
+                                                stroke-dasharray="314" stroke-dashoffset="62.8"></circle>
+                                    </svg>
+                                    <div class="progress-ring-text">80%</div>
+                                </div>
+                                <p class="text-center text-muted">of annual target</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 mb-3">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div>
+                                    <div class="report-title">£456K</div>
+                                    <div class="report-subtitle">Outstanding</div>
+                                </div>
+                            </div>
+                            <div class="report-content">
+                                <div class="report-stats">
+                                    <div class="report-stat">
+                                        <div class="report-stat-value">£289K</div>
+                                        <div class="report-stat-label">0-30 days</div>
+                                    </div>
+                                    <div class="report-stat">
+                                        <div class="report-stat-value">£167K</div>
+                                        <div class="report-stat-label">30+ days</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-8 mb-3">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Cash Flow Analysis</h5>
+                                <div class="chart-controls">
+                                    <button class="chart-control-btn active">Monthly</button>
+                                    <button class="chart-control-btn">Quarterly</button>
+                                </div>
+                            </div>
+                            <canvas id="cashFlowChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Data Table -->
+                <div class="data-table">
+                    <div class="table-header">
+                        <h5 class="table-title">Financial Transactions</h5>
+                        <input type="text" class="table-search" placeholder="Search transactions...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="financialTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Project</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Tab -->
+            <div class="tab-pane fade" id="projects">
+                <!-- Project Analytics -->
+                <div class="row mb-4">
+                    <div class="col-xl-4 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Project Status</h5>
+                            </div>
+                            <canvas id="projectStatusChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Project Types</h5>
+                            </div>
+                            <canvas id="projectTypesChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Timeline Performance</h5>
+                            </div>
+                            <canvas id="timelineChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Performance Table -->
+                <div class="data-table">
+                    <div class="table-header">
+                        <h5 class="table-title">Project Performance Dashboard</h5>
+                        <input type="text" class="table-search" placeholder="Search projects...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="projectsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Client</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Progress</th>
+                                    <th>Performance</th>
+                                    <th>Budget</th>
+                                    <th>Timeline</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div class="tab-pane fade" id="performance">
+                <div class="row">
+                    <div class="col-xl-6 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Team Performance Metrics</h5>
+                            </div>
+                            <canvas id="teamPerformanceChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Efficiency Trends</h5>
+                            </div>
+                            <canvas id="efficiencyChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xl-8 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Quality Metrics Over Time</h5>
+                            </div>
+                            <canvas id="qualityChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Client Satisfaction</h5>
+                            </div>
+                            <canvas id="satisfactionChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clients Tab -->
+            <div class="tab-pane fade" id="clients">
+                <div class="row mb-4">
+                    <div class="col-xl-6 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Client Acquisition</h5>
+                            </div>
+                            <canvas id="clientAcquisitionChart" width="400" height="250"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 mb-4">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h5 class="chart-title">Client Retention</h5>
+                            </div>
+                            <canvas id="clientRetentionChart" width="400" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client Performance Table -->
+                <div class="data-table">
+                    <div class="table-header">
+                        <h5 class="table-title">Client Analytics</h5>
+                        <input type="text" class="table-search" placeholder="Search clients...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="clientsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Projects</th>
+                                    <th>Revenue</th>
+                                    <th>Satisfaction</th>
+                                    <th>Last Project</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Reports Tab -->
+            <div class="tab-pane fade" id="custom">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h4>Custom Report Builder</h4>
+                        <p class="text-muted">Create and schedule automated reports tailored to your needs</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-primary" onclick="createCustomReport()">
+                            <i class="fas fa-plus me-2"></i>New Custom Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Saved Reports -->
+                <div class="row" id="customReportsContainer">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Report Modal -->
+    <div class="modal fade" id="customReportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Custom Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Report builder interface -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Report Name</label>
+                                <input type="text" class="form-control" id="reportName" placeholder="Enter report name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Data Sources</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="financialData" checked>
+                                    <label class="form-check-label" for="financialData">Financial Data</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="projectData" checked>
+                                    <label class="form-check-label" for="projectData">Project Data</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="clientData">
+                                    <label class="form-check-label" for="clientData">Client Data</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Schedule</label>
+                                <select class="form-select" id="reportSchedule">
+                                    <option value="manual">Manual</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Recipients</label>
+                                <input type="text" class="form-control" id="reportRecipients" placeholder="Enter email addresses">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveCustomReport()">Create Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script>
+        // Global analytics data
+        let analyticsData = {
+            overview: {},
+            financial: {},
+            projects: {},
+            performance: {},
+            clients: {},
+            customReports: []
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAnalytics();
+        });
+
+        async function initializeAnalytics() {
+            showLoading();
+            try {
+                await Promise.all([
+                    loadOverviewData(),
+                    loadFinancialData(),
+                    loadProjectsData(),
+                    loadPerformanceData(),
+                    loadClientsData(),
+                    loadCustomReports()
+                ]);
+                
+                renderOverview();
+                renderFinancial();
+                renderProjects();
+                renderPerformance();
+                renderClients();
+                renderCustomReports();
+                
+                setupEventListeners();
+                hideLoading();
+            } catch (error) {
+                console.error('Failed to initialize analytics:', error);
+                showError('Failed to load analytics data');
+            }
+        }
+
+        async function loadOverviewData() {
+            try {
+                const response = await fetch('/api/analytics/overview');
+                const data = await response.json();
+                if (data.success) {
+                    analyticsData.overview = data.overview;
+                }
+            } catch (error) {
+                console.error('Failed to load overview data:', error);
+            }
+        }
+
+        async function loadFinancialData() {
+            try {
+                const response = await fetch('/api/analytics/financial');
+                const data = await response.json();
+                if (data.success) {
+                    analyticsData.financial = data.financial;
+                }
+            } catch (error) {
+                console.error('Failed to load financial data:', error);
+            }
+        }
+
+        async function loadProjectsData() {
+            try {
+                const response = await fetch('/api/analytics/projects');
+                const data = await response.json();
+                if (data.success) {
+                    analyticsData.projects = data.projects;
+                }
+            } catch (error) {
+                console.error('Failed to load projects data:', error);
+            }
+        }
+
+        async function loadPerformanceData() {
+            try {
+                const response = await fetch('/api/analytics/performance');
+                const data = await response.json();
+                if (data.success) {
+                    analyticsData.performance = data.performance;
+                }
+            } catch (error) {
+                console.error('Failed to load performance data:', error);
+            }
+        }
+
+        async function loadClientsData() {
+            try {
+                const response = await fetch('/api/analytics/clients');
+                const data = await response.json();
+                if (data.success) {
+                    analyticsData.clients = data.clients;
+                }
+            } catch (error) {
+                console.error('Failed to load clients data:', error);
+            }
+        }
+
+        async function loadCustomReports() {
+            try {
+                const response = await fetch('/api/analytics/custom-reports');
+                const data = await response.json();
+                if (data.success) {
+                    analyticsData.customReports = data.reports;
+                }
+            } catch (error) {
+                console.error('Failed to load custom reports:', error);
+            }
+        }
+
+        function renderOverview() {
+            renderRevenueTrendChart();
+            renderProjectDistributionChart();
+        }
+
+        function renderFinancial() {
+            renderCashFlowChart();
+            renderFinancialTable();
+        }
+
+        function renderProjects() {
+            renderProjectStatusChart();
+            renderProjectTypesChart();
+            renderTimelineChart();
+            renderProjectsTable();
+        }
+
+        function renderPerformance() {
+            renderTeamPerformanceChart();
+            renderEfficiencyChart();
+            renderQualityChart();
+            renderSatisfactionChart();
+        }
+
+        function renderClients() {
+            renderClientAcquisitionChart();
+            renderClientRetentionChart();
+            renderClientsTable();
+        }
+
+        function renderCustomReports() {
+            const container = document.getElementById('customReportsContainer');
+            container.innerHTML = analyticsData.customReports.map(report => `
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="report-card">
+                        <div class="report-header">
+                            <div>
+                                <div class="report-title">${report.name}</div>
+                                <div class="report-subtitle">${report.schedule} • ${report.last_run}</div>
+                            </div>
+                            <div class="report-actions">
+                                <a href="#" class="report-btn" onclick="runReport('${report.id}')">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <a href="#" class="report-btn" onclick="editReport('${report.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="report-content">
+                            <p class="text-muted">${report.description}</p>
+                            <div class="report-stats">
+                                <div class="report-stat">
+                                    <div class="report-stat-value">${report.data_points}</div>
+                                    <div class="report-stat-label">Data Points</div>
+                                </div>
+                                <div class="report-stat">
+                                    <div class="report-stat-value">${report.recipients}</div>
+                                    <div class="report-stat-label">Recipients</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Chart rendering functions
+        function renderRevenueTrendChart() {
+            const ctx = document.getElementById('revenueTrendChart');
+            if (!ctx) return;
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [180000, 195000, 210000, 185000, 220000, 235000, 245000, 225000, 260000],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Projects',
+                        data: [15, 18, 22, 16, 25, 28, 30, 26, 32],
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderProjectDistributionChart() {
+            const ctx = document.getElementById('projectDistributionChart');
+            if (!ctx) return;
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Planning Applications', 'Design Projects', 'Consultancy', 'Environmental'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: ['#3498db', '#27ae60', '#f39c12', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-GB', {
+                style: 'currency',
+                currency: 'GBP'
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-GB');
+        }
+
+        function showLoading() {
+            // Implementation for loading state
+        }
+
+        function hideLoading() {
+            // Implementation for hiding loading state
+        }
+
+        function showError(message) {
+            console.error(message);
+            // Implementation for error display
+        }
+
+        // Event handlers
+        function refreshDashboard() {
+            console.log('Refreshing dashboard...');
+            initializeAnalytics();
+        }
+
+        function exportDashboard() {
+            console.log('Exporting dashboard...');
+        }
+
+        function exportFinancialReport(format) {
+            console.log('Exporting financial report as:', format);
+        }
+
+        function createCustomReport() {
+            new bootstrap.Modal(document.getElementById('customReportModal')).show();
+        }
+
+        function saveCustomReport() {
+            console.log('Saving custom report...');
+        }
+
+        function runReport(reportId) {
+            console.log('Running report:', reportId);
+        }
+
+        function editReport(reportId) {
+            console.log('Editing report:', reportId);
+        }
+
+        function setupEventListeners() {
+            // Chart control buttons
+            document.querySelectorAll('.chart-control-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.parentNode.querySelectorAll('.chart-control-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const period = this.dataset.period;
+                    updateChartPeriod(period);
+                });
+            });
+
+            // Quick filters
+            document.querySelectorAll('.quick-filter').forEach(filter => {
+                filter.addEventListener('click', function() {
+                    this.parentNode.querySelectorAll('.quick-filter').forEach(f => f.classList.remove('active'));
+                    this.classList.add('active');
+                    const range = this.dataset.range;
+                    updateDateRange(range);
+                });
+            });
+        }
+
+        function updateChartPeriod(period) {
+            console.log('Updating chart period to:', period);
+        }
+
+        function updateDateRange(range) {
+            console.log('Updating date range to:', range);
+        }
+
+        // Additional chart functions would be implemented here
+        function renderCashFlowChart() { /* Implementation */ }
+        function renderFinancialTable() { /* Implementation */ }
+        function renderProjectStatusChart() { /* Implementation */ }
+        function renderProjectTypesChart() { /* Implementation */ }
+        function renderTimelineChart() { /* Implementation */ }
+        function renderProjectsTable() { /* Implementation */ }
+        function renderTeamPerformanceChart() { /* Implementation */ }
+        function renderEfficiencyChart() { /* Implementation */ }
+        function renderQualityChart() { /* Implementation */ }
+        function renderSatisfactionChart() { /* Implementation */ }
+        function renderClientAcquisitionChart() { /* Implementation */ }
+        function renderClientRetentionChart() { /* Implementation */ }
+        function renderClientsTable() { /* Implementation */ }
+    </script>
+</body>
+</html>
