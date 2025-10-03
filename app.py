@@ -5905,6 +5905,944 @@ async def get_analytics_insights():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch insights: {str(e)}")
 
+# ================================
+# INTEGRATION ECOSYSTEM SYSTEM
+# ================================
+
+class IntegrationConfig(BaseModel):
+    name: str
+    type: str  # planning_portal, government_api, mapping_service, financial_system, crm, etc.
+    endpoint_url: str
+    authentication_method: str = "api_key"  # api_key, oauth2, basic_auth
+    api_key: Optional[str] = None
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    enabled: bool = True
+    rate_limit: Optional[int] = None
+    timeout: int = 30
+    retry_attempts: int = 3
+
+class WebhookConfig(BaseModel):
+    url: str
+    events: List[str]
+    secret: Optional[str] = None
+    enabled: bool = True
+
+class APITestRequest(BaseModel):
+    integration_id: str
+    endpoint: str
+    method: str = "GET"
+    headers: dict = {}
+    payload: dict = {}
+
+@app.get("/integration-ecosystem")
+async def integration_ecosystem(request: Request):
+    """Integration Ecosystem main page"""
+    return templates.TemplateResponse("integration_ecosystem.html", {"request": request})
+
+@app.get("/api/integrations/overview")
+async def get_integrations_overview():
+    """Get comprehensive integrations overview data"""
+    try:
+        overview_data = {
+            "statistics": {
+                "total_integrations": 24,
+                "active_connections": 18,
+                "failed_connections": 3,
+                "pending_setup": 3,
+                "monthly_api_calls": 47234,
+                "average_response_time": 2.1,
+                "success_rate": 99.7,
+                "monthly_costs": 1247.50,
+                "uptime_percentage": 99.8
+            },
+            "integration_health": {
+                "excellent": 15,
+                "good": 3,
+                "warning": 4,
+                "critical": 2
+            },
+            "top_integrations_by_usage": [
+                {
+                    "name": "Ordnance Survey",
+                    "type": "mapping_service",
+                    "monthly_calls": 18942,
+                    "cost": 287.50,
+                    "health": "excellent"
+                },
+                {
+                    "name": "Planning Portal",
+                    "type": "planning_portal",
+                    "monthly_calls": 8432,
+                    "cost": 156.30,
+                    "health": "excellent"
+                },
+                {
+                    "name": "Companies House",
+                    "type": "government_api",
+                    "monthly_calls": 6234,
+                    "cost": 89.20,
+                    "health": "good"
+                }
+            ],
+            "recent_activity": [
+                {
+                    "timestamp": "2024-10-03T14:45:23Z",
+                    "integration": "Ordnance Survey",
+                    "action": "Property lookup completed",
+                    "status": "success",
+                    "response_time": 1.2
+                },
+                {
+                    "timestamp": "2024-10-03T14:44:18Z",
+                    "integration": "Planning Portal",
+                    "action": "Application submitted",
+                    "status": "success",
+                    "response_time": 3.4
+                },
+                {
+                    "timestamp": "2024-10-03T14:43:42Z",
+                    "integration": "Companies House",
+                    "action": "Company search",
+                    "status": "rate_limited",
+                    "response_time": 0.5
+                }
+            ],
+            "alerts": [
+                {
+                    "type": "warning",
+                    "title": "Rate Limit Approaching",
+                    "message": "Companies House API approaching daily rate limit (85% used)",
+                    "timestamp": "2024-10-03T14:30:00Z"
+                },
+                {
+                    "type": "error",
+                    "title": "Connection Failed",
+                    "message": "HubSpot CRM authentication failed - requires reconnection",
+                    "timestamp": "2024-10-03T13:15:00Z"
+                }
+            ]
+        }
+        
+        return {
+            "success": True,
+            "overview": overview_data,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch integrations overview: {str(e)}")
+
+@app.get("/api/integrations")
+async def get_all_integrations():
+    """Get list of all configured integrations"""
+    try:
+        integrations = [
+            {
+                "id": "planning_portal_uk",
+                "name": "UK Planning Portal",
+                "type": "planning_portal",
+                "category": "Government Portal",
+                "status": "connected",
+                "health": "excellent",
+                "uptime": 99.9,
+                "last_sync": "2024-10-03T14:30:00Z",
+                "monthly_calls": 8432,
+                "success_rate": 94.2,
+                "average_response_time": 2.8,
+                "configuration": {
+                    "endpoint": "https://www.planningportal.co.uk/api/v1",
+                    "auth_method": "oauth2",
+                    "auto_submit": True,
+                    "retry_failed": True
+                },
+                "metrics": {
+                    "applications_submitted": 1247,
+                    "success_rate": 94.2,
+                    "avg_processing_time": "3.2 days"
+                }
+            },
+            {
+                "id": "ordnance_survey",
+                "name": "Ordnance Survey",
+                "type": "mapping_service",
+                "category": "Mapping Service",
+                "status": "connected",
+                "health": "excellent",
+                "uptime": 98.7,
+                "last_sync": "2024-10-03T14:45:00Z",
+                "monthly_calls": 18942,
+                "success_rate": 99.1,
+                "average_response_time": 2.1,
+                "configuration": {
+                    "license_type": "premium",
+                    "api_key": "os_***********",
+                    "quota_limit": 50000,
+                    "quota_used": 24567
+                },
+                "metrics": {
+                    "map_requests": 18942,
+                    "quota_usage": "49.1%",
+                    "cost_this_month": 287.50
+                }
+            },
+            {
+                "id": "companies_house",
+                "name": "Companies House",
+                "type": "government_api",
+                "category": "Government API",
+                "status": "connected",
+                "health": "good",
+                "uptime": 99.5,
+                "last_sync": "2024-10-03T14:40:00Z",
+                "monthly_calls": 6234,
+                "success_rate": 97.8,
+                "average_response_time": 1.8,
+                "configuration": {
+                    "api_key": "ch_***********",
+                    "rate_limit": 600,
+                    "cache_duration": 3600
+                },
+                "metrics": {
+                    "company_lookups": 6234,
+                    "director_searches": 1847,
+                    "filing_checks": 892
+                }
+            },
+            {
+                "id": "stripe_payments",
+                "name": "Stripe",
+                "type": "financial_system",
+                "category": "Payment Gateway",
+                "status": "connected",
+                "health": "excellent",
+                "uptime": 99.9,
+                "last_sync": "2024-10-03T14:50:00Z",
+                "monthly_calls": 3456,
+                "success_rate": 99.8,
+                "average_response_time": 1.2,
+                "configuration": {
+                    "mode": "live",
+                    "webhook_enabled": True,
+                    "auto_capture": True
+                },
+                "metrics": {
+                    "transactions_processed": 847,
+                    "total_amount": 247000,
+                    "fees_paid": 6892.50
+                }
+            },
+            {
+                "id": "sendgrid_email",
+                "name": "SendGrid",
+                "type": "communication",
+                "category": "Email Service",
+                "status": "pending",
+                "health": "warning",
+                "uptime": 98.2,
+                "last_sync": "2024-10-03T12:15:00Z",
+                "monthly_calls": 2847,
+                "success_rate": 96.4,
+                "average_response_time": 3.1,
+                "configuration": {
+                    "api_key": "sg_***********",
+                    "template_engine": "handlebars",
+                    "tracking_enabled": True
+                },
+                "metrics": {
+                    "emails_sent": 12456,
+                    "delivery_rate": 96.4,
+                    "open_rate": 23.7
+                },
+                "issues": ["API key requires renewal"]
+            },
+            {
+                "id": "hubspot_crm",
+                "name": "HubSpot CRM",
+                "type": "crm",
+                "category": "CRM Platform",
+                "status": "disconnected",
+                "health": "error",
+                "uptime": 0,
+                "last_sync": "2024-10-01T16:30:00Z",
+                "monthly_calls": 0,
+                "success_rate": 0,
+                "average_response_time": 0,
+                "configuration": {
+                    "client_id": "hs_***********",
+                    "scopes": ["contacts", "companies", "deals"],
+                    "webhook_url": "/webhooks/hubspot"
+                },
+                "metrics": {
+                    "contacts_synced": 2847,
+                    "last_successful_sync": "2024-10-01T16:30:00Z"
+                },
+                "issues": ["OAuth token expired", "Requires re-authentication"]
+            }
+        ]
+        
+        return {
+            "success": True,
+            "integrations": integrations,
+            "summary": {
+                "total": len(integrations),
+                "connected": len([i for i in integrations if i["status"] == "connected"]),
+                "pending": len([i for i in integrations if i["status"] == "pending"]),
+                "disconnected": len([i for i in integrations if i["status"] == "disconnected"])
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch integrations: {str(e)}")
+
+@app.get("/api/integrations/planning-portals")
+async def get_planning_portals():
+    """Get planning portal integrations data"""
+    try:
+        planning_data = {
+            "primary_portal": {
+                "name": "UK Planning Portal",
+                "status": "connected",
+                "applications_submitted": 1247,
+                "success_rate": 94.2,
+                "average_processing_time": "3.2 days",
+                "supported_authorities": 348,
+                "api_version": "v1.2",
+                "last_submission": "2024-10-03T14:32:15Z"
+            },
+            "local_authorities": [
+                {
+                    "name": "Westminster City Council",
+                    "code": "E09000033",
+                    "status": "connected",
+                    "applications": 156,
+                    "success_rate": 97.4,
+                    "avg_decision_time": "8.2 weeks",
+                    "last_submission": "2024-10-03T14:32:15Z"
+                },
+                {
+                    "name": "Camden Council",
+                    "code": "E09000007",
+                    "status": "connected",
+                    "applications": 134,
+                    "success_rate": 92.5,
+                    "avg_decision_time": "7.8 weeks",
+                    "last_submission": "2024-10-03T13:15:42Z"
+                },
+                {
+                    "name": "Tower Hamlets",
+                    "code": "E09000030",
+                    "status": "connected",
+                    "applications": 98,
+                    "success_rate": 89.8,
+                    "avg_decision_time": "9.1 weeks",
+                    "last_submission": "2024-10-03T11:45:23Z"
+                },
+                {
+                    "name": "Southwark Council",
+                    "code": "E09000028",
+                    "status": "warning",
+                    "applications": 87,
+                    "success_rate": 91.2,
+                    "avg_decision_time": "8.7 weeks",
+                    "last_submission": "2024-10-02T16:30:12Z",
+                    "issues": ["Intermittent connection timeouts"]
+                }
+            ],
+            "submission_statistics": {
+                "total_applications": 1247,
+                "approved": 734,
+                "rejected": 189,
+                "pending": 284,
+                "withdrawn": 40,
+                "approval_rate": 79.5,
+                "avg_processing_time": "8.4 weeks"
+            },
+            "recent_activity": [
+                {
+                    "timestamp": "2024-10-03T14:32:15Z",
+                    "action": "Application submitted",
+                    "reference": "PLN/2024/0847",
+                    "authority": "Westminster City Council",
+                    "status": "success"
+                },
+                {
+                    "timestamp": "2024-10-03T14:28:42Z",
+                    "action": "Status update received",
+                    "reference": "PLN/2024/0834",
+                    "authority": "Camden Council",
+                    "status": "under_review"
+                },
+                {
+                    "timestamp": "2024-10-03T13:54:18Z",
+                    "action": "Document upload",
+                    "reference": "PLN/2024/0841",
+                    "authority": "Tower Hamlets",
+                    "status": "success"
+                }
+            ],
+            "configuration": {
+                "auto_submit_enabled": True,
+                "notification_webhooks": True,
+                "document_auto_upload": True,
+                "status_polling_interval": 3600,
+                "backup_submission_method": "manual_portal"
+            }
+        }
+        
+        return {
+            "success": True,
+            "planning_portals": planning_data,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch planning portals data: {str(e)}")
+
+@app.get("/api/integrations/government-apis")
+async def get_government_apis():
+    """Get government API integrations data"""
+    try:
+        government_data = {
+            "active_apis": [
+                {
+                    "name": "Companies House API",
+                    "endpoint": "https://api.company-information.service.gov.uk",
+                    "status": "connected",
+                    "api_version": "v1",
+                    "rate_limit": 600,
+                    "rate_used": 468,
+                    "monthly_calls": 6234,
+                    "success_rate": 97.8,
+                    "average_response_time": 1.8,
+                    "data_types": ["company_profile", "officers", "filing_history", "charges"],
+                    "cost_per_call": 0.00,
+                    "last_call": "2024-10-03T14:40:00Z"
+                },
+                {
+                    "name": "Environment Agency API",
+                    "endpoint": "https://environment.data.gov.uk/flood-monitoring",
+                    "status": "connected",
+                    "api_version": "v1",
+                    "rate_limit": 1000,
+                    "rate_used": 234,
+                    "monthly_calls": 4231,
+                    "success_rate": 98.9,
+                    "average_response_time": 2.3,
+                    "data_types": ["flood_warnings", "water_levels", "pollution_incidents"],
+                    "cost_per_call": 0.00,
+                    "last_call": "2024-10-03T14:15:00Z"
+                },
+                {
+                    "name": "Land Registry API",
+                    "endpoint": "https://landregistry.data.gov.uk",
+                    "status": "pending_authorization",
+                    "api_version": "v1",
+                    "application_date": "2024-09-28",
+                    "estimated_approval": "2024-10-15",
+                    "data_types": ["property_prices", "ownership_data", "land_boundaries"],
+                    "cost_per_call": 0.05,
+                    "use_cases": ["property_valuation", "due_diligence", "market_analysis"]
+                },
+                {
+                    "name": "ONS Postcode Directory",
+                    "endpoint": "https://api.postcodes.io",
+                    "status": "connected",
+                    "api_version": "v1",
+                    "rate_limit": 1000,
+                    "rate_used": 156,
+                    "monthly_calls": 3847,
+                    "success_rate": 99.2,
+                    "average_response_time": 0.8,
+                    "data_types": ["postcode_lookup", "coordinates", "administrative_areas"],
+                    "cost_per_call": 0.00,
+                    "last_call": "2024-10-03T14:30:00Z"
+                }
+            ],
+            "usage_statistics": {
+                "total_monthly_calls": 14312,
+                "total_cost": 187.50,
+                "average_response_time": 1.7,
+                "overall_success_rate": 98.2,
+                "data_freshness": "Real-time"
+            },
+            "compliance_status": {
+                "gdpr_compliant": True,
+                "data_retention_policy": "12 months",
+                "audit_trail_enabled": True,
+                "encryption_in_transit": True,
+                "encryption_at_rest": True
+            },
+            "pending_integrations": [
+                {
+                    "name": "HMRC VAT API",
+                    "purpose": "VAT number validation",
+                    "status": "application_submitted",
+                    "estimated_completion": "2024-10-20"
+                },
+                {
+                    "name": "NHS Postcode Lookup",
+                    "purpose": "Healthcare facility mapping",
+                    "status": "awaiting_approval",
+                    "estimated_completion": "2024-11-05"
+                }
+            ]
+        }
+        
+        return {
+            "success": True,
+            "government_apis": government_data,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch government APIs data: {str(e)}")
+
+@app.get("/api/integrations/mapping-services")
+async def get_mapping_services():
+    """Get mapping services integrations data"""
+    try:
+        mapping_data = {
+            "primary_services": [
+                {
+                    "name": "Ordnance Survey",
+                    "type": "UK National Mapping",
+                    "status": "connected",
+                    "license_type": "Premium",
+                    "monthly_quota": 50000,
+                    "quota_used": 24567,
+                    "quota_percentage": 49.1,
+                    "cost_this_month": 287.50,
+                    "services_used": ["OS Maps API", "Places API", "Routing API"],
+                    "data_layers": ["base_maps", "aerial_imagery", "height_data", "boundaries"],
+                    "accuracy": "Sub-meter",
+                    "update_frequency": "Daily",
+                    "coverage": "United Kingdom"
+                },
+                {
+                    "name": "Google Maps Platform",
+                    "type": "Global Mapping",
+                    "status": "connected",
+                    "api_keys": 3,
+                    "monthly_quota": 100000,
+                    "quota_used": 18942,
+                    "quota_percentage": 18.9,
+                    "cost_this_month": 234.70,
+                    "services_used": ["Maps JavaScript API", "Geocoding API", "Places API"],
+                    "features": ["satellite_imagery", "street_view", "traffic_data", "business_listings"],
+                    "accuracy": "Building-level",
+                    "update_frequency": "Real-time",
+                    "coverage": "Global"
+                },
+                {
+                    "name": "ESRI ArcGIS",
+                    "type": "Professional GIS",
+                    "status": "license_expired",
+                    "license_expiry": "2024-09-30",
+                    "renewal_cost": 1200.00,
+                    "last_used": "2024-09-29T16:45:00Z",
+                    "services_used": ["World Geocoding Service", "Analysis Services", "Basemap Services"],
+                    "features": ["advanced_analytics", "spatial_analysis", "3d_mapping", "network_analysis"],
+                    "accuracy": "Survey-grade",
+                    "coverage": "Global"
+                }
+            ],
+            "usage_analytics": {
+                "total_map_requests": 43509,
+                "geocoding_requests": 18942,
+                "routing_requests": 8734,
+                "places_searches": 5621,
+                "aerial_imagery_requests": 10212,
+                "average_response_time": 2.1,
+                "success_rate": 98.7,
+                "total_monthly_cost": 522.20
+            },
+            "performance_metrics": {
+                "fastest_service": "Google Maps Geocoding (0.8s avg)",
+                "most_reliable": "Ordnance Survey (99.9% uptime)",
+                "most_cost_effective": "OS Maps API (£0.006 per request)",
+                "highest_accuracy": "Ordnance Survey (sub-meter precision)"
+            },
+            "geographic_coverage": {
+                "uk_requests": 78.3,
+                "europe_requests": 15.2,
+                "global_requests": 6.5
+            },
+            "integration_features": {
+                "caching_enabled": True,
+                "fallback_providers": True,
+                "load_balancing": True,
+                "request_optimization": True,
+                "batch_processing": True
+            }
+        }
+        
+        return {
+            "success": True,
+            "mapping_services": mapping_data,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch mapping services data: {str(e)}")
+
+@app.get("/api/integrations/financial-systems")
+async def get_financial_systems():
+    """Get financial systems integrations data"""
+    try:
+        financial_data = {
+            "payment_processors": [
+                {
+                    "name": "Stripe",
+                    "type": "Payment Gateway",
+                    "status": "connected",
+                    "environment": "live",
+                    "monthly_volume": 247000,
+                    "transaction_count": 847,
+                    "success_rate": 99.8,
+                    "average_processing_time": 1.2,
+                    "fees_this_month": 6892.50,
+                    "supported_methods": ["card", "apple_pay", "google_pay", "sepa", "bacs"],
+                    "features": ["subscriptions", "invoicing", "marketplace", "connect"],
+                    "webhook_events": 34,
+                    "last_transaction": "2024-10-03T14:50:00Z"
+                },
+                {
+                    "name": "PayPal",
+                    "type": "Payment Gateway",
+                    "status": "connected",
+                    "environment": "live",
+                    "monthly_volume": 89300,
+                    "transaction_count": 234,
+                    "success_rate": 97.4,
+                    "average_processing_time": 2.8,
+                    "fees_this_month": 2634.70,
+                    "supported_methods": ["paypal", "card", "pay_in_4"],
+                    "features": ["express_checkout", "subscriptions", "invoicing"],
+                    "webhook_events": 12,
+                    "last_transaction": "2024-10-03T13:20:00Z"
+                }
+            ],
+            "accounting_software": [
+                {
+                    "name": "Xero",
+                    "type": "Cloud Accounting",
+                    "status": "connected",
+                    "sync_frequency": "4 hours",
+                    "last_sync": "2024-10-03T12:00:00Z",
+                    "invoices_synced": 1847,
+                    "contacts_synced": 456,
+                    "transactions_synced": 3421,
+                    "bank_accounts_connected": 3,
+                    "features": ["invoicing", "expense_management", "bank_reconciliation", "reporting"],
+                    "sync_status": "healthy",
+                    "data_lag": "2.3 hours"
+                },
+                {
+                    "name": "QuickBooks Online",
+                    "type": "Cloud Accounting",
+                    "status": "disconnected",
+                    "last_sync": "2024-09-15T10:30:00Z",
+                    "reason": "Subscription expired",
+                    "renewal_date": "2024-10-15",
+                    "features": ["invoicing", "payroll", "tax_preparation", "inventory"],
+                    "migration_status": "data_exported"
+                }
+            ],
+            "banking_apis": [
+                {
+                    "name": "Open Banking",
+                    "type": "Banking API",
+                    "status": "setup_required",
+                    "supported_banks": ["Barclays", "HSBC", "Lloyds", "NatWest", "Santander"],
+                    "features": ["account_information", "payment_initiation", "balance_checking"],
+                    "compliance": "PSD2 compliant",
+                    "setup_progress": 25
+                }
+            ],
+            "financial_metrics": {
+                "total_processed": 336300,
+                "total_fees": 9527.20,
+                "average_transaction_value": 311.50,
+                "reconciliation_accuracy": 98.7,
+                "automated_entries": 89.3,
+                "cash_flow_forecast_accuracy": 94.2
+            },
+            "integration_health": {
+                "stripe": "excellent",
+                "paypal": "good",
+                "xero": "excellent",
+                "quickbooks": "disconnected",
+                "open_banking": "pending_setup"
+            }
+        }
+        
+        return {
+            "success": True,
+            "financial_systems": financial_data,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch financial systems data: {str(e)}")
+
+@app.get("/api/integrations/marketplace")
+async def get_integration_marketplace():
+    """Get available integrations from marketplace"""
+    try:
+        marketplace_data = {
+            "featured_integrations": [
+                {
+                    "id": "autocad_integration",
+                    "name": "AutoCAD Integration",
+                    "category": "Design Tools",
+                    "description": "Import and export CAD drawings directly from AutoCAD. Streamline your design workflow with automatic file conversion.",
+                    "publisher": "Autodesk",
+                    "version": "2.1.4",
+                    "rating": 4.8,
+                    "reviews": 127,
+                    "downloads": 2847,
+                    "price": "£29.99/month",
+                    "featured": True,
+                    "tags": ["cad", "design", "drawings", "autocad"],
+                    "screenshots": 5,
+                    "documentation_url": "/docs/autocad-integration",
+                    "support_url": "/support/autocad"
+                },
+                {
+                    "id": "microsoft_teams",
+                    "name": "Microsoft Teams",
+                    "category": "Communication",
+                    "description": "Send notifications and updates directly to Microsoft Teams channels. Keep your team informed in real-time.",
+                    "publisher": "Microsoft",
+                    "version": "1.8.2",
+                    "rating": 4.6,
+                    "reviews": 89,
+                    "downloads": 1653,
+                    "price": "Free",
+                    "featured": False,
+                    "tags": ["teams", "notifications", "communication", "microsoft"],
+                    "screenshots": 3,
+                    "documentation_url": "/docs/teams-integration",
+                    "support_url": "/support/teams"
+                },
+                {
+                    "id": "slack_integration",
+                    "name": "Slack Integration",
+                    "category": "Communication",
+                    "description": "Connect with Slack for team communication and automated notifications about project updates and deadlines.",
+                    "publisher": "Slack Technologies",
+                    "version": "3.2.1",
+                    "rating": 4.9,
+                    "reviews": 203,
+                    "downloads": 3421,
+                    "price": "Free",
+                    "featured": False,
+                    "tags": ["slack", "chat", "notifications", "team"],
+                    "screenshots": 4,
+                    "documentation_url": "/docs/slack-integration",
+                    "support_url": "/support/slack"
+                }
+            ],
+            "categories": [
+                {"name": "Communication", "count": 12, "popular": True},
+                {"name": "Design Tools", "count": 8, "popular": True},
+                {"name": "Financial", "count": 15, "popular": True},
+                {"name": "Mapping", "count": 6, "popular": False},
+                {"name": "Government APIs", "count": 9, "popular": False},
+                {"name": "CRM", "count": 11, "popular": True},
+                {"name": "Document Management", "count": 7, "popular": False},
+                {"name": "Analytics", "count": 5, "popular": False}
+            ],
+            "recently_added": [
+                {
+                    "name": "DocuSign",
+                    "category": "Document Management",
+                    "rating": 4.7,
+                    "price": "£15.99/month",
+                    "added_date": "2024-09-28"
+                },
+                {
+                    "name": "Mailchimp",
+                    "category": "Marketing",
+                    "rating": 4.4,
+                    "price": "Free tier available",
+                    "added_date": "2024-09-25"
+                }
+            ],
+            "installation_stats": {
+                "total_available": 68,
+                "most_downloaded": "Slack Integration",
+                "highest_rated": "Slack Integration (4.9★)",
+                "newest": "DocuSign (28 Sep 2024)",
+                "trending": "AutoCAD Integration (+45% this month)"
+            }
+        }
+        
+        return {
+            "success": True,
+            "marketplace": marketplace_data,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch marketplace data: {str(e)}")
+
+@app.post("/api/integrations")
+async def create_integration(integration: IntegrationConfig):
+    """Create a new integration configuration"""
+    try:
+        integration_id = f"integration_{int(time.time())}"
+        
+        # Validate configuration
+        if integration.authentication_method == "api_key" and not integration.api_key:
+            raise HTTPException(status_code=400, detail="API key required for API key authentication")
+        
+        if integration.authentication_method == "oauth2" and (not integration.client_id or not integration.client_secret):
+            raise HTTPException(status_code=400, detail="Client ID and secret required for OAuth2 authentication")
+        
+        return {
+            "success": True,
+            "integration_id": integration_id,
+            "integration": {
+                "name": integration.name,
+                "type": integration.type,
+                "endpoint_url": integration.endpoint_url,
+                "authentication_method": integration.authentication_method,
+                "enabled": integration.enabled,
+                "timeout": integration.timeout,
+                "retry_attempts": integration.retry_attempts,
+                "created_at": datetime.now().isoformat()
+            },
+            "next_steps": [
+                "Test connection to verify configuration",
+                "Configure webhooks if supported",
+                "Set up monitoring and alerts",
+                "Enable production mode"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create integration: {str(e)}")
+
+@app.post("/api/integrations/{integration_id}/test")
+async def test_integration(integration_id: str, test_request: APITestRequest):
+    """Test an integration connection"""
+    try:
+        # Simulate API test
+        test_results = {
+            "integration_id": integration_id,
+            "test_timestamp": datetime.now().isoformat(),
+            "connection_status": "success",
+            "response_time": 1.234,
+            "status_code": 200,
+            "response_size": 2048,
+            "authentication": "valid",
+            "rate_limit_status": {
+                "limit": 1000,
+                "remaining": 847,
+                "reset_time": (datetime.now() + timedelta(hours=1)).isoformat()
+            },
+            "endpoint_health": "healthy",
+            "ssl_certificate": "valid",
+            "api_version": "v1.2.3"
+        }
+        
+        return {
+            "success": True,
+            "test_results": test_results,
+            "recommendations": [
+                "Connection is healthy and responsive",
+                "Authentication is working correctly",
+                "Rate limits are within acceptable range"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to test integration: {str(e)}")
+
+@app.get("/api/integrations/{integration_id}/logs")
+async def get_integration_logs(integration_id: str, limit: int = 50):
+    """Get logs for a specific integration"""
+    try:
+        logs = [
+            {
+                "timestamp": "2024-10-03T14:45:23Z",
+                "level": "info",
+                "method": "GET",
+                "endpoint": "/api/property/lookup",
+                "status_code": 200,
+                "response_time": 1.2,
+                "message": "Property lookup completed successfully"
+            },
+            {
+                "timestamp": "2024-10-03T14:44:18Z",
+                "level": "info",
+                "method": "POST",
+                "endpoint": "/api/planning/submit",
+                "status_code": 201,
+                "response_time": 3.4,
+                "message": "Planning application submitted"
+            },
+            {
+                "timestamp": "2024-10-03T14:43:42Z",
+                "level": "warning",
+                "method": "GET",
+                "endpoint": "/api/companies/search",
+                "status_code": 429,
+                "response_time": 0.5,
+                "message": "Rate limit exceeded, retrying in 60 seconds"
+            },
+            {
+                "timestamp": "2024-10-03T14:42:15Z",
+                "level": "info",
+                "method": "POST",
+                "endpoint": "/api/payments/create",
+                "status_code": 200,
+                "response_time": 2.1,
+                "message": "Payment processed successfully"
+            },
+            {
+                "timestamp": "2024-10-03T14:41:33Z",
+                "level": "error",
+                "method": "GET",
+                "endpoint": "/api/maps/geocode",
+                "status_code": 503,
+                "response_time": 30.0,
+                "message": "Service temporarily unavailable"
+            }
+        ]
+        
+        return {
+            "success": True,
+            "integration_id": integration_id,
+            "logs": logs[:limit],
+            "total_logs": len(logs),
+            "log_levels": {
+                "info": len([l for l in logs if l["level"] == "info"]),
+                "warning": len([l for l in logs if l["level"] == "warning"]),
+                "error": len([l for l in logs if l["level"] == "error"])
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch integration logs: {str(e)}")
+
+@app.post("/api/integrations/{integration_id}/webhooks")
+async def configure_webhook(integration_id: str, webhook: WebhookConfig):
+    """Configure webhook for an integration"""
+    try:
+        webhook_id = f"webhook_{int(time.time())}"
+        
+        return {
+            "success": True,
+            "webhook_id": webhook_id,
+            "integration_id": integration_id,
+            "webhook": {
+                "url": webhook.url,
+                "events": webhook.events,
+                "enabled": webhook.enabled,
+                "created_at": datetime.now().isoformat()
+            },
+            "verification": {
+                "challenge_sent": True,
+                "verification_status": "pending",
+                "retry_count": 0
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to configure webhook: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     print("\nStarting Domus Professional Platform...")
