@@ -609,6 +609,15 @@
                 });
             }
             
+            // Enterprise Management (admin only)
+            if (role === 'admin') {
+                sections.push({
+                    title: 'Enterprise Management',
+                    icon: '🏢',
+                    route: '/enterprise-management'
+                });
+            }
+            
             // Settings (all roles)
             const settingsItems = [
                 { title: 'Profile', route: '/settings' },
@@ -774,6 +783,7 @@
                 '/integration-ecosystem': getIntegrationEcosystemContent(),
                 '/mobile-optimization': getMobileOptimizationContent(),
                 '/security-compliance': getSecurityComplianceContent(),
+                '/enterprise-management': getEnterpriseManagementContent(),
                 '/marketplace/supply': getSupplyContent(),
                 '/marketplace/demand': getDemandContent(),
                 '/contracts': getContractsContent(),
@@ -1357,6 +1367,11 @@
         function getSecurityComplianceContent() {
             window.location.href = '/security-compliance';
             return '<div>Loading Security & Compliance...</div>';
+        }
+        
+        function getEnterpriseManagementContent() {
+            window.location.href = '/enterprise-management';
+            return '<div>Loading Enterprise Management...</div>';
         }
         
         function getNotFoundContent() {

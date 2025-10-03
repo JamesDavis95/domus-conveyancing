@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Management - Domus Planning Platform</title>
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="manifest" href="/manifest.json">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .enterprise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .enterprise-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .enterprise-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+        }
+        
+        .enterprise-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .card-icon.multi-tenant { background: linear-gradient(135deg, #3b82f6, #1e40af); }
+        .card-icon.white-label { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .card-icon.analytics { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .card-icon.scaling { background: linear-gradient(135deg, #10b981, #059669); }
+        .card-icon.api-mgmt { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .card-icon.monitoring { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+        
+        .enterprise-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 140px;
+            padding: 1rem;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tenant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tenant-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        
+        .tenant-card:hover {
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+        }
+        
+        .tenant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .tenant-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1.1rem;
+        }
+        
+        .tenant-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-trial { background: #fef3c7; color: #92400e; }
+        .status-suspended { background: #fee2e2; color: #991b1b; }
+        .status-pending { background: #e0e7ff; color: #3730a3; }
+        
+        .tenant-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .tenant-metric {
+            text-align: center;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+        
+        .tenant-metric-value {
+            font-weight: 700;
+            color: #1e40af;
+            font-size: 1.1rem;
+        }
+        
+        .tenant-metric-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+        
+        .analytics-dashboard {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .analytics-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .analytics-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .time-selector {
+            display: flex;
+            gap: 0.5rem;
+            background: #f8fafc;
+            padding: 0.25rem;
+            border-radius: 8px;
+        }
+        
+        .time-option {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .time-option.active {
+            background: white;
+            color: #1e40af;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-container {
+            height: 300px;
+            background: #f8fafc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .chart-placeholder {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        
+        .api-rate-limits {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .rate-limit-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .rate-limit-endpoint {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .rate-limit-current {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .rate-limit-bar {
+            flex: 1;
+            margin: 0 1rem;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .rate-limit-usage {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .usage-low { background: #10b981; }
+        .usage-medium { background: #f59e0b; }
+        .usage-high { background: #ef4444; }
+        
+        .white-label-config {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .config-section {
+            margin-bottom: 2rem;
+        }
+        
+        .config-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+        
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .config-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .config-input {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        
+        .config-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .config-preview {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .alert-info {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .alert-warning {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fed7aa;
+        }
+        
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .enterprise-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                min-width: auto;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .analytics-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .indicator-green { background-color: #10b981; }
+        .indicator-yellow { background-color: #f59e0b; }
+        .indicator-red { background-color: #ef4444; }
+        .indicator-blue { background-color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-title">
+                🏢 Enterprise Management
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">← Back to Dashboard</a>
+                <a href="/enterprise-management" class="nav-link">Refresh</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Enterprise Features & Scaling</h1>
+            <p class="header-subtitle">
+                Multi-tenant architecture, white-label capabilities, enterprise dashboards, 
+                advanced analytics, API rate limiting, and comprehensive enterprise management
+            </p>
+        </div>
+
+        <!-- Enterprise Overview Cards -->
+        <div class="enterprise-grid">
+            <div class="enterprise-card">
+                <div class="card-header">
+                    <div class="card-icon multi-tenant">🏢</div>
+                    <div>
+                        <div class="card-title">Multi-Tenant Architecture</div>
+                        <div class="card-subtitle">Scalable tenant isolation and management</div>
+                    </div>
+                </div>
+                <div class="enterprise-metrics">
+                    <div class="metric">
+                        <div class="metric-value">247</div>
+                        <div class="metric-label">Active Tenants</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">99.9%</div>
+                        <div class="metric-label">Uptime SLA</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 87%"></div>
+                </div>
+                <p style="color: #64748b; font-size: 0.9rem;">Tenant utilization: 87% of capacity</p>
+            </div>
+
+            <div class="enterprise-card">
+                <div class="card-header">
+                    <div class="card-icon white-label">🎨</div>
+                    <div>
+                        <div class="card-title">White-Label Platform</div>
+                        <div class="card-subtitle">Customizable branding and configuration</div>
+                    </div>
+                </div>
+                <div class="enterprise-metrics">
+                    <div class="metric">
+                        <div class="metric-value">156</div>
+                        <div class="metric-label">Brand Configs</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">34</div>
+                        <div class="metric-label">Custom Domains</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 92%"></div>
+                </div>
+                <p style="color: #64748b; font-size: 0.9rem;">Customization completion: 92%</p>
+            </div>
+
+            <div class="enterprise-card">
+                <div class="card-header">
+                    <div class="card-icon analytics">📊</div>
+                    <div>
+                        <div class="card-title">Advanced Analytics</div>
+                        <div class="card-subtitle">Real-time insights and business intelligence</div>
+                    </div>
+                </div>
+                <div class="enterprise-metrics">
+                    <div class="metric">
+                        <div class="metric-value">2.8M</div>
+                        <div class="metric-label">Events/Day</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">156ms</div>
+                        <div class="metric-label">Avg Response</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 94%"></div>
+                </div>
+                <p style="color: #64748b; font-size: 0.9rem;">Analytics coverage: 94% of modules</p>
+            </div>
+
+            <div class="enterprise-card">
+                <div class="card-header">
+                    <div class="card-icon scaling">⚡</div>
+                    <div>
+                        <div class="card-title">Auto-Scaling Infrastructure</div>
+                        <div class="card-subtitle">Dynamic resource allocation and optimization</div>
+                    </div>
+                </div>
+                <div class="enterprise-metrics">
+                    <div class="metric">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Active Nodes</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">2.4k</div>
+                        <div class="metric-label">RPS Capacity</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 67%"></div>
+                </div>
+                <p style="color: #64748b; font-size: 0.9rem;">Current utilization: 67% of capacity</p>
+            </div>
+
+            <div class="enterprise-card">
+                <div class="card-header">
+                    <div class="card-icon api-mgmt">🔗</div>
+                    <div>
+                        <div class="card-title">API Management</div>
+                        <div class="card-subtitle">Rate limiting, quotas, and API governance</div>
+                    </div>
+                </div>
+                <div class="enterprise-metrics">
+                    <div class="metric">
+                        <div class="metric-value">47k</div>
+                        <div class="metric-label">API Calls/Hr</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">99.2%</div>
+                        <div class="metric-label">Success Rate</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 78%"></div>
+                </div>
+                <p style="color: #64748b; font-size: 0.9rem;">Rate limit utilization: 78%</p>
+            </div>
+
+            <div class="enterprise-card">
+                <div class="card-header">
+                    <div class="card-icon monitoring">📈</div>
+                    <div>
+                        <div class="card-title">Performance Monitoring</div>
+                        <div class="card-subtitle">Real-time system health and optimization</div>
+                    </div>
+                </div>
+                <div class="enterprise-metrics">
+                    <div class="metric">
+                        <div class="metric-value">99.97%</div>
+                        <div class="metric-label">Uptime</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">142ms</div>
+                        <div class="metric-label">Avg Latency</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 96%"></div>
+                </div>
+                <p style="color: #64748b; font-size: 0.9rem;">Performance score: 96/100</p>
+            </div>
+        </div>
+
+        <!-- Enterprise Management Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('tenants')">Multi-Tenant Management</button>
+            <button class="tab" onclick="showTab('white-label')">White-Label Configuration</button>
+            <button class="tab" onclick="showTab('analytics')">Advanced Analytics</button>
+            <button class="tab" onclick="showTab('scaling')">Auto-Scaling</button>
+            <button class="tab" onclick="showTab('api-management')">API Management</button>
+            <button class="tab" onclick="showTab('monitoring')">Performance Monitoring</button>
+        </div>
+
+        <!-- Multi-Tenant Management Tab -->
+        <div id="tenants" class="tab-content active">
+            <div class="alert alert-info">
+                <span>ℹ️</span>
+                <div>
+                    <strong>Multi-Tenant Architecture Active</strong><br>
+                    Currently managing 247 active tenants with complete data isolation and resource allocation.
+                </div>
+            </div>
+
+            <div class="tenant-grid">
+                <div class="tenant-card">
+                    <div class="tenant-header">
+                        <div class="tenant-name">Westminster Council</div>
+                        <div class="tenant-status status-active">Active</div>
+                    </div>
+                    <div class="tenant-metrics">
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">1,247</div>
+                            <div class="tenant-metric-label">Users</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">156</div>
+                            <div class="tenant-metric-label">Projects</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">89GB</div>
+                            <div class="tenant-metric-label">Storage</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #64748b;">
+                        <span class="status-indicator indicator-green"></span>
+                        Plan: Enterprise Pro | Billing: Current
+                    </div>
+                </div>
+
+                <div class="tenant-card">
+                    <div class="tenant-header">
+                        <div class="tenant-name">Manchester City Council</div>
+                        <div class="tenant-status status-active">Active</div>
+                    </div>
+                    <div class="tenant-metrics">
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">892</div>
+                            <div class="tenant-metric-label">Users</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">234</div>
+                            <div class="tenant-metric-label">Projects</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">127GB</div>
+                            <div class="tenant-metric-label">Storage</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #64748b;">
+                        <span class="status-indicator indicator-green"></span>
+                        Plan: Enterprise | Billing: Current
+                    </div>
+                </div>
+
+                <div class="tenant-card">
+                    <div class="tenant-header">
+                        <div class="tenant-name">Barratt Developments</div>
+                        <div class="tenant-status status-trial">Trial</div>
+                    </div>
+                    <div class="tenant-metrics">
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">156</div>
+                            <div class="tenant-metric-label">Users</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">23</div>
+                            <div class="tenant-metric-label">Projects</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">12GB</div>
+                            <div class="tenant-metric-label">Storage</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #64748b;">
+                        <span class="status-indicator indicator-yellow"></span>
+                        Plan: Trial | Expires: 14 days
+                    </div>
+                </div>
+
+                <div class="tenant-card">
+                    <div class="tenant-header">
+                        <div class="tenant-name">Savills Planning</div>
+                        <div class="tenant-status status-pending">Pending Setup</div>
+                    </div>
+                    <div class="tenant-metrics">
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">0</div>
+                            <div class="tenant-metric-label">Users</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">0</div>
+                            <div class="tenant-metric-label">Projects</div>
+                        </div>
+                        <div class="tenant-metric">
+                            <div class="tenant-metric-value">0GB</div>
+                            <div class="tenant-metric-label">Storage</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #64748b;">
+                        <span class="status-indicator indicator-blue"></span>
+                        Plan: Enterprise | Setup in progress
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- White-Label Configuration Tab -->
+        <div id="white-label" class="tab-content">
+            <div class="white-label-config">
+                <h3 style="margin-bottom: 2rem; color: #1e293b;">Brand Customization</h3>
+                
+                <div class="config-section">
+                    <div class="config-title">Visual Identity</div>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label class="config-label">Company Name</label>
+                            <input type="text" class="config-input" value="Westminster Planning Solutions" placeholder="Enter company name">
+                        </div>
+                        <div class="config-item">
+                            <label class="config-label">Primary Color</label>
+                            <input type="color" class="config-input" value="#1e40af">
+                        </div>
+                        <div class="config-item">
+                            <label class="config-label">Secondary Color</label>
+                            <input type="color" class="config-input" value="#3b82f6">
+                        </div>
+                        <div class="config-item">
+                            <label class="config-label">Logo URL</label>
+                            <input type="url" class="config-input" placeholder="https://example.com/logo.png">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-title">Domain Configuration</div>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label class="config-label">Custom Domain</label>
+                            <input type="text" class="config-input" value="planning.westminster.gov.uk" placeholder="subdomain.domain.com">
+                        </div>
+                        <div class="config-item">
+                            <label class="config-label">SSL Certificate</label>
+                            <select class="config-input">
+                                <option>Auto-managed (Let's Encrypt)</option>
+                                <option>Custom Certificate</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <div class="config-title">Feature Configuration</div>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label class="config-label">Available Modules</label>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                                    <input type="checkbox" checked> Planning AI
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                                    <input type="checkbox" checked> Auto-Docs
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                                    <input type="checkbox" checked> Property API
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                                    <input type="checkbox"> Offsets Marketplace
+                                </label>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <label class="config-label">User Limits</label>
+                            <input type="number" class="config-input" value="500" placeholder="Maximum users">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-preview">
+                    <h4 style="margin-bottom: 1rem; color: #1e293b;">Live Preview</h4>
+                    <div style="border: 2px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: white;">
+                        <div style="background: #1e40af; color: white; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                            <strong>Westminster Planning Solutions</strong>
+                        </div>
+                        <p style="color: #64748b;">Your customized platform preview will appear here...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="analytics-dashboard">
+                <div class="analytics-header">
+                    <div class="analytics-title">Enterprise Analytics Dashboard</div>
+                    <div class="time-selector">
+                        <button class="time-option active">24h</button>
+                        <button class="time-option">7d</button>
+                        <button class="time-option">30d</button>
+                        <button class="time-option">90d</button>
+                    </div>
+                </div>
+
+                <div class="enterprise-metrics">
+                    <div class="metric">
+                        <div class="metric-value">2.8M</div>
+                        <div class="metric-label">Total API Calls</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">156ms</div>
+                        <div class="metric-label">Avg Response Time</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">99.2%</div>
+                        <div class="metric-label">Success Rate</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">247</div>
+                        <div class="metric-label">Active Tenants</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-placeholder">📊 Real-time analytics charts will be displayed here</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Scaling Tab -->
+        <div id="scaling" class="tab-content">
+            <div class="alert alert-success">
+                <span>✅</span>
+                <div>
+                    <strong>Auto-Scaling Active</strong><br>
+                    System automatically scales based on demand with 12 active nodes handling 2.4k RPS capacity.
+                </div>
+            </div>
+
+            <div class="enterprise-metrics">
+                <div class="metric">
+                    <div class="metric-value">12</div>
+                    <div class="metric-label">Active Nodes</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">2.4k</div>
+                    <div class="metric-label">RPS Capacity</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">67%</div>
+                    <div class="metric-label">CPU Utilization</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">45%</div>
+                    <div class="metric-label">Memory Usage</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Management Tab -->
+        <div id="api-management" class="tab-content">
+            <div class="api-rate-limits">
+                <h3 style="margin-bottom: 2rem; color: #1e293b;">API Rate Limits & Usage</h3>
+
+                <div class="rate-limit-item">
+                    <div>
+                        <div class="rate-limit-endpoint">/api/planning-ai/*</div>
+                        <div class="rate-limit-current">156 / 200 requests/min</div>
+                    </div>
+                    <div class="rate-limit-bar">
+                        <div class="rate-limit-usage usage-high" style="width: 78%"></div>
+                    </div>
+                    <div style="font-weight: 600; color: #ef4444;">78%</div>
+                </div>
+
+                <div class="rate-limit-item">
+                    <div>
+                        <div class="rate-limit-endpoint">/api/property/*</div>
+                        <div class="rate-limit-current">89 / 150 requests/min</div>
+                    </div>
+                    <div class="rate-limit-bar">
+                        <div class="rate-limit-usage usage-medium" style="width: 59%"></div>
+                    </div>
+                    <div style="font-weight: 600; color: #f59e0b;">59%</div>
+                </div>
+
+                <div class="rate-limit-item">
+                    <div>
+                        <div class="rate-limit-endpoint">/api/documents/*</div>
+                        <div class="rate-limit-current">23 / 100 requests/min</div>
+                    </div>
+                    <div class="rate-limit-bar">
+                        <div class="rate-limit-usage usage-low" style="width: 23%"></div>
+                    </div>
+                    <div style="font-weight: 600; color: #10b981;">23%</div>
+                </div>
+
+                <div class="rate-limit-item">
+                    <div>
+                        <div class="rate-limit-endpoint">/api/security/*</div>
+                        <div class="rate-limit-current">12 / 50 requests/min</div>
+                    </div>
+                    <div class="rate-limit-bar">
+                        <div class="rate-limit-usage usage-low" style="width: 24%"></div>
+                    </div>
+                    <div style="font-weight: 600; color: #10b981;">24%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Monitoring Tab -->
+        <div id="monitoring" class="tab-content">
+            <div class="enterprise-metrics">
+                <div class="metric">
+                    <div class="metric-value">99.97%</div>
+                    <div class="metric-label">Uptime</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">142ms</div>
+                    <div class="metric-label">Avg Latency</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">96/100</div>
+                    <div class="metric-label">Performance Score</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">Critical Issues</div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <span>📊</span>
+                <div>
+                    <strong>Performance Monitoring Active</strong><br>
+                    Real-time monitoring across all enterprise modules with automated alerting and performance optimization.
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="createNewTenant()">
+                🏢 Create New Tenant
+            </button>
+            <button class="btn btn-secondary" onclick="exportAnalytics()">
+                📊 Export Analytics
+            </button>
+            <button class="btn btn-success" onclick="optimizePerformance()">
+                ⚡ Optimize Performance
+            </button>
+            <button class="btn btn-warning" onclick="scaleResources()">
+                📈 Scale Resources
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function createNewTenant() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Creating...';
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert('New tenant created successfully! Setup wizard will be launched.');
+            }, 2000);
+        }
+
+        function exportAnalytics() {
+            alert('Analytics export initiated. Report will be available for download shortly.');
+        }
+
+        function optimizePerformance() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Optimizing...';
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert('Performance optimization completed! System efficiency improved by 12%.');
+            }, 3000);
+        }
+
+        function scaleResources() {
+            const confirmed = confirm('Scale up resources to handle increased demand? This will automatically provision additional infrastructure.');
+            
+            if (confirmed) {
+                alert('Resource scaling initiated. Additional capacity will be available in 2-3 minutes.');
+            }
+        }
+
+        // Time selector functionality
+        document.querySelectorAll('.time-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.time-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                updateAnalytics(this.textContent);
+            });
+        });
+
+        function updateAnalytics(timeframe) {
+            console.log(`Updating analytics for timeframe: ${timeframe}`);
+            // In a real implementation, this would fetch new data
+        }
+
+        // Simulate real-time updates
+        setInterval(() => {
+            // Update metrics with slight variations
+            const metrics = document.querySelectorAll('.metric-value');
+            metrics.forEach(metric => {
+                if (metric.textContent.includes('ms') || metric.textContent.includes('%')) {
+                    // Add small random variations for demo
+                    const variation = (Math.random() - 0.5) * 0.1;
+                    // This is just for visual demo - in reality would fetch from API
+                }
+            });
+        }, 30000);
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Enterprise Management dashboard loaded');
+            
+            // Simulate loading of real-time data
+            setTimeout(() => {
+                console.log('Real-time enterprise data loaded');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
