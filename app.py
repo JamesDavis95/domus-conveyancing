@@ -313,6 +313,13 @@ async def get_dashboard_overview():
                     "route": "/property-api",
                     "icon": "🏠",
                     "color": "secondary"
+                },
+                {
+                    "title": "BNG Marketplace",
+                    "description": "Biodiversity Net Gain trading platform",
+                    "route": "/offsets-marketplace",
+                    "icon": "🌱",
+                    "color": "secondary"
                 }
             ]
         }
@@ -682,7 +689,7 @@ async def root(request: Request):
     """Serve the main application shell"""
     return templates.TemplateResponse("app_shell.html", {"request": request})
 
-# All authenticated app routes serve the same app shell except projects, planning-ai, auto-docs, and property-api which have dedicated templates
+# All authenticated app routes serve the same app shell except projects, planning-ai, auto-docs, property-api, and offsets-marketplace which have dedicated templates
 @app.get("/dashboard", response_class=HTMLResponse)
 @app.get("/documents", response_class=HTMLResponse)
 @app.get("/marketplace/supply", response_class=HTMLResponse)
@@ -821,6 +828,12 @@ async def auto_docs_page(request: Request):
 async def property_api_page(request: Request):
     """Serve the Property API intelligence page"""
     return templates.TemplateResponse("property_api.html", {"request": request})
+
+# Offsets Marketplace template route
+@app.get("/offsets-marketplace", response_class=HTMLResponse)
+async def offsets_marketplace_page(request: Request):
+    """Serve the Biodiversity Net Gain marketplace page"""
+    return templates.TemplateResponse("offsets_marketplace.html", {"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
@@ -1815,6 +1828,441 @@ async def get_market_analytics(area: str):
                     "next_6_months": "+2.5%",
                     "next_12_months": "+4.8%",
                     "confidence": "Medium"
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Market analytics failed: {str(e)}")
+
+# OFFSETS MARKETPLACE ENDPOINTS
+# ===========================================
+
+class CreditSearchRequest(BaseModel):
+    habitat_type: str = ""
+    location: str = ""
+    credits_needed: int = None
+    price_range: str = ""
+    delivery_date: str = ""
+
+class ProjectListingRequest(BaseModel):
+    project_name: str
+    habitat_type: str
+    area_hectares: float
+    location: str
+    credits_to_generate: int
+    price_per_credit: float
+    description: str = ""
+
+class BNGCalculationRequest(BaseModel):
+    development_type: str
+    site_area: float
+    baseline_units: float
+    post_development_units: float
+
+@app.post("/api/offsets-marketplace/search-credits")
+async def search_credits(search_request: CreditSearchRequest):
+    """Search available biodiversity credits"""
+    try:
+        # Mock biodiversity credits data
+        credits = [
+            {
+                "id": "CRED001",
+                "project_name": "Meadowlands Restoration",
+                "habitat_type": "Grassland",
+                "description": "Species-rich grassland restoration on former agricultural land with wildflower meadows and chalk downland characteristics",
+                "credits_available": 45,
+                "price_per_credit": 11500,
+                "location": "Hampshire",
+                "county": "Hampshire",
+                "region": "South East",
+                "postcode_area": "SO",
+                "delivery_date": "2025-06-15",
+                "provider": "Hampshire Wildlife Trust",
+                "provider_rating": 4.8,
+                "verification_status": "Verified",
+                "habitat_condition": "Good",
+                "management_plan": "30 years",
+                "legal_agreement": "Conservation Covenant",
+                "financial_security": "Bond provided",
+                "coordinates": [51.0624, -1.3081],
+                "area_hectares": 18.5,
+                "baseline_condition": "Poor",
+                "target_condition": "Good",
+                "monitoring_frequency": "Annual",
+                "created_at": "2024-10-01",
+                "expires_at": "2024-10-15"
+            },
+            {
+                "id": "CRED002", 
+                "project_name": "Ancient Woodland Enhancement",
+                "habitat_type": "Woodland",
+                "description": "Native woodland planting and enhancement with oak, ash, birch, and hazel species on degraded farmland",
+                "credits_available": 28,
+                "price_per_credit": 15200,
+                "location": "Surrey",
+                "county": "Surrey",
+                "region": "South East", 
+                "postcode_area": "GU",
+                "delivery_date": "2025-09-30",
+                "provider": "Woodland Heritage Foundation",
+                "provider_rating": 4.9,
+                "verification_status": "Verified",
+                "habitat_condition": "Moderate",
+                "management_plan": "50 years",
+                "legal_agreement": "Section 106",
+                "financial_security": "Escrow account",
+                "coordinates": [51.2362, -0.5704],
+                "area_hectares": 12.3,
+                "baseline_condition": "Poor",
+                "target_condition": "Distinctly Good",
+                "monitoring_frequency": "Bi-annual",
+                "created_at": "2024-09-15",
+                "expires_at": "2024-10-12"
+            },
+            {
+                "id": "CRED003",
+                "project_name": "Wetland Creation Project", 
+                "habitat_type": "Wetland",
+                "description": "New wetland habitat creation with reed beds, shallow water areas, and marginal vegetation for wildlife",
+                "credits_available": 67,
+                "price_per_credit": 18750,
+                "location": "Kent",
+                "county": "Kent",
+                "region": "South East",
+                "postcode_area": "CT",
+                "delivery_date": "2025-03-31",
+                "provider": "Kent Wetlands Consortium",
+                "provider_rating": 4.7,
+                "verification_status": "Verified",
+                "habitat_condition": "N/A - New Creation",
+                "management_plan": "40 years",
+                "legal_agreement": "Conservation Covenant",
+                "financial_security": "Insurance bond",
+                "coordinates": [51.2787, 1.0877],
+                "area_hectares": 25.8,
+                "baseline_condition": "Arable",
+                "target_condition": "Good",
+                "monitoring_frequency": "Quarterly Year 1-3, Annual thereafter",
+                "created_at": "2024-08-20",
+                "expires_at": "2024-10-08"
+            }
+        ]
+        
+        # Filter credits based on search criteria
+        filtered_credits = credits
+        if search_request.habitat_type:
+            filtered_credits = [c for c in filtered_credits if c["habitat_type"].lower() == search_request.habitat_type.lower()]
+        
+        if search_request.location:
+            filtered_credits = [c for c in filtered_credits if search_request.location.lower() in c["location"].lower()]
+            
+        return {
+            "success": True,
+            "total_found": len(filtered_credits),
+            "credits": filtered_credits,
+            "search_criteria": {
+                "habitat_type": search_request.habitat_type,
+                "location": search_request.location,
+                "credits_needed": search_request.credits_needed,
+                "price_range": search_request.price_range
+            },
+            "market_summary": {
+                "total_credits_available": sum(c["credits_available"] for c in credits),
+                "average_price": f"£{sum(c['price_per_credit'] for c in credits) // len(credits):,}",
+                "habitat_distribution": {
+                    "grassland": len([c for c in credits if c["habitat_type"] == "Grassland"]),
+                    "woodland": len([c for c in credits if c["habitat_type"] == "Woodland"]),
+                    "wetland": len([c for c in credits if c["habitat_type"] == "Wetland"])
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Credit search failed: {str(e)}")
+
+@app.post("/api/offsets-marketplace/list-project")
+async def list_project(listing_request: ProjectListingRequest):
+    """List a new conservation project for credit generation"""
+    try:
+        # Generate project listing ID
+        project_id = f"PROJ-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+        
+        # Calculate estimated timeline and requirements
+        timeline_months = {
+            "grassland": 18,
+            "woodland": 24, 
+            "wetland": 12,
+            "heathland": 20
+        }
+        
+        estimated_timeline = timeline_months.get(listing_request.habitat_type.lower(), 18)
+        total_value = listing_request.credits_to_generate * listing_request.price_per_credit
+        
+        return {
+            "success": True,
+            "project_id": project_id,
+            "listing": {
+                "project_name": listing_request.project_name,
+                "habitat_type": listing_request.habitat_type,
+                "area_hectares": listing_request.area_hectares,
+                "location": listing_request.location,
+                "credits_to_generate": listing_request.credits_to_generate,
+                "price_per_credit": listing_request.price_per_credit,
+                "total_value": total_value,
+                "description": listing_request.description
+            },
+            "requirements": {
+                "ecological_survey": "Required within 6 months",
+                "management_plan": "30+ year plan required",
+                "legal_agreement": "Conservation covenant or S106",
+                "financial_security": f"£{int(total_value * 0.15):,} bond required",
+                "monitoring": "Annual monitoring for first 5 years"
+            },
+            "timeline": {
+                "estimated_duration": f"{estimated_timeline} months",
+                "key_milestones": [
+                    "Baseline survey (Month 0-2)",
+                    "Management plan approval (Month 2-4)",
+                    "Legal agreement (Month 4-6)",
+                    "Implementation start (Month 6)",
+                    f"Credit delivery (Month {estimated_timeline})"
+                ]
+            },
+            "next_steps": [
+                "Submit detailed ecological baseline survey",
+                "Prepare 30+ year management plan",
+                "Arrange legal agreement documentation",
+                "Provide financial security arrangement",
+                "Schedule independent verification visit"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Project listing failed: {str(e)}")
+
+@app.post("/api/offsets-marketplace/calculate-bng")
+async def calculate_bng(calculation_request: BNGCalculationRequest):
+    """Calculate Biodiversity Net Gain requirements"""
+    try:
+        baseline = calculation_request.baseline_units
+        post_dev = calculation_request.post_development_units
+        
+        # Calculate 10% net gain requirement
+        target_units = baseline * 1.1
+        units_needed = max(0, target_units - post_dev)
+        percentage_gain = ((post_dev / baseline) - 1) * 100
+        
+        # Calculate estimated costs based on habitat type and location
+        base_price_per_unit = 12500
+        development_multipliers = {
+            "residential": 1.0,
+            "commercial": 1.2,
+            "industrial": 1.5,
+            "infrastructure": 1.8
+        }
+        
+        multiplier = development_multipliers.get(calculation_request.development_type, 1.0)
+        estimated_cost = units_needed * base_price_per_unit * multiplier
+        
+        # Determine compliance status
+        is_compliant = percentage_gain >= 10
+        compliance_gap = max(0, 10 - percentage_gain)
+        
+        return {
+            "success": True,
+            "calculation": {
+                "development_type": calculation_request.development_type,
+                "site_area_hectares": calculation_request.site_area,
+                "baseline_units": baseline,
+                "post_development_units": post_dev,
+                "target_units": round(target_units, 2),
+                "units_needed": round(units_needed, 2),
+                "percentage_gain": round(percentage_gain, 1),
+                "estimated_cost": estimated_cost,
+                "is_compliant": is_compliant
+            },
+            "compliance": {
+                "status": "Compliant" if is_compliant else "Non-Compliant",
+                "gap": round(compliance_gap, 1) if not is_compliant else 0,
+                "additional_units_needed": round(compliance_gap * baseline / 100, 2) if not is_compliant else 0
+            },
+            "recommendations": [
+                "Consider on-site habitat creation first",
+                "Explore local offset providers for best value",
+                "Ensure habitat matching for credit purchases",
+                "Plan for 30+ year management commitments",
+                "Consult with ecological specialists"
+            ],
+            "habitat_preferences": {
+                "grassland": f"£{base_price_per_unit:,} per unit",
+                "woodland": f"£{int(base_price_per_unit * 1.3):,} per unit", 
+                "wetland": f"£{int(base_price_per_unit * 1.5):,} per unit",
+                "heathland": f"£{int(base_price_per_unit * 1.2):,} per unit"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"BNG calculation failed: {str(e)}")
+
+@app.get("/api/offsets-marketplace/portfolio")
+async def get_portfolio():
+    """Get user's biodiversity credits portfolio"""
+    try:
+        portfolio = [
+            {
+                "id": "HOLD001",
+                "project_name": "Hillside Grassland Enhancement",
+                "location": "Berkshire",
+                "habitat_type": "Grassland",
+                "credits_owned": 25,
+                "purchase_price": 11500,
+                "current_value": 12800,
+                "total_value": 320000,
+                "purchase_date": "2024-03-15",
+                "delivery_status": "Active",
+                "management_status": "On Track",
+                "monitoring_date": "2024-09-15",
+                "return_percentage": 11.3
+            },
+            {
+                "id": "HOLD002", 
+                "project_name": "River Valley Woodland",
+                "location": "Oxfordshire",
+                "habitat_type": "Woodland", 
+                "credits_owned": 18,
+                "purchase_price": 15200,
+                "current_value": 16100,
+                "total_value": 289800,
+                "purchase_date": "2024-01-22",
+                "delivery_status": "Delivered",
+                "management_status": "Excellent",
+                "monitoring_date": "2024-08-30",
+                "return_percentage": 5.9
+            },
+            {
+                "id": "HOLD003",
+                "project_name": "Coastal Wetlands Creation",
+                "location": "Dorset",
+                "habitat_type": "Wetland",
+                "credits_owned": 32,
+                "purchase_price": 18750,
+                "current_value": 19500,
+                "total_value": 624000,
+                "purchase_date": "2024-06-10", 
+                "delivery_status": "In Progress",
+                "management_status": "Good",
+                "monitoring_date": "2024-11-01",
+                "return_percentage": 4.0
+            }
+        ]
+        
+        total_value = sum(h["total_value"] for h in portfolio)
+        total_credits = sum(h["credits_owned"] for h in portfolio)
+        avg_return = sum(h["return_percentage"] for h in portfolio) / len(portfolio)
+        
+        return {
+            "success": True,
+            "portfolio": portfolio,
+            "summary": {
+                "total_credits": total_credits,
+                "total_value": total_value,
+                "average_return": round(avg_return, 1),
+                "portfolio_diversity": {
+                    "grassland": len([h for h in portfolio if h["habitat_type"] == "Grassland"]),
+                    "woodland": len([h for h in portfolio if h["habitat_type"] == "Woodland"]),
+                    "wetland": len([h for h in portfolio if h["habitat_type"] == "Wetland"])
+                }
+            },
+            "performance": {
+                "best_performer": max(portfolio, key=lambda x: x["return_percentage"]),
+                "recent_activity": "3 monitoring reports received this month",
+                "upcoming_deliveries": 1
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Portfolio retrieval failed: {str(e)}")
+
+@app.get("/api/offsets-marketplace/compliance/{project_id}")
+async def get_compliance_status(project_id: int):
+    """Get BNG compliance status for a project"""
+    try:
+        # Mock compliance data
+        compliance_data = {
+            "project_id": project_id,
+            "project_name": "Riverside Development" if project_id == 1 else "Green Valley Homes",
+            "bng_requirement": 10.0,
+            "current_bng": 15.2 if project_id == 1 else 8.5,
+            "compliance_status": "Compliant" if project_id == 1 else "Non-Compliant",
+            "units_required": 42.5,
+            "units_secured": 48.3 if project_id == 1 else 36.1,
+            "gap": 0 if project_id == 1 else 6.4,
+            "credits_purchased": [
+                {
+                    "credit_id": "CRED001",
+                    "project_name": "Meadowlands Restoration",
+                    "units": 25,
+                    "delivery_date": "2025-06-15",
+                    "status": "Secured"
+                },
+                {
+                    "credit_id": "CRED002",
+                    "project_name": "Ancient Woodland Enhancement", 
+                    "units": 15,
+                    "delivery_date": "2025-09-30",
+                    "status": "In Progress"
+                }
+            ] if project_id == 1 else [],
+            "monitoring_schedule": [
+                {"date": "2024-12-01", "type": "Baseline Survey", "status": "Scheduled"},
+                {"date": "2025-03-01", "type": "Quarterly Check", "status": "Pending"},
+                {"date": "2025-06-01", "type": "Annual Review", "status": "Pending"}
+            ],
+            "legal_obligations": {
+                "planning_condition": "Condition 15: BNG delivery before occupation",
+                "s106_agreement": "£50,000 financial contribution if on-site delivery fails",
+                "monitoring_requirement": "Annual reports for 30 years"
+            }
+        }
+        
+        return compliance_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Compliance check failed: {str(e)}")
+
+@app.get("/api/offsets-marketplace/market-analytics")
+async def get_market_analytics():
+    """Get biodiversity credits market analytics"""
+    try:
+        return {
+            "success": True,
+            "market_overview": {
+                "total_credits_traded": 12847,
+                "total_value_traded": "£156.8M",
+                "active_projects": 234,
+                "average_price": "£12,500",
+                "price_trend_3m": "+8.2%",
+                "price_trend_12m": "+23.7%"
+            },
+            "habitat_breakdown": {
+                "grassland": {"percentage": 42, "avg_price": 11500, "trend": "+6.5%"},
+                "woodland": {"percentage": 28, "avg_price": 15200, "trend": "+12.1%"},
+                "wetland": {"percentage": 18, "avg_price": 18750, "trend": "+18.3%"},
+                "heathland": {"percentage": 8, "avg_price": 14300, "trend": "+9.8%"},
+                "other": {"percentage": 4, "avg_price": 13200, "trend": "+5.2%"}
+            },
+            "regional_data": {
+                "south_east": {"credits": 4250, "avg_price": 13200, "trend": "+9.8%"},
+                "south_west": {"credits": 2890, "avg_price": 11800, "trend": "+7.2%"},
+                "east": {"credits": 2145, "avg_price": 12600, "trend": "+8.9%"},
+                "north_west": {"credits": 1678, "avg_price": 10900, "trend": "+6.1%"},
+                "other": {"credits": 1884, "avg_price": 11400, "trend": "+7.8%"}
+            },
+            "forecasts": {
+                "next_quarter": {
+                    "price_prediction": "+3.5%",
+                    "demand_outlook": "High",
+                    "supply_concerns": "Moderate shortage expected"
+                },
+                "next_year": {
+                    "price_prediction": "+15-20%",
+                    "market_maturity": "Rapidly developing",
+                    "regulatory_changes": "Enhanced enforcement expected"
                 }
             }
         }

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offsets Marketplace - Domus Professional Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .marketplace-card { transition: all 0.3s ease; }
+        .marketplace-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .browse-card { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .list-card { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .calculate-card { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .track-card { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .analytics-card { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .credits-card { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .habitat-badge { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .progress-ring { animation: spin 2s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .map-container { height: 300px; border-radius: 12px; overflow: hidden; }
+        .credit-meter { background: linear-gradient(90deg, #ef4444 0%, #f59e0b 30%, #10b981 100%); }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="offsetsMarketplace()">
+    <!-- Header -->
+    <div class="gradient-bg text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Biodiversity Net Gain Marketplace</h1>
+                    <p class="text-blue-100 mt-2">Trade habitat credits, list conservation projects, and achieve 10%+ BNG compliance</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                        <i class="fas fa-leaf mr-2"></i>
+                        <span class="text-sm">BNG Compliant</span>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        <span class="text-sm">Verified Credits</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-seedling text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="marketStats.totalCredits"></div>
+                        <div class="text-sm text-gray-600">Total Credits Available</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-map-marked-alt text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="marketStats.activeProjects"></div>
+                        <div class="text-sm text-gray-600">Active Projects</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-handshake text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="marketStats.completedTrades"></div>
+                        <div class="text-sm text-gray-600">Completed Trades</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-pound-sign text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="marketStats.averagePrice"></div>
+                        <div class="text-sm text-gray-600">Avg Price/Credit</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-lg">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 px-6">
+                    <button 
+                        @click="activeTab = 'browse'" 
+                        :class="activeTab === 'browse' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-search mr-2"></i>Browse Credits
+                    </button>
+                    <button 
+                        @click="activeTab = 'list'" 
+                        :class="activeTab === 'list' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-plus-circle mr-2"></i>List Project
+                    </button>
+                    <button 
+                        @click="activeTab = 'calculate'" 
+                        :class="activeTab === 'calculate' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-calculator mr-2"></i>BNG Calculator
+                    </button>
+                    <button 
+                        @click="activeTab = 'track'" 
+                        :class="activeTab === 'track' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-chart-line mr-2"></i>Track Portfolio
+                    </button>
+                    <button 
+                        @click="activeTab = 'compliance'" 
+                        :class="activeTab === 'compliance' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-shield-check mr-2"></i>Compliance
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Browse Credits Tab -->
+                <div x-show="activeTab === 'browse'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Filters Panel -->
+                        <div class="lg:col-span-1">
+                            <div class="browse-card text-white p-6 rounded-xl">
+                                <h3 class="text-xl font-bold mb-4">
+                                    <i class="fas fa-filter mr-2"></i>Find Credits
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Habitat Type</label>
+                                        <select x-model="filters.habitatType" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                            <option value="">All Habitats</option>
+                                            <option value="grassland">Grassland</option>
+                                            <option value="woodland">Woodland</option>
+                                            <option value="wetland">Wetland</option>
+                                            <option value="heathland">Heathland</option>
+                                            <option value="coastal">Coastal</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Location</label>
+                                            <input type="text" x-model="filters.location" placeholder="Postcode/County" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Credits Needed</label>
+                                            <input type="number" x-model="filters.creditsNeeded" placeholder="Units" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Price Range (per credit)</label>
+                                        <select x-model="filters.priceRange" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                            <option value="">Any Price</option>
+                                            <option value="0-5000">£0 - £5,000</option>
+                                            <option value="5000-10000">£5,000 - £10,000</option>
+                                            <option value="10000-20000">£10,000 - £20,000</option>
+                                            <option value="20000+">£20,000+</option>
+                                        </select>
+                                    </div>
+                                    <button 
+                                        @click="searchCredits()"
+                                        class="w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-search mr-2"></i>Search Credits
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Map -->
+                            <div class="mt-6 bg-white p-4 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">
+                                    <i class="fas fa-map-marker-alt mr-2 text-green-500"></i>Credit Locations
+                                </h4>
+                                <div id="creditsMap" class="map-container"></div>
+                            </div>
+                        </div>
+
+                        <!-- Credits Listings -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">
+                                    <i class="fas fa-list mr-2 text-blue-500"></i>Available Credits
+                                </h4>
+                                <div class="space-y-4">
+                                    <template x-for="credit in availableCredits" :key="credit.id">
+                                        <div class="marketplace-card border border-gray-200 rounded-lg p-6 hover:border-green-300">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <div class="flex items-center mb-2">
+                                                        <h5 class="font-semibold text-gray-900 mr-3" x-text="credit.projectName"></h5>
+                                                        <span :class="'px-2 py-1 rounded-full text-xs font-medium ' + getHabitatColor(credit.habitatType)" x-text="credit.habitatType"></span>
+                                                    </div>
+                                                    <p class="text-sm text-gray-600 mb-3" x-text="credit.description"></p>
+                                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                                        <div>
+                                                            <div class="text-lg font-bold text-green-600" x-text="credit.creditsAvailable"></div>
+                                                            <div class="text-xs text-gray-500">Credits Available</div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="text-lg font-bold text-blue-600" x-text="credit.pricePerCredit"></div>
+                                                            <div class="text-xs text-gray-500">Price per Credit</div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="text-lg font-bold text-purple-600" x-text="credit.location"></div>
+                                                            <div class="text-xs text-gray-500">Location</div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="text-lg font-bold text-orange-600" x-text="credit.deliveryDate"></div>
+                                                            <div class="text-xs text-gray-500">Delivery</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center space-x-4">
+                                                        <span class="text-sm text-gray-600">
+                                                            <i class="fas fa-certificate mr-1 text-green-500"></i>Verified Provider
+                                                        </span>
+                                                        <span class="text-sm text-gray-600">
+                                                            <i class="fas fa-clock mr-1 text-blue-500"></i><span x-text="credit.timeRemaining"></span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex flex-col space-y-2 ml-4">
+                                                    <button class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors">
+                                                        <i class="fas fa-shopping-cart mr-1"></i>Purchase
+                                                    </button>
+                                                    <button class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200 transition-colors">
+                                                        <i class="fas fa-eye mr-1"></i>Details
+                                                    </button>
+                                                    <button class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors">
+                                                        <i class="fas fa-heart mr-1"></i>Save
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List Project Tab -->
+                <div x-show="activeTab === 'list'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="list-card text-white p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-plus-circle mr-2"></i>List Your Conservation Project
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Project Name</label>
+                                    <input type="text" placeholder="e.g., Meadowlands Restoration Project" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Habitat Type</label>
+                                        <select class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                            <option>Grassland</option>
+                                            <option>Woodland</option>
+                                            <option>Wetland</option>
+                                            <option>Heathland</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Area (hectares)</label>
+                                        <input type="number" placeholder="10.5" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Location</label>
+                                    <input type="text" placeholder="Postcode or address" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Credits to Generate</label>
+                                        <input type="number" placeholder="25" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Price per Credit</label>
+                                        <input type="number" placeholder="12000" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                    </div>
+                                </div>
+                                <button class="w-full bg-white text-green-600 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                                    <i class="fas fa-upload mr-2"></i>List Project
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h4 class="text-lg font-semibold mb-4">Project Requirements</h4>
+                            <div class="space-y-4">
+                                <div class="border-l-4 border-green-500 pl-4">
+                                    <h5 class="font-semibold text-gray-900">Verification Required</h5>
+                                    <p class="text-sm text-gray-600">All projects must be verified by accredited ecologists</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        <span class="ml-2 text-sm">Baseline ecological survey completed</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        <span class="ml-2 text-sm">Management plan for 30+ years</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        <span class="ml-2 text-sm">Legal agreement in place</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        <span class="ml-2 text-sm">Financial security provided</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BNG Calculator Tab -->
+                <div x-show="activeTab === 'calculate'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="calculate-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-calculator mr-2"></i>BNG Requirements Calculator
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Development Type</label>
+                                    <select x-model="bngCalculator.developmentType" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                        <option value="residential">Residential</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="industrial">Industrial</option>
+                                        <option value="infrastructure">Infrastructure</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Site Area (hectares)</label>
+                                        <input type="number" x-model="bngCalculator.siteArea" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Baseline Biodiversity Units</label>
+                                        <input type="number" x-model="bngCalculator.baselineUnits" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Post-Development Units</label>
+                                    <input type="number" x-model="bngCalculator.postDevUnits" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                </div>
+                                <button 
+                                    @click="calculateBNG()"
+                                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-calculator mr-2"></i>Calculate BNG Requirement
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h4 class="text-lg font-semibold mb-4">BNG Calculation Results</h4>
+                            <div class="space-y-4" x-show="bngResults.calculated">
+                                <div class="border-l-4 border-green-500 pl-4">
+                                    <div class="text-2xl font-bold text-green-600" x-text="bngResults.requiredUnits"></div>
+                                    <div class="text-sm text-gray-600">Biodiversity Units Required</div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="font-semibold" x-text="bngResults.percentageGain"></div>
+                                        <div class="text-sm text-gray-600">Net Gain Required</div>
+                                    </div>
+                                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="font-semibold" x-text="bngResults.estimatedCost"></div>
+                                        <div class="text-sm text-gray-600">Estimated Cost</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="text-sm font-medium text-gray-700 mb-2">BNG Requirement Progress</div>
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="credit-meter h-3 rounded-full" :style="'width: ' + bngResults.compliancePercentage + '%'"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-600 mt-1" x-text="bngResults.compliancePercentage + '% towards 10% minimum'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Track Portfolio Tab -->
+                <div x-show="activeTab === 'track'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">
+                                    <i class="fas fa-chart-line mr-2 text-blue-500"></i>Your Credits Portfolio
+                                </h4>
+                                <div class="space-y-4">
+                                    <template x-for="holding in portfolio" :key="holding.id">
+                                        <div class="border border-gray-200 rounded-lg p-4">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <h5 class="font-semibold" x-text="holding.projectName"></h5>
+                                                    <p class="text-sm text-gray-600" x-text="holding.location"></p>
+                                                    <div class="flex items-center mt-2 space-x-4">
+                                                        <span class="text-sm">
+                                                            <i class="fas fa-seedling text-green-500 mr-1"></i>
+                                                            <span x-text="holding.credits"></span> credits
+                                                        </span>
+                                                        <span class="text-sm">
+                                                            <i class="fas fa-pound-sign text-blue-500 mr-1"></i>
+                                                            <span x-text="holding.value"></span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span :class="'px-2 py-1 rounded-full text-xs font-medium ' + getStatusColor(holding.status)" x-text="holding.status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="track-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-chart-pie mr-2"></i>Portfolio Summary
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-green-600">156</div>
+                                    <div class="text-sm text-gray-600">Total Credits Owned</div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+                                        <div class="font-semibold">£1.8M</div>
+                                        <div class="text-sm text-gray-600">Portfolio Value</div>
+                                    </div>
+                                    <div class="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+                                        <div class="font-semibold">+12.5%</div>
+                                        <div class="text-sm text-gray-600">YTD Return</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance Tab -->
+                <div x-show="activeTab === 'compliance'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h4 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-shield-check mr-2 text-green-500"></i>BNG Compliance Status
+                            </h4>
+                            <div class="space-y-4">
+                                <div class="border-l-4 border-green-500 pl-4">
+                                    <div class="text-2xl font-bold text-green-600">Compliant</div>
+                                    <div class="text-sm text-gray-600">All projects meet 10%+ BNG requirement</div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm">Riverside Development</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">15.2% BNG</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm">Green Valley Homes</span>
+                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">12.8% BNG</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm">City Centre Plaza</span>
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">8.5% BNG</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-chart-bar mr-2"></i>Market Analytics
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+                                        <div class="font-semibold">£12,500</div>
+                                        <div class="text-sm text-gray-600">Avg Credit Price</div>
+                                    </div>
+                                    <div class="text-center p-3 bg-white bg-opacity-50 rounded-lg">
+                                        <div class="font-semibold">+8.2%</div>
+                                        <div class="text-sm text-gray-600">Price Growth YoY</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <h5 class="font-semibold mb-2">Popular Habitat Types</h5>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">Grassland</span>
+                                            <span class="text-sm font-semibold">42%</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">Woodland</span>
+                                            <span class="text-sm font-semibold">28%</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm">Wetland</span>
+                                            <span class="text-sm font-semibold">18%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function offsetsMarketplace() {
+            return {
+                activeTab: 'browse',
+                marketStats: {
+                    totalCredits: '2,847',
+                    activeProjects: '156',
+                    completedTrades: '89',
+                    averagePrice: '£12.5k'
+                },
+                filters: {
+                    habitatType: '',
+                    location: '',
+                    creditsNeeded: '',
+                    priceRange: ''
+                },
+                bngCalculator: {
+                    developmentType: 'residential',
+                    siteArea: 5,
+                    baselineUnits: 25,
+                    postDevUnits: 15
+                },
+                bngResults: {
+                    calculated: false,
+                    requiredUnits: 0,
+                    percentageGain: '10%',
+                    estimatedCost: '£0',
+                    compliancePercentage: 0
+                },
+                availableCredits: [
+                    {
+                        id: 1,
+                        projectName: 'Meadowlands Restoration',
+                        habitatType: 'Grassland',
+                        description: 'Species-rich grassland restoration on former agricultural land with wildflower meadows',
+                        creditsAvailable: 45,
+                        pricePerCredit: '£11,500',
+                        location: 'Hampshire',
+                        deliveryDate: 'Q2 2025',
+                        timeRemaining: '12 days left'
+                    },
+                    {
+                        id: 2,
+                        projectName: 'Ancient Woodland Enhancement',
+                        habitatType: 'Woodland',
+                        description: 'Native woodland planting and enhancement with oak, ash, and birch species',
+                        creditsAvailable: 28,
+                        pricePerCredit: '£15,200',
+                        location: 'Surrey',
+                        deliveryDate: 'Q3 2025',
+                        timeRemaining: '5 days left'
+                    },
+                    {
+                        id: 3,
+                        projectName: 'Wetland Creation Project',
+                        habitatType: 'Wetland',
+                        description: 'New wetland habitat creation with reed beds and shallow water areas',
+                        creditsAvailable: 67,
+                        pricePerCredit: '£18,750',
+                        location: 'Kent',
+                        deliveryDate: 'Q1 2025',
+                        timeRemaining: '2 days left'
+                    }
+                ],
+                portfolio: [
+                    {
+                        id: 1,
+                        projectName: 'Hillside Grassland',
+                        location: 'Berkshire',
+                        credits: 25,
+                        value: '£287,500',
+                        status: 'Active'
+                    },
+                    {
+                        id: 2,
+                        projectName: 'River Valley Woodland',
+                        location: 'Oxfordshire', 
+                        credits: 18,
+                        value: '£273,600',
+                        status: 'Delivered'
+                    },
+                    {
+                        id: 3,
+                        projectName: 'Coastal Wetlands',
+                        location: 'Dorset',
+                        credits: 32,
+                        value: '£600,000',
+                        status: 'In Progress'
+                    }
+                ],
+                
+                init() {
+                    this.initMap();
+                },
+                
+                initMap() {
+                    setTimeout(() => {
+                        if (document.getElementById('creditsMap')) {
+                            const map = L.map('creditsMap').setView([51.4545, -0.9781], 8);
+                            
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '© OpenStreetMap contributors'
+                            }).addTo(map);
+                            
+                            // Add credit location markers
+                            const credits = [
+                                [51.2, -1.1, 'Hampshire - 45 Credits'],
+                                [51.3, -0.6, 'Surrey - 28 Credits'],
+                                [51.1, 0.5, 'Kent - 67 Credits']
+                            ];
+                            
+                            credits.forEach(([lat, lng, title]) => {
+                                L.marker([lat, lng])
+                                    .addTo(map)
+                                    .bindPopup(title);
+                            });
+                        }
+                    }, 100);
+                },
+                
+                searchCredits() {
+                    console.log('Searching credits with filters:', this.filters);
+                },
+                
+                calculateBNG() {
+                    const baseline = this.bngCalculator.baselineUnits;
+                    const postDev = this.bngCalculator.postDevUnits;
+                    const required = Math.max(0, baseline * 1.1 - postDev);
+                    const percentage = ((postDev / baseline - 1) * 100).toFixed(1);
+                    
+                    this.bngResults = {
+                        calculated: true,
+                        requiredUnits: `${required.toFixed(1)} units`,
+                        percentageGain: `${Math.max(10, Math.abs(percentage))}%`,
+                        estimatedCost: `£${(required * 12500).toLocaleString()}`,
+                        compliancePercentage: Math.min(100, Math.max(0, (postDev / baseline - 1) * 100 * 10))
+                    };
+                },
+                
+                getHabitatColor(habitat) {
+                    const colors = {
+                        'Grassland': 'bg-green-100 text-green-800',
+                        'Woodland': 'bg-orange-100 text-orange-800',
+                        'Wetland': 'bg-blue-100 text-blue-800',
+                        'Heathland': 'bg-purple-100 text-purple-800',
+                        'Coastal': 'bg-teal-100 text-teal-800'
+                    };
+                    return colors[habitat] || 'bg-gray-100 text-gray-800';
+                },
+                
+                getStatusColor(status) {
+                    const colors = {
+                        'Active': 'bg-green-100 text-green-800',
+                        'Delivered': 'bg-blue-100 text-blue-800',
+                        'In Progress': 'bg-yellow-100 text-yellow-800'
+                    };
+                    return colors[status] || 'bg-gray-100 text-gray-800';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
