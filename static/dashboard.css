@@ -863,3 +863,287 @@
     font-weight: 500;
     color: #111827;
 }
+
+/* PLANNING AI SPECIFIC STYLES */
+/* ============================ */
+
+/* AI Score Circle Animation */
+.ai-score-circle {
+    position: relative;
+    display: inline-block;
+}
+
+.ai-score-circle svg {
+    transform: rotate(-90deg);
+    transition: stroke-dashoffset 1s ease-in-out;
+}
+
+/* Loading spinner for Planning AI */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Constraint severity indicators */
+.constraint-high {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.constraint-medium {
+    background-color: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fed7aa;
+}
+
+.constraint-low {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+/* Policy citation styling */
+.policy-citation {
+    border-left: 4px solid #3b82f6;
+    padding-left: 16px;
+    margin-bottom: 12px;
+}
+
+.policy-reference {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.policy-title {
+    color: #4b5563;
+    font-size: 13px;
+    margin: 2px 0;
+}
+
+.policy-relevance {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+/* Precedent case styling */
+.precedent-case {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: #ffffff;
+}
+
+.precedent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.precedent-reference {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 14px;
+}
+
+.precedent-outcome {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.precedent-outcome.approved {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.precedent-outcome.refused {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.precedent-description {
+    color: #4b5563;
+    font-size: 13px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.precedent-meta {
+    color: #6b7280;
+    font-size: 11px;
+}
+
+/* AI Recommendations */
+.ai-recommendation {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.ai-recommendation i {
+    color: #f59e0b;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.ai-recommendation-text {
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Scenario toggles */
+.scenario-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.scenario-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+}
+
+.scenario-toggle input[type="checkbox"]:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.scenario-label {
+    color: #374151;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Analysis input sections */
+.analysis-input-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.analysis-input-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 16px;
+}
+
+/* Development proposal inputs */
+.development-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .development-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Alternative input buttons */
+.alt-input-button {
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: left;
+}
+
+.alt-input-button:hover {
+    background-color: #f9fafb;
+}
+
+.alt-input-button i {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.alt-input-title {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.alt-input-subtitle {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+/* Credit counter */
+.credit-counter {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 13px;
+    color: #0369a1;
+}
+
+/* Result cards animation */
+.result-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInUp 0.5s ease-out forwards;
+}
+
+.result-card:nth-child(1) { animation-delay: 0.1s; }
+.result-card:nth-child(2) { animation-delay: 0.2s; }
+.result-card:nth-child(3) { animation-delay: 0.3s; }
+.result-card:nth-child(4) { animation-delay: 0.4s; }
+.result-card:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Key factors styling */
+.key-factor {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 14px;
+}
+
+.key-factor.positive {
+    color: #059669;
+}
+
+.key-factor.negative {
+    color: #dc2626;
+}
+
+.key-factor i {
+    width: 16px;
+    font-size: 12px;
+}

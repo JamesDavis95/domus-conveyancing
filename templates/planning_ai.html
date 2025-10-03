@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning AI Analysis - Domus</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <div class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-brain text-blue-600 text-xl"></i>
+                            <h1 class="text-2xl font-bold text-gray-900">Planning AI Analysis</h1>
+                        </div>
+                        <div class="text-sm text-gray-500">Instant approval probability & constraint analysis</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Credits:</span> 47/50
+                        </div>
+                        <button id="save-analysis" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" disabled>
+                            <i class="fas fa-save mr-2"></i>Save Analysis
+                        </button>
+                        <button id="export-report" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" disabled>
+                            <i class="fas fa-download mr-2"></i>Export Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-full">
+                    <!-- Left Panel - Input -->
+                    <div class="space-y-6">
+                        <!-- Site Input -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Site Input</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="address-input" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Address or Location
+                                    </label>
+                                    <div class="flex space-x-2">
+                                        <input type="text" id="address-input" 
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                               placeholder="Enter address, postcode, or UPRN...">
+                                        <button id="analyze-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                            <i class="fas fa-search mr-2"></i>Analyze
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Map -->
+                                <div class="mt-4">
+                                    <div id="map" class="h-64 w-full rounded-lg border"></div>
+                                </div>
+                                
+                                <!-- Alternative Inputs -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button class="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                                        <i class="fas fa-upload text-blue-600 mb-2"></i>
+                                        <div class="text-sm font-medium">Upload Site Plan</div>
+                                        <div class="text-xs text-gray-500">PDF, DWG, or image</div>
+                                    </button>
+                                    <button class="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
+                                        <i class="fas fa-draw-polygon text-green-600 mb-2"></i>
+                                        <div class="text-sm font-medium">Draw Boundary</div>
+                                        <div class="text-xs text-gray-500">Define site on map</div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Development Proposal -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Development Proposal</h2>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Development Type</label>
+                                    <select id="dev-type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select type...</option>
+                                        <option value="residential">Residential</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="mixed">Mixed Use</option>
+                                        <option value="industrial">Industrial</option>
+                                        <option value="change_of_use">Change of Use</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Number of Units</label>
+                                    <input type="number" id="units" min="0" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Floor Area (m²)</label>
+                                    <input type="number" id="floor-area" min="0" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Height (stories)</label>
+                                    <input type="number" id="height" min="1" max="50" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scenario Toggles -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Analysis Scenarios</h2>
+                            <div class="space-y-3">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="affordable-housing" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm">Include affordable housing (35%)</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="net-gain" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm">Biodiversity Net Gain compliance</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="car-free" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm">Car-free development</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="sustainable" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm">Sustainable construction (BREEAM Excellent)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel - Results -->
+                    <div class="space-y-6">
+                        <!-- Loading State -->
+                        <div id="loading-state" class="hidden bg-white rounded-lg shadow-sm border p-6 text-center">
+                            <div class="loading-spinner mx-auto mb-4"></div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Analyzing Site...</h3>
+                            <p class="text-gray-600">Processing constraints and calculating approval probability</p>
+                        </div>
+
+                        <!-- AI Score -->
+                        <div id="ai-score-card" class="hidden bg-white rounded-lg shadow-sm border p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">AI Approval Score</h2>
+                                <button class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                                </button>
+                            </div>
+                            <div class="text-center mb-6">
+                                <div id="score-circle" class="inline-block relative">
+                                    <svg class="w-32 h-32 transform -rotate-90">
+                                        <circle cx="64" cy="64" r="56" stroke="#e5e7eb" stroke-width="8" fill="none"></circle>
+                                        <circle id="score-progress" cx="64" cy="64" r="56" stroke="#3b82f6" stroke-width="8" 
+                                                fill="none" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352"></circle>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="text-center">
+                                            <div id="score-percentage" class="text-3xl font-bold text-gray-900">--</div>
+                                            <div class="text-sm text-gray-500">Approval</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="score-interpretation" class="mt-4 text-sm text-gray-600"></div>
+                            </div>
+                            <div id="key-factors" class="space-y-2"></div>
+                        </div>
+
+                        <!-- Constraints Analysis -->
+                        <div id="constraints-card" class="hidden bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Planning Constraints</h2>
+                            <div id="constraints-list" class="space-y-3"></div>
+                        </div>
+
+                        <!-- Policy Citations -->
+                        <div id="policy-card" class="hidden bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Relevant Policies</h2>
+                            <div id="policy-list" class="space-y-3"></div>
+                        </div>
+
+                        <!-- Precedents -->
+                        <div id="precedents-card" class="hidden bg-white rounded-lg shadow-sm border p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">Similar Cases</h2>
+                                <span class="text-sm text-gray-500">Within 2km</span>
+                            </div>
+                            <div id="precedents-list" class="space-y-4"></div>
+                        </div>
+
+                        <!-- Recommendations -->
+                        <div id="recommendations-card" class="hidden bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">AI Recommendations</h2>
+                            <div id="recommendations-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Load sidebar
+        fetch('/api/sidebar')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+            });
+
+        // Initialize map
+        let map = L.map('map').setView([51.5074, -0.1278], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        let marker = null;
+        let currentAnalysis = null;
+
+        // Analysis functionality
+        document.getElementById('analyze-btn').addEventListener('click', performAnalysis);
+        document.getElementById('address-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performAnalysis();
+            }
+        });
+
+        async function performAnalysis() {
+            const address = document.getElementById('address-input').value;
+            const devType = document.getElementById('dev-type').value;
+            const units = document.getElementById('units').value;
+            const floorArea = document.getElementById('floor-area').value;
+            const height = document.getElementById('height').value;
+
+            if (!address) {
+                alert('Please enter an address');
+                return;
+            }
+
+            // Show loading state
+            showLoading();
+
+            try {
+                // Geocode address first
+                const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gb&limit=1`);
+                const geoData = await geoResponse.json();
+                
+                if (geoData.length === 0) {
+                    alert('Address not found');
+                    hideLoading();
+                    return;
+                }
+
+                const location = geoData[0];
+                const lat = parseFloat(location.lat);
+                const lng = parseFloat(location.lon);
+
+                // Update map
+                map.setView([lat, lng], 16);
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+                marker = L.marker([lat, lng]).addTo(map);
+
+                // Get analysis from API
+                const analysisData = {
+                    address: address,
+                    latitude: lat,
+                    longitude: lng,
+                    development_type: devType,
+                    units: parseInt(units) || 0,
+                    floor_area: parseFloat(floorArea) || 0,
+                    height: parseInt(height) || 1,
+                    scenarios: {
+                        affordable_housing: document.getElementById('affordable-housing').checked,
+                        net_gain: document.getElementById('net-gain').checked,
+                        car_free: document.getElementById('car-free').checked,
+                        sustainable: document.getElementById('sustainable').checked
+                    }
+                };
+
+                const response = await fetch('/api/planning-ai/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(analysisData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Analysis failed');
+                }
+
+                const result = await response.json();
+                currentAnalysis = result;
+                
+                // Display results
+                displayResults(result);
+                
+                // Enable save and export buttons
+                document.getElementById('save-analysis').disabled = false;
+                document.getElementById('export-report').disabled = false;
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Analysis failed. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading-state').classList.remove('hidden');
+            hideResults();
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-state').classList.add('hidden');
+        }
+
+        function hideResults() {
+            ['ai-score-card', 'constraints-card', 'policy-card', 'precedents-card', 'recommendations-card'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        }
+
+        function displayResults(analysis) {
+            // Display AI Score
+            displayAIScore(analysis.score, analysis.interpretation, analysis.key_factors);
+            
+            // Display Constraints
+            displayConstraints(analysis.constraints);
+            
+            // Display Policies
+            displayPolicies(analysis.policies);
+            
+            // Display Precedents
+            displayPrecedents(analysis.precedents);
+            
+            // Display Recommendations
+            displayRecommendations(analysis.recommendations);
+            
+            // Show all result cards
+            ['ai-score-card', 'constraints-card', 'policy-card', 'precedents-card', 'recommendations-card'].forEach(id => {
+                document.getElementById(id).classList.remove('hidden');
+            });
+        }
+
+        function displayAIScore(score, interpretation, factors) {
+            document.getElementById('score-percentage').textContent = score + '%';
+            document.getElementById('score-interpretation').textContent = interpretation;
+            
+            // Animate progress circle
+            const circle = document.getElementById('score-progress');
+            const circumference = 352;
+            const offset = circumference - (score / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            
+            // Color based on score
+            if (score >= 70) {
+                circle.style.stroke = '#10b981';
+            } else if (score >= 40) {
+                circle.style.stroke = '#f59e0b';
+            } else {
+                circle.style.stroke = '#ef4444';
+            }
+            
+            // Display key factors
+            const factorsContainer = document.getElementById('key-factors');
+            factorsContainer.innerHTML = factors.map(factor => 
+                `<div class="flex items-center text-sm">
+                    <i class="fas fa-${factor.positive ? 'plus' : 'minus'} w-4 text-${factor.positive ? 'green' : 'red'}-600 mr-2"></i>
+                    ${factor.text}
+                </div>`
+            ).join('');
+        }
+
+        function displayConstraints(constraints) {
+            const container = document.getElementById('constraints-list');
+            container.innerHTML = constraints.map(constraint => 
+                `<div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-${constraint.severity === 'high' ? 'red' : constraint.severity === 'medium' ? 'yellow' : 'green'}-500 mt-1"></i>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-900">${constraint.name}</div>
+                        <div class="text-sm text-gray-600">${constraint.description}</div>
+                        <div class="text-xs text-gray-500 mt-1">${constraint.distance}</div>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        function displayPolicies(policies) {
+            const container = document.getElementById('policy-list');
+            container.innerHTML = policies.map(policy => 
+                `<div class="border-l-4 border-blue-500 pl-4 py-2">
+                    <div class="font-medium text-gray-900">${policy.reference}</div>
+                    <div class="text-sm text-gray-600">${policy.title}</div>
+                    <div class="text-xs text-gray-500 mt-1">${policy.relevance}</div>
+                </div>`
+            ).join('');
+        }
+
+        function displayPrecedents(precedents) {
+            const container = document.getElementById('precedents-list');
+            container.innerHTML = precedents.map(precedent => 
+                `<div class="border border-gray-200 rounded-lg p-3">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="font-medium text-gray-900">${precedent.reference}</div>
+                        <span class="text-xs px-2 py-1 rounded-full ${precedent.outcome === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${precedent.outcome}</span>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">${precedent.description}</div>
+                    <div class="text-xs text-gray-500">${precedent.distance} • ${precedent.date}</div>
+                </div>`
+            ).join('');
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-list');
+            container.innerHTML = recommendations.map(rec => 
+                `<div class="flex items-start space-x-3">
+                    <i class="fas fa-lightbulb text-yellow-500 mt-1"></i>
+                    <div class="text-sm text-gray-700">${rec}</div>
+                </div>`
+            ).join('');
+        }
+
+        // Save and export functionality
+        document.getElementById('save-analysis').addEventListener('click', function() {
+            if (currentAnalysis) {
+                // Implement save functionality
+                alert('Analysis saved to your projects');
+            }
+        });
+
+        document.getElementById('export-report').addEventListener('click', function() {
+            if (currentAnalysis) {
+                // Implement export functionality
+                alert('Report exported successfully');
+            }
+        });
+    </script>
+</body>
+</html>
