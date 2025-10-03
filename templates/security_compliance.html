@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Compliance - Domus Planning Platform</title>
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="manifest" href="/manifest.json">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .security-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .security-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .security-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .security-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .security-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .security-icon.gdpr { background: linear-gradient(135deg, #10b981, #059669); }
+        .security-icon.audit { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .security-icon.monitor { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .security-icon.access { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .security-icon.encrypt { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .security-icon.backup { background: linear-gradient(135deg, #84cc16, #65a30d); }
+        
+        .security-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .security-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-active { background-color: #10b981; }
+        .status-warning { background-color: #f59e0b; }
+        .status-critical { background-color: #ef4444; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .security-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e40af;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .compliance-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .compliance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .compliance-title {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .compliance-score {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .score-excellent { background: #dcfce7; color: #166534; }
+        .score-good { background: #fef3c7; color: #92400e; }
+        .score-needs-attention { background: #fee2e2; color: #991b1b; }
+        
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .audit-table th,
+        .audit-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .audit-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .audit-table tbody tr:hover {
+            background: #f8fafc;
+        }
+        
+        .security-alert {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            background: #f59e0b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .security-dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        .data-retention-policy {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .encryption-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .encryption-item {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .risk-assessment {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .risk-level {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .risk-low { background: #dcfce7; color: #166534; }
+        .risk-medium { background: #fef3c7; color: #92400e; }
+        .risk-high { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-title">
+                🔒 Security & Compliance
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">← Back to Dashboard</a>
+                <a href="/security-compliance" class="nav-link">Refresh</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Advanced Security & Compliance</h1>
+            <p class="header-subtitle">
+                Enterprise-grade security framework with GDPR compliance, audit logging, 
+                security monitoring, and comprehensive regulatory compliance management
+            </p>
+        </div>
+
+        <!-- Security Status Overview -->
+        <div class="security-dashboard">
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon gdpr">🛡️</div>
+                    <div>
+                        <h3>GDPR Compliance</h3>
+                        <div class="security-status">
+                            <span class="status-indicator status-active"></span>
+                            <span>Fully Compliant</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-metrics">
+                    <div class="metric">
+                        <div class="metric-value">98%</div>
+                        <div class="metric-label">Compliance Score</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">24/7</div>
+                        <div class="metric-label">Monitoring</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 98%"></div>
+                </div>
+            </div>
+
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon audit">📋</div>
+                    <div>
+                        <h3>Audit Logging</h3>
+                        <div class="security-status">
+                            <span class="status-indicator status-active"></span>
+                            <span>Active & Recording</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-metrics">
+                    <div class="metric">
+                        <div class="metric-value">156k</div>
+                        <div class="metric-label">Events Today</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">99.9%</div>
+                        <div class="metric-label">Uptime</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon monitor">🚨</div>
+                    <div>
+                        <h3>Security Monitoring</h3>
+                        <div class="security-status">
+                            <span class="status-indicator status-warning"></span>
+                            <span>2 Alerts Pending</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-metrics">
+                    <div class="metric">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Breaches</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">47</div>
+                        <div class="metric-label">Threats Blocked</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon access">🔑</div>
+                    <div>
+                        <h3>Access Controls</h3>
+                        <div class="security-status">
+                            <span class="status-indicator status-active"></span>
+                            <span>RBAC Active</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-metrics">
+                    <div class="metric">
+                        <div class="metric-value">247</div>
+                        <div class="metric-label">Active Users</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Roles Defined</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon encrypt">🔐</div>
+                    <div>
+                        <h3>Data Encryption</h3>
+                        <div class="security-status">
+                            <span class="status-indicator status-active"></span>
+                            <span>AES-256 Active</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-metrics">
+                    <div class="metric">
+                        <div class="metric-value">100%</div>
+                        <div class="metric-label">Data Encrypted</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">TLS 1.3</div>
+                        <div class="metric-label">Transport Layer</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-card">
+                <div class="security-card-header">
+                    <div class="security-icon backup">💾</div>
+                    <div>
+                        <h3>Data Backup</h3>
+                        <div class="security-status">
+                            <span class="status-indicator status-active"></span>
+                            <span>Auto Backup Enabled</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-metrics">
+                    <div class="metric">
+                        <div class="metric-value">3x</div>
+                        <div class="metric-label">Daily Backups</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">30d</div>
+                        <div class="metric-label">Retention</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Alert -->
+        <div class="security-alert">
+            <div class="alert-icon">⚠️</div>
+            <div>
+                <h4 style="margin-bottom: 0.5rem;">Security Recommendation</h4>
+                <p>2 users have not updated their passwords in the last 90 days. Consider implementing password rotation policies.</p>
+            </div>
+        </div>
+
+        <!-- Detailed Security Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('gdpr')">GDPR Compliance</button>
+            <button class="tab" onclick="showTab('audit')">Audit Logs</button>
+            <button class="tab" onclick="showTab('monitoring')">Security Monitoring</button>
+            <button class="tab" onclick="showTab('access')">Access Controls</button>
+            <button class="tab" onclick="showTab('encryption')">Data Protection</button>
+            <button class="tab" onclick="showTab('policies')">Security Policies</button>
+        </div>
+
+        <!-- GDPR Compliance Tab -->
+        <div id="gdpr" class="tab-content active">
+            <h2 style="margin-bottom: 2rem; color: #1e293b;">GDPR Compliance Management</h2>
+            
+            <div class="compliance-grid">
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Data Processing Lawfulness</span>
+                        <span class="compliance-score score-excellent">Excellent</span>
+                    </div>
+                    <p>All data processing activities have documented legal basis and consent mechanisms.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Data Subject Rights</span>
+                        <span class="compliance-score score-excellent">Excellent</span>
+                    </div>
+                    <p>Automated systems for handling access, rectification, erasure, and portability requests.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 96%"></div>
+                    </div>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Data Protection Impact Assessment</span>
+                        <span class="compliance-score score-good">Good</span>
+                    </div>
+                    <p>DPIA completed for high-risk processing activities with mitigation measures in place.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 88%"></div>
+                    </div>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Privacy by Design</span>
+                        <span class="compliance-score score-excellent">Excellent</span>
+                    </div>
+                    <p>Privacy controls integrated into system architecture and development processes.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 94%"></div>
+                    </div>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Breach Notification</span>
+                        <span class="compliance-score score-excellent">Excellent</span>
+                    </div>
+                    <p>Automated breach detection and notification systems with 72-hour reporting capability.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Data Retention Policies</span>
+                        <span class="compliance-score score-good">Good</span>
+                    </div>
+                    <p>Automated data lifecycle management with configurable retention periods.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-retention-policy">
+                <h4 style="margin-bottom: 1rem; color: #0ea5e9;">Data Retention Schedule</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>User Account Data:</strong> Retained for 7 years after account closure</li>
+                    <li><strong>Planning Applications:</strong> Retained for 10 years as per regulatory requirements</li>
+                    <li><strong>Communication Records:</strong> Retained for 6 years for legal compliance</li>
+                    <li><strong>Audit Logs:</strong> Retained for 3 years with secure archival</li>
+                    <li><strong>Marketing Data:</strong> Retained until consent withdrawal or 2 years of inactivity</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Audit Logs Tab -->
+        <div id="audit" class="tab-content">
+            <h2 style="margin-bottom: 2rem; color: #1e293b;">Security Audit Logs</h2>
+            
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Event Type</th>
+                        <th>User</th>
+                        <th>Resource</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-10-03 14:32:15</td>
+                        <td>Authentication</td>
+                        <td>sarah.johnson@example.com</td>
+                        <td>Login Portal</td>
+                        <td>User Login</td>
+                        <td><span style="color: #10b981;">✓ Success</span></td>
+                        <td>192.168.1.145</td>
+                    </tr>
+                    <tr>
+                        <td>2024-10-03 14:31:42</td>
+                        <td>Data Access</td>
+                        <td>mike.chen@example.com</td>
+                        <td>Project PLN-2024-0847</td>
+                        <td>View Project Details</td>
+                        <td><span style="color: #10b981;">✓ Success</span></td>
+                        <td>10.0.0.23</td>
+                    </tr>
+                    <tr>
+                        <td>2024-10-03 14:30:18</td>
+                        <td>Data Modification</td>
+                        <td>admin@domusplatform.com</td>
+                        <td>User Permissions</td>
+                        <td>Role Assignment</td>
+                        <td><span style="color: #10b981;">✓ Success</span></td>
+                        <td>172.16.0.5</td>
+                    </tr>
+                    <tr>
+                        <td>2024-10-03 14:29:33</td>
+                        <td>Security Event</td>
+                        <td>Unknown</td>
+                        <td>Login Portal</td>
+                        <td>Failed Login Attempt</td>
+                        <td><span style="color: #ef4444;">✗ Failed</span></td>
+                        <td>203.0.113.12</td>
+                    </tr>
+                    <tr>
+                        <td>2024-10-03 14:28:07</td>
+                        <td>Data Export</td>
+                        <td>emma.wilson@example.com</td>
+                        <td>Planning Reports</td>
+                        <td>Export PDF Report</td>
+                        <td><span style="color: #10b981;">✓ Success</span></td>
+                        <td>192.168.1.87</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Security Monitoring Tab -->
+        <div id="monitoring" class="tab-content">
+            <h2 style="margin-bottom: 2rem; color: #1e293b;">Real-Time Security Monitoring</h2>
+            
+            <div class="risk-assessment">
+                <h3 style="margin-bottom: 1.5rem;">Current Risk Assessment</h3>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h4>Authentication Threats <span class="risk-level risk-low">Low Risk</span></h4>
+                    <p>No suspicious authentication patterns detected. Rate limiting and MFA policies are effective.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 15%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h4>Data Access Anomalies <span class="risk-level risk-medium">Medium Risk</span></h4>
+                    <p>2 users accessed data outside normal business hours. Reviewing for legitimate business purpose.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 45%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h4>Network Security <span class="risk-level risk-low">Low Risk</span></h4>
+                    <p>All network traffic encrypted, firewall rules optimized, intrusion detection active.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 10%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h4>Application Security <span class="risk-level risk-low">Low Risk</span></h4>
+                    <p>Latest security patches applied, vulnerability scans show no critical issues.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 8%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Access Controls Tab -->
+        <div id="access" class="tab-content">
+            <h2 style="margin-bottom: 2rem; color: #1e293b;">Role-Based Access Controls (RBAC)</h2>
+            
+            <div class="compliance-grid">
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Super Admin</span>
+                        <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">2 Users</span>
+                    </div>
+                    <p>Full system access, user management, security configuration, audit access.</p>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Planning Manager</span>
+                        <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">8 Users</span>
+                    </div>
+                    <p>Project management, team oversight, report generation, client communication.</p>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Senior Planner</span>
+                        <span style="background: #dcfce7; color: #166534; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">15 Users</span>
+                    </div>
+                    <p>Advanced planning tools, AI analysis, document generation, stakeholder communication.</p>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Planning Consultant</span>
+                        <span style="background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">34 Users</span>
+                    </div>
+                    <p>Project access, basic reporting, document viewing, limited data modification.</p>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">Client User</span>
+                        <span style="background: #f0fdf4; color: #15803d; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">156 Users</span>
+                    </div>
+                    <p>Project viewing, status updates, document downloads, communication access.</p>
+                </div>
+
+                <div class="compliance-item">
+                    <div class="compliance-header">
+                        <span class="compliance-title">External Auditor</span>
+                        <span style="background: #fafafa; color: #525252; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">3 Users</span>
+                    </div>
+                    <p>Read-only access to audit logs, compliance reports, security documentation.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Protection Tab -->
+        <div id="encryption" class="tab-content">
+            <h2 style="margin-bottom: 2rem; color: #1e293b;">Data Protection & Encryption</h2>
+            
+            <div class="encryption-status">
+                <div class="encryption-item">
+                    <h4 style="color: #059669; margin-bottom: 0.5rem;">Data at Rest</h4>
+                    <p style="font-size: 1.5rem; font-weight: bold; color: #10b981;">AES-256</p>
+                    <p style="color: #64748b;">Database & File Storage</p>
+                </div>
+
+                <div class="encryption-item">
+                    <h4 style="color: #0891b2; margin-bottom: 0.5rem;">Data in Transit</h4>
+                    <p style="font-size: 1.5rem; font-weight: bold; color: #06b6d4;">TLS 1.3</p>
+                    <p style="color: #64748b;">All API & Web Traffic</p>
+                </div>
+
+                <div class="encryption-item">
+                    <h4 style="color: #7c3aed; margin-bottom: 0.5rem;">Key Management</h4>
+                    <p style="font-size: 1.5rem; font-weight: bold; color: #8b5cf6;">HSM</p>
+                    <p style="color: #64748b;">Hardware Security Module</p>
+                </div>
+
+                <div class="encryption-item">
+                    <h4 style="color: #dc2626; margin-bottom: 0.5rem;">Backup Encryption</h4>
+                    <p style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">AES-256</p>
+                    <p style="color: #64748b;">Encrypted Backups</p>
+                </div>
+            </div>
+
+            <div style="background: white; border-radius: 12px; padding: 2rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <h3 style="margin-bottom: 1.5rem;">Data Classification & Protection</h3>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #ef4444;">Highly Sensitive Data</h4>
+                    <p>Personal identification, financial information, legal documents</p>
+                    <p style="color: #64748b; font-size: 0.9rem;">📍 Encryption: AES-256 + Field-level encryption | Access: Need-to-know basis | Audit: Full logging</p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #f59e0b;">Sensitive Data</h4>
+                    <p>Planning applications, project details, client communications</p>
+                    <p style="color: #64748b; font-size: 0.9rem;">📍 Encryption: AES-256 | Access: Role-based | Audit: Standard logging</p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #10b981;">Internal Data</h4>
+                    <p>System logs, performance metrics, configuration data</p>
+                    <p style="color: #64748b; font-size: 0.9rem;">📍 Encryption: TLS 1.3 | Access: Administrative | Audit: Basic logging</p>
+                </div>
+
+                <div>
+                    <h4 style="color: #64748b;">Public Data</h4>
+                    <p>Marketing materials, public planning policies, general documentation</p>
+                    <p style="color: #64748b; font-size: 0.9rem;">📍 Encryption: TLS 1.3 | Access: Unrestricted | Audit: Access logging</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Policies Tab -->
+        <div id="policies" class="tab-content">
+            <h2 style="margin-bottom: 2rem; color: #1e293b;">Security Policies & Procedures</h2>
+            
+            <div class="compliance-grid">
+                <div class="compliance-item">
+                    <h4 style="margin-bottom: 1rem;">Password Policy</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Minimum 12 characters with complexity requirements</li>
+                        <li>Multi-factor authentication mandatory</li>
+                        <li>90-day rotation for privileged accounts</li>
+                        <li>Password history prevents reuse of last 12 passwords</li>
+                    </ul>
+                </div>
+
+                <div class="compliance-item">
+                    <h4 style="margin-bottom: 1rem;">Data Handling Policy</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Data classification and labeling requirements</li>
+                        <li>Secure transmission and storage protocols</li>
+                        <li>Data retention and disposal procedures</li>
+                        <li>Third-party data sharing agreements</li>
+                    </ul>
+                </div>
+
+                <div class="compliance-item">
+                    <h4 style="margin-bottom: 1rem;">Incident Response</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>24/7 security operations center monitoring</li>
+                        <li>Automated threat detection and response</li>
+                        <li>Escalation procedures for security incidents</li>
+                        <li>Post-incident analysis and improvement process</li>
+                    </ul>
+                </div>
+
+                <div class="compliance-item">
+                    <h4 style="margin-bottom: 1rem;">Access Management</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Principle of least privilege enforcement</li>
+                        <li>Regular access reviews and certification</li>
+                        <li>Automated provisioning and deprovisioning</li>
+                        <li>Privileged access monitoring and recording</li>
+                    </ul>
+                </div>
+
+                <div class="compliance-item">
+                    <h4 style="margin-bottom: 1rem;">Vulnerability Management</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Weekly automated vulnerability scanning</li>
+                        <li>Risk-based patch management process</li>
+                        <li>Penetration testing quarterly</li>
+                        <li>Security code review for all changes</li>
+                    </ul>
+                </div>
+
+                <div class="compliance-item">
+                    <h4 style="margin-bottom: 1rem;">Business Continuity</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Disaster recovery plan with RTO < 4 hours</li>
+                        <li>Automated daily backups with offsite storage</li>
+                        <li>Annual disaster recovery testing</li>
+                        <li>Business impact analysis and risk assessment</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="generateComplianceReport()">
+                📋 Generate Compliance Report
+            </button>
+            <button class="btn btn-secondary" onclick="downloadAuditLogs()">
+                📥 Download Audit Logs
+            </button>
+            <button class="btn btn-secondary" onclick="scheduleSecurityScan()">
+                🔍 Schedule Security Scan
+            </button>
+            <button class="btn btn-danger" onclick="initiateIncidentResponse()">
+                🚨 Initiate Incident Response
+            </button>
+        </div>
+    </div>
+
+    <script src="/static/js/security-monitor.js"></script>
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function generateComplianceReport() {
+            // This will be handled by the SecurityMonitor class
+            if (window.securityMonitor) {
+                window.securityMonitor.generateComplianceReport();
+            }
+        }
+
+        function downloadAuditLogs() {
+            // This will be handled by the SecurityMonitor class
+            if (window.securityMonitor) {
+                window.securityMonitor.downloadAuditLogs();
+            }
+        }
+
+        function scheduleSecurityScan() {
+            // This will be handled by the SecurityMonitor class
+            if (window.securityMonitor) {
+                window.securityMonitor.scheduleSecurityScan();
+            }
+        }
+
+        function initiateIncidentResponse() {
+            // This will be handled by the SecurityMonitor class
+            if (window.securityMonitor) {
+                window.securityMonitor.initiateIncidentResponse();
+            }
+        }
+
+        // Initialize page-specific functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Security & Compliance dashboard loaded');
+            
+            // Add data attributes for metrics tracking
+            const metricsElements = document.querySelectorAll('.metric-value');
+            metricsElements.forEach((element, index) => {
+                const metrics = ['gdpr-score', 'monitoring-uptime', 'blocked-attacks', 'active-threats', 'total-users', 'active-sessions'];
+                if (metrics[index]) {
+                    element.setAttribute('data-metric', metrics[index]);
+                }
+            });
+            
+            // Simulate real-time updates for demo
+            setTimeout(() => {
+                const alertCount = document.querySelector('.security-status span:last-child');
+                if (alertCount && alertCount.textContent === '2 Alerts Pending') {
+                    alertCount.textContent = '1 Alert Pending';
+                    alertCount.previousElementSibling.className = 'status-indicator status-active';
+                }
+            }, 10000);
+        });
+    </script>
+</body>
+</html>
