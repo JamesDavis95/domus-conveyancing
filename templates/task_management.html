@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management - Domus Professional Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .task-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .task-nav {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            padding: 1rem;
+        }
+
+        .nav-pills .nav-link {
+            color: var(--primary-color);
+            margin: 0 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .task-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+
+        .task-card.priority-high { border-left-color: var(--accent-color); }
+        .task-card.priority-medium { border-left-color: var(--warning-color); }
+        .task-card.priority-low { border-left-color: var(--success-color); }
+
+        .task-status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-todo { background: #e3f2fd; color: #1976d2; }
+        .status-in-progress { background: #fff3e0; color: #f57c00; }
+        .status-review { background: #f3e5f5; color: #7b1fa2; }
+        .status-completed { background: #e8f5e8; color: #2e7d32; }
+        .status-blocked { background: #ffebee; color: #c62828; }
+
+        .priority-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .priority-high { background: #ffebee; color: #c62828; }
+        .priority-medium { background: #fff8e1; color: #ef6c00; }
+        .priority-low { background: #e8f5e8; color: #2e7d32; }
+
+        .progress-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .kanban-column {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            min-height: 600px;
+            margin-bottom: 1rem;
+        }
+
+        .kanban-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .kanban-task {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .kanban-task:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .kanban-task:active {
+            cursor: grabbing;
+        }
+
+        .timeline-item {
+            border-left: 3px solid var(--secondary-color);
+            padding-left: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .assignee-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid white;
+            margin-left: -0.5rem;
+        }
+
+        .assignee-avatar:first-child {
+            margin-left: 0;
+        }
+
+        .due-date-indicator {
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .due-today { background: #ffebee; color: #c62828; }
+        .due-soon { background: #fff8e1; color: #ef6c00; }
+        .due-later { background: #e8f5e8; color: #2e7d32; }
+        .overdue { background: #ffcdd2; color: #b71c1c; animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .workflow-step {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--border-color);
+            position: relative;
+        }
+
+        .workflow-step.active { border-left-color: var(--secondary-color); }
+        .workflow-step.completed { border-left-color: var(--success-color); }
+
+        .workflow-connector {
+            position: absolute;
+            left: 20px;
+            top: 100%;
+            width: 2px;
+            height: 20px;
+            background: var(--border-color);
+        }
+
+        .btn-primary {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            border-color: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .search-box {
+            border-radius: 25px;
+            border: 2px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .filter-chip {
+            background: var(--light-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.4rem 0.8rem;
+            margin: 0.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .filter-chip:hover {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .filter-chip.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .task-comments {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .comment-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 0;
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .attachment-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .attachment-item:hover {
+            background: var(--light-bg);
+            border-color: var(--secondary-color);
+        }
+
+        .dependency-line {
+            stroke: var(--secondary-color);
+            stroke-width: 2;
+            fill: none;
+            marker-end: url(#arrowhead);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .task-header {
+                padding: 1rem 0;
+            }
+            
+            .kanban-column {
+                margin-bottom: 2rem;
+            }
+            
+            .metric-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Task Management Header -->
+    <div class="task-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-tasks me-3"></i>Task Management System
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Comprehensive task tracking with workflows, assignments, and analytics</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light me-2" onclick="createNewTask()">
+                        <i class="fas fa-plus me-2"></i>New Task
+                    </button>
+                    <button class="btn btn-outline-light" onclick="exportTasks()">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Navigation Tabs -->
+        <div class="task-nav">
+            <ul class="nav nav-pills justify-content-center" id="taskTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" id="dashboard-tab" data-bs-toggle="pill" href="#dashboard">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="kanban-tab" data-bs-toggle="pill" href="#kanban">
+                        <i class="fas fa-columns me-2"></i>Kanban Board
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="list-tab" data-bs-toggle="pill" href="#list">
+                        <i class="fas fa-list me-2"></i>Task List
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="timeline-tab" data-bs-toggle="pill" href="#timeline">
+                        <i class="fas fa-clock me-2"></i>Timeline
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="workflows-tab" data-bs-toggle="pill" href="#workflows">
+                        <i class="fas fa-project-diagram me-2"></i>Workflows
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="analytics-tab" data-bs-toggle="pill" href="#analytics">
+                        <i class="fas fa-chart-bar me-2"></i>Analytics
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="taskTabContent">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane fade show active" id="dashboard">
+                <div class="row">
+                    <!-- Quick Metrics -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalTasks">247</div>
+                            <div class="text-muted">Total Tasks</div>
+                            <div class="mt-2">
+                                <small class="text-success">
+                                    <i class="fas fa-arrow-up"></i> 12% from last month
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card">
+                            <div class="metric-value text-warning" id="activeTasks">89</div>
+                            <div class="text-muted">Active Tasks</div>
+                            <div class="mt-2">
+                                <small class="text-info">
+                                    <i class="fas fa-arrow-right"></i> 8 due today
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card">
+                            <div class="metric-value text-success" id="completedTasks">158</div>
+                            <div class="text-muted">Completed</div>
+                            <div class="mt-2">
+                                <small class="text-success">
+                                    <i class="fas fa-check"></i> 94% completion rate
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="metric-card">
+                            <div class="metric-value text-danger" id="overdueTasks">3</div>
+                            <div class="text-muted">Overdue</div>
+                            <div class="mt-2">
+                                <small class="text-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> Needs attention
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Task Distribution Chart -->
+                    <div class="col-xl-8 mb-4">
+                        <div class="chart-container">
+                            <h5 class="mb-3">Task Progress Overview</h5>
+                            <canvas id="taskProgressChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Priority Breakdown -->
+                    <div class="col-xl-4 mb-4">
+                        <div class="chart-container">
+                            <h5 class="mb-3">Priority Breakdown</h5>
+                            <canvas id="priorityChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Tasks -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="task-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Recent Task Activity</h5>
+                                <button class="btn btn-sm btn-outline-primary" onclick="refreshTasks()">
+                                    <i class="fas fa-refresh me-1"></i>Refresh
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="recentTasksList">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kanban Board Tab -->
+            <div class="tab-pane fade" id="kanban">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                To Do <span class="badge bg-light text-dark ms-2" id="todoCount">12</span>
+                            </div>
+                            <div id="todoColumn" class="kanban-tasks">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                In Progress <span class="badge bg-light text-dark ms-2" id="progressCount">8</span>
+                            </div>
+                            <div id="progressColumn" class="kanban-tasks">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                Review <span class="badge bg-light text-dark ms-2" id="reviewCount">5</span>
+                            </div>
+                            <div id="reviewColumn" class="kanban-tasks">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                Done <span class="badge bg-light text-dark ms-2" id="doneCount">23</span>
+                            </div>
+                            <div id="doneColumn" class="kanban-tasks">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task List Tab -->
+            <div class="tab-pane fade" id="list">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control search-box" placeholder="Search tasks..." id="taskSearch">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex flex-wrap">
+                            <span class="filter-chip active" data-filter="all">All Tasks</span>
+                            <span class="filter-chip" data-filter="high">High Priority</span>
+                            <span class="filter-chip" data-filter="assigned">Assigned to Me</span>
+                            <span class="filter-chip" data-filter="due-today">Due Today</span>
+                            <span class="filter-chip" data-filter="overdue">Overdue</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="taskListContainer">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Timeline Tab -->
+            <div class="tab-pane fade" id="timeline">
+                <div class="chart-container">
+                    <h5 class="mb-3">Project Timeline</h5>
+                    <div id="timelineContainer">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflows Tab -->
+            <div class="tab-pane fade" id="workflows">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h4>Task Workflows</h4>
+                        <p class="text-muted">Automated task routing and approval processes</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-primary" onclick="createWorkflow()">
+                            <i class="fas fa-plus me-2"></i>Create Workflow
+                        </button>
+                    </div>
+                </div>
+
+                <div id="workflowsContainer">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics">
+                <div class="row">
+                    <div class="col-xl-6 mb-4">
+                        <div class="chart-container">
+                            <h5 class="mb-3">Task Completion Trends</h5>
+                            <canvas id="completionTrendChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 mb-4">
+                        <div class="chart-container">
+                            <h5 class="mb-3">Team Performance</h5>
+                            <canvas id="teamPerformanceChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xl-4 mb-4">
+                        <div class="chart-container">
+                            <h5 class="mb-3">Task Categories</h5>
+                            <canvas id="categoryChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-8 mb-4">
+                        <div class="chart-container">
+                            <h5 class="mb-3">Workflow Efficiency</h5>
+                            <canvas id="workflowEfficiencyChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Creation Modal -->
+    <div class="modal fade" id="taskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="taskTitle" class="form-label">Task Title</label>
+                                    <input type="text" class="form-control" id="taskTitle" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="taskPriority" class="form-label">Priority</label>
+                                    <select class="form-select" id="taskPriority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="taskDescription" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="taskAssignee" class="form-label">Assignee</label>
+                                    <select class="form-select" id="taskAssignee">
+                                        <option value="">Select assignee...</option>
+                                        <!-- Populated by JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="taskDueDate" class="form-label">Due Date</label>
+                                    <input type="date" class="form-control" id="taskDueDate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="taskProject" class="form-label">Project</label>
+                                    <select class="form-select" id="taskProject">
+                                        <option value="">Select project...</option>
+                                        <!-- Populated by JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="taskCategory" class="form-label">Category</label>
+                                    <select class="form-select" id="taskCategory">
+                                        <option value="planning">Planning</option>
+                                        <option value="design">Design</option>
+                                        <option value="development">Development</option>
+                                        <option value="review">Review</option>
+                                        <option value="documentation">Documentation</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskTags" class="form-label">Tags</label>
+                            <input type="text" class="form-control" id="taskTags" placeholder="Enter tags separated by commas">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveTask()">Create Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script>
+        // Global task management data
+        let taskData = {
+            tasks: [],
+            projects: [],
+            users: [],
+            workflows: []
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTaskManagement();
+        });
+
+        async function initializeTaskManagement() {
+            showLoading();
+            try {
+                await Promise.all([
+                    loadTasks(),
+                    loadProjects(),
+                    loadUsers(),
+                    loadWorkflows()
+                ]);
+                
+                renderDashboard();
+                renderKanbanBoard();
+                renderTaskList();
+                renderTimeline();
+                renderWorkflows();
+                renderAnalytics();
+                
+                setupEventListeners();
+                hideLoading();
+            } catch (error) {
+                console.error('Failed to initialize task management:', error);
+                showError('Failed to load task management data');
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks/list');
+                const data = await response.json();
+                if (data.success) {
+                    taskData.tasks = data.tasks;
+                }
+            } catch (error) {
+                console.error('Failed to load tasks:', error);
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                const response = await fetch('/api/projects/list');
+                const data = await response.json();
+                if (data.success) {
+                    taskData.projects = data.projects;
+                }
+            } catch (error) {
+                console.error('Failed to load projects:', error);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users/list');
+                const data = await response.json();
+                if (data.success) {
+                    taskData.users = data.users;
+                }
+            } catch (error) {
+                console.error('Failed to load users:', error);
+            }
+        }
+
+        async function loadWorkflows() {
+            try {
+                const response = await fetch('/api/tasks/workflows');
+                const data = await response.json();
+                if (data.success) {
+                    taskData.workflows = data.workflows;
+                }
+            } catch (error) {
+                console.error('Failed to load workflows:', error);
+            }
+        }
+
+        function renderDashboard() {
+            renderQuickMetrics();
+            renderRecentTasks();
+            renderProgressChart();
+            renderPriorityChart();
+        }
+
+        function renderQuickMetrics() {
+            const tasks = taskData.tasks;
+            const totalTasks = tasks.length;
+            const activeTasks = tasks.filter(t => ['todo', 'in-progress', 'review'].includes(t.status)).length;
+            const completedTasks = tasks.filter(t => t.status === 'completed').length;
+            const overdueTasks = tasks.filter(t => t.overdue).length;
+
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('activeTasks').textContent = activeTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('overdueTasks').textContent = overdueTasks;
+        }
+
+        function renderRecentTasks() {
+            const recentTasks = taskData.tasks
+                .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+                .slice(0, 5);
+
+            const container = document.getElementById('recentTasksList');
+            container.innerHTML = recentTasks.map(task => `
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <span class="task-status-badge status-${task.status} me-3">${task.status.replace('-', ' ')}</span>
+                        <div>
+                            <h6 class="mb-1">${task.title}</h6>
+                            <small class="text-muted">${task.project_name} • ${formatDate(task.updated_at)}</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="priority-badge priority-${task.priority} me-2">${task.priority}</span>
+                        <img src="${task.assignee_avatar}" alt="${task.assignee_name}" class="assignee-avatar">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderKanbanBoard() {
+            const columns = {
+                todo: document.getElementById('todoColumn'),
+                'in-progress': document.getElementById('progressColumn'),
+                review: document.getElementById('reviewColumn'),
+                completed: document.getElementById('doneColumn')
+            };
+
+            const statusCounts = { todo: 0, 'in-progress': 0, review: 0, completed: 0 };
+
+            Object.keys(columns).forEach(status => {
+                const tasks = taskData.tasks.filter(task => task.status === status);
+                statusCounts[status] = tasks.length;
+
+                columns[status].innerHTML = tasks.map(task => `
+                    <div class="kanban-task" draggable="true" data-task-id="${task.id}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="priority-badge priority-${task.priority}">${task.priority}</span>
+                            <div class="dropdown">
+                                <button class="btn btn-sm" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="editTask('${task.id}')">Edit</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="deleteTask('${task.id}')">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <h6 class="mb-2">${task.title}</h6>
+                        <p class="text-muted small mb-2">${task.description.substring(0, 80)}...</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">${task.project_name}</small>
+                            <div class="d-flex align-items-center">
+                                ${task.due_date ? `<span class="due-date-indicator ${getDueDateClass(task.due_date)} me-2">${formatDueDate(task.due_date)}</span>` : ''}
+                                <img src="${task.assignee_avatar}" alt="${task.assignee_name}" class="assignee-avatar" title="${task.assignee_name}">
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            });
+
+            // Update column counts
+            document.getElementById('todoCount').textContent = statusCounts.todo;
+            document.getElementById('progressCount').textContent = statusCounts['in-progress'];
+            document.getElementById('reviewCount').textContent = statusCounts.review;
+            document.getElementById('doneCount').textContent = statusCounts.completed;
+
+            setupDragAndDrop();
+        }
+
+        function renderTaskList() {
+            const container = document.getElementById('taskListContainer');
+            container.innerHTML = taskData.tasks.map(task => `
+                <div class="task-card task-card priority-${task.priority}" data-task-id="${task.id}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <input type="checkbox" class="form-check-input me-3" ${task.status === 'completed' ? 'checked' : ''} onchange="toggleTaskStatus('${task.id}')">
+                                    <div>
+                                        <h6 class="mb-1">${task.title}</h6>
+                                        <small class="text-muted">${task.description.substring(0, 100)}...</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="task-status-badge status-${task.status}">${task.status.replace('-', ' ')}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="priority-badge priority-${task.priority}">${task.priority}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="d-flex align-items-center">
+                                    <img src="${task.assignee_avatar}" alt="${task.assignee_name}" class="assignee-avatar me-2">
+                                    <small>${task.assignee_name}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-folder me-1"></i>${task.project_name}
+                                </small>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                ${task.due_date ? `<span class="due-date-indicator ${getDueDateClass(task.due_date)}">${formatDueDate(task.due_date)}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timelineContainer');
+            const timelineTasks = taskData.tasks
+                .filter(task => task.due_date)
+                .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+
+            container.innerHTML = timelineTasks.map(task => `
+                <div class="timeline-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${task.title}</h6>
+                            <p class="text-muted mb-2">${task.description.substring(0, 120)}...</p>
+                            <div class="d-flex align-items-center">
+                                <span class="task-status-badge status-${task.status} me-2">${task.status.replace('-', ' ')}</span>
+                                <span class="priority-badge priority-${task.priority} me-2">${task.priority}</span>
+                                <small class="text-muted">${task.project_name}</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="due-date-indicator ${getDueDateClass(task.due_date)} mb-2">${formatDueDate(task.due_date)}</div>
+                            <img src="${task.assignee_avatar}" alt="${task.assignee_name}" class="assignee-avatar">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderWorkflows() {
+            const container = document.getElementById('workflowsContainer');
+            container.innerHTML = taskData.workflows.map(workflow => `
+                <div class="task-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-1">${workflow.name}</h5>
+                                <p class="text-muted mb-0">${workflow.description}</p>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="editWorkflow('${workflow.id}')">Edit</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="duplicateWorkflow('${workflow.id}')">Duplicate</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteWorkflow('${workflow.id}')">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="workflow-steps">
+                            ${workflow.steps.map((step, index) => `
+                                <div class="workflow-step ${step.status}" data-step-id="${step.id}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">${step.name}</h6>
+                                            <small class="text-muted">${step.description}</small>
+                                        </div>
+                                        <div>
+                                            <span class="task-status-badge status-${step.status}">${step.status}</span>
+                                        </div>
+                                    </div>
+                                    ${index < workflow.steps.length - 1 ? '<div class="workflow-connector"></div>' : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-tasks me-1"></i>${workflow.task_count} tasks using this workflow
+                                </small>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>Avg completion: ${workflow.avg_completion_time}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAnalytics() {
+            renderProgressChart();
+            renderPriorityChart();
+            renderCompletionTrendChart();
+            renderTeamPerformanceChart();
+            renderCategoryChart();
+            renderWorkflowEfficiencyChart();
+        }
+
+        function renderProgressChart() {
+            const ctx = document.getElementById('taskProgressChart');
+            if (!ctx) return;
+
+            const statusCounts = {
+                'To Do': taskData.tasks.filter(t => t.status === 'todo').length,
+                'In Progress': taskData.tasks.filter(t => t.status === 'in-progress').length,
+                'Review': taskData.tasks.filter(t => t.status === 'review').length,
+                'Completed': taskData.tasks.filter(t => t.status === 'completed').length
+            };
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: ['#e3f2fd', '#fff3e0', '#f3e5f5', '#e8f5e8'],
+                        borderColor: ['#1976d2', '#f57c00', '#7b1fa2', '#2e7d32'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPriorityChart() {
+            const ctx = document.getElementById('priorityChart');
+            if (!ctx) return;
+
+            const priorityCounts = {
+                'High': taskData.tasks.filter(t => t.priority === 'high').length,
+                'Medium': taskData.tasks.filter(t => t.priority === 'medium').length,
+                'Low': taskData.tasks.filter(t => t.priority === 'low').length
+            };
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(priorityCounts),
+                    datasets: [{
+                        data: Object.values(priorityCounts),
+                        backgroundColor: ['#ffebee', '#fff8e1', '#e8f5e8'],
+                        borderColor: ['#c62828', '#ef6c00', '#2e7d32'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function formatDueDate(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            const diffTime = date - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Tomorrow';
+            if (diffDays === -1) return 'Yesterday';
+            if (diffDays < 0) return `${Math.abs(diffDays)} days overdue`;
+            return `${diffDays} days left`;
+        }
+
+        function getDueDateClass(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            const diffTime = date - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) return 'overdue';
+            if (diffDays === 0) return 'due-today';
+            if (diffDays <= 3) return 'due-soon';
+            return 'due-later';
+        }
+
+        function showLoading() {
+            // Implementation for loading state
+        }
+
+        function hideLoading() {
+            // Implementation for hiding loading state
+        }
+
+        function showError(message) {
+            console.error(message);
+            // Implementation for error display
+        }
+
+        // Event handlers
+        function createNewTask() {
+            document.getElementById('taskForm').reset();
+            new bootstrap.Modal(document.getElementById('taskModal')).show();
+        }
+
+        function saveTask() {
+            // Implementation for saving task
+            console.log('Saving task...');
+        }
+
+        function editTask(taskId) {
+            console.log('Editing task:', taskId);
+        }
+
+        function deleteTask(taskId) {
+            console.log('Deleting task:', taskId);
+        }
+
+        function toggleTaskStatus(taskId) {
+            console.log('Toggling task status:', taskId);
+        }
+
+        function exportTasks() {
+            console.log('Exporting tasks...');
+        }
+
+        function refreshTasks() {
+            loadTasks().then(() => {
+                renderDashboard();
+                renderKanbanBoard();
+                renderTaskList();
+            });
+        }
+
+        function createWorkflow() {
+            console.log('Creating workflow...');
+        }
+
+        function editWorkflow(workflowId) {
+            console.log('Editing workflow:', workflowId);
+        }
+
+        function deleteWorkflow(workflowId) {
+            console.log('Deleting workflow:', workflowId);
+        }
+
+        function duplicateWorkflow(workflowId) {
+            console.log('Duplicating workflow:', workflowId);
+        }
+
+        function setupDragAndDrop() {
+            // Implementation for drag and drop functionality
+        }
+
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('taskSearch')?.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                filterTasks(searchTerm);
+            });
+
+            // Filter chips
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.dataset.filter;
+                    applyFilter(filter);
+                });
+            });
+        }
+
+        function filterTasks(searchTerm) {
+            // Implementation for task filtering
+        }
+
+        function applyFilter(filter) {
+            // Implementation for applying filters
+        }
+
+        // Additional chart rendering functions
+        function renderCompletionTrendChart() {
+            // Implementation for completion trend chart
+        }
+
+        function renderTeamPerformanceChart() {
+            // Implementation for team performance chart
+        }
+
+        function renderCategoryChart() {
+            // Implementation for category chart
+        }
+
+        function renderWorkflowEfficiencyChart() {
+            // Implementation for workflow efficiency chart
+        }
+    </script>
+</body>
+</html>

@@ -4103,6 +4103,886 @@ async def get_document_analytics():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch analytics: {str(e)}")
 
+# ================================
+# TASK MANAGEMENT SYSTEM
+# ================================
+
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    priority: str = "medium"  # low, medium, high
+    status: str = "todo"  # todo, in-progress, review, completed, blocked
+    assignee_id: Optional[str] = None
+    project_id: Optional[str] = None
+    category: str = "general"
+    due_date: Optional[str] = None
+    tags: List[str] = []
+    estimated_hours: Optional[int] = None
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    assignee_id: Optional[str] = None
+    project_id: Optional[str] = None
+    category: Optional[str] = None
+    due_date: Optional[str] = None
+    tags: Optional[List[str]] = None
+    estimated_hours: Optional[int] = None
+    actual_hours: Optional[int] = None
+
+class WorkflowTemplateCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    category: str = "general"
+    steps: List[dict]
+    auto_progression: bool = False
+    notification_settings: dict = {}
+
+class TaskComment(BaseModel):
+    task_id: str
+    comment: str
+    comment_type: str = "general"  # general, status_change, assignment, attachment
+
+@app.get("/task-management")
+async def task_management(request: Request):
+    """Task Management main page"""
+    return templates.TemplateResponse("task_management.html", {"request": request})
+
+@app.get("/api/tasks/list")
+async def get_tasks_list():
+    """Get comprehensive task list with filtering and sorting"""
+    try:
+        tasks = [
+            {
+                "id": "task_001",
+                "title": "Review Planning Application - Riverside Development",
+                "description": "Complete technical review of planning application including compliance checks, policy analysis, and recommendation preparation",
+                "priority": "high",
+                "status": "in-progress",
+                "category": "planning",
+                "assignee_id": "user_001",
+                "assignee_name": "Sarah Johnson",
+                "assignee_email": "sarah@domus.com",
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_001",
+                "project_name": "Riverside Residential Development",
+                "created_date": "2024-09-28T09:00:00Z",
+                "updated_at": "2024-10-03T14:30:00Z",
+                "due_date": "2024-10-07T17:00:00Z",
+                "estimated_hours": 16,
+                "actual_hours": 12,
+                "progress_percentage": 75,
+                "tags": ["urgent", "planning", "residential"],
+                "overdue": False,
+                "blocked": False,
+                "dependencies": ["task_002"],
+                "subtasks_count": 4,
+                "subtasks_completed": 3,
+                "comments_count": 8,
+                "attachments_count": 3,
+                "watchers": ["user_002", "user_003"],
+                "last_activity": "Updated status from 'todo' to 'in-progress'",
+                "workflow_id": "workflow_001",
+                "workflow_step": 2
+            },
+            {
+                "id": "task_002",
+                "title": "Prepare Environmental Impact Assessment",
+                "description": "Conduct comprehensive environmental assessment covering ecology, air quality, noise impact, and contamination analysis",
+                "priority": "high",
+                "status": "review",
+                "category": "environmental",
+                "assignee_id": "user_004",
+                "assignee_name": "Rachel Green",
+                "assignee_email": "rachel@environmental.co.uk",
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_001",
+                "project_name": "Riverside Residential Development",
+                "created_date": "2024-09-20T10:00:00Z",
+                "updated_at": "2024-10-02T11:15:00Z",
+                "due_date": "2024-10-05T17:00:00Z",
+                "estimated_hours": 32,
+                "actual_hours": 28,
+                "progress_percentage": 90,
+                "tags": ["environmental", "assessment", "critical"],
+                "overdue": False,
+                "blocked": False,
+                "dependencies": [],
+                "subtasks_count": 6,
+                "subtasks_completed": 5,
+                "comments_count": 12,
+                "attachments_count": 7,
+                "watchers": ["user_001", "user_005"],
+                "last_activity": "Submitted for final review",
+                "workflow_id": "workflow_002",
+                "workflow_step": 4
+            },
+            {
+                "id": "task_003",
+                "title": "Design & Access Statement Creation",
+                "description": "Develop comprehensive design and access statement addressing site context, design evolution, access arrangements, and sustainability",
+                "priority": "medium",
+                "status": "todo",
+                "category": "design",
+                "assignee_id": "user_006",
+                "assignee_name": "Tom Wilson",
+                "assignee_email": "tom@architects.co.uk",
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_002",
+                "project_name": "City Centre Plaza",
+                "created_date": "2024-10-01T14:00:00Z",
+                "updated_at": "2024-10-01T14:00:00Z",
+                "due_date": "2024-10-10T17:00:00Z",
+                "estimated_hours": 20,
+                "actual_hours": 0,
+                "progress_percentage": 0,
+                "tags": ["design", "statement", "architecture"],
+                "overdue": False,
+                "blocked": False,
+                "dependencies": ["task_004"],
+                "subtasks_count": 3,
+                "subtasks_completed": 0,
+                "comments_count": 2,
+                "attachments_count": 1,
+                "watchers": ["user_007"],
+                "last_activity": "Task created and assigned",
+                "workflow_id": "workflow_003",
+                "workflow_step": 1
+            },
+            {
+                "id": "task_004",
+                "title": "Site Survey and Analysis",
+                "description": "Complete topographical survey, boundary verification, and site constraints analysis including utilities, access, and environmental factors",
+                "priority": "high",
+                "status": "completed",
+                "category": "survey",
+                "assignee_id": "user_008",
+                "assignee_name": "David Chen",
+                "assignee_email": "david@surveyors.co.uk",
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_002",
+                "project_name": "City Centre Plaza",
+                "created_date": "2024-09-15T09:00:00Z",
+                "updated_at": "2024-09-30T16:45:00Z",
+                "due_date": "2024-09-30T17:00:00Z",
+                "estimated_hours": 24,
+                "actual_hours": 22,
+                "progress_percentage": 100,
+                "tags": ["survey", "analysis", "completed"],
+                "overdue": False,
+                "blocked": False,
+                "dependencies": [],
+                "subtasks_count": 5,
+                "subtasks_completed": 5,
+                "comments_count": 6,
+                "attachments_count": 9,
+                "watchers": ["user_006", "user_009"],
+                "last_activity": "Task completed successfully",
+                "workflow_id": "workflow_004",
+                "workflow_step": 5
+            },
+            {
+                "id": "task_005",
+                "title": "Transport Impact Assessment",
+                "description": "Analyze traffic generation, junction capacity, parking provision, and sustainable transport measures for the development",
+                "priority": "medium",
+                "status": "blocked",
+                "category": "transport",
+                "assignee_id": "user_010",
+                "assignee_name": "Lisa Park",
+                "assignee_email": "lisa@transport.co.uk",
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_003",
+                "project_name": "Green Valley Mixed Use",
+                "created_date": "2024-09-25T11:00:00Z",
+                "updated_at": "2024-10-01T09:30:00Z",
+                "due_date": "2024-10-12T17:00:00Z",
+                "estimated_hours": 28,
+                "actual_hours": 8,
+                "progress_percentage": 25,
+                "tags": ["transport", "assessment", "blocked"],
+                "overdue": False,
+                "blocked": True,
+                "blocking_reason": "Waiting for traffic count data from local authority",
+                "dependencies": ["task_006"],
+                "subtasks_count": 4,
+                "subtasks_completed": 1,
+                "comments_count": 5,
+                "attachments_count": 2,
+                "watchers": ["user_011"],
+                "last_activity": "Task blocked - awaiting data",
+                "workflow_id": "workflow_005",
+                "workflow_step": 2
+            },
+            {
+                "id": "task_006",
+                "title": "Heritage Impact Assessment",
+                "description": "Evaluate impact on nearby conservation area and listed buildings, including significance assessment and mitigation proposals",
+                "priority": "low",
+                "status": "todo",
+                "category": "heritage",
+                "assignee_id": "user_012",
+                "assignee_name": "Emma Wilson",
+                "assignee_email": "emma@heritage.co.uk",
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_003",
+                "project_name": "Green Valley Mixed Use",
+                "created_date": "2024-09-30T15:00:00Z",
+                "updated_at": "2024-09-30T15:00:00Z",
+                "due_date": "2024-10-15T17:00:00Z",
+                "estimated_hours": 16,
+                "actual_hours": 0,
+                "progress_percentage": 0,
+                "tags": ["heritage", "conservation", "assessment"],
+                "overdue": False,
+                "blocked": False,
+                "dependencies": [],
+                "subtasks_count": 3,
+                "subtasks_completed": 0,
+                "comments_count": 1,
+                "attachments_count": 0,
+                "watchers": ["user_013"],
+                "last_activity": "Task created",
+                "workflow_id": "workflow_006",
+                "workflow_step": 1
+            },
+            {
+                "id": "task_007",
+                "title": "Client Presentation Preparation",
+                "description": "Prepare comprehensive presentation materials including project overview, design proposals, timeline, and next steps",
+                "priority": "medium",
+                "status": "in-progress",
+                "category": "presentation",
+                "assignee_id": "user_014",
+                "assignee_name": "Michael Brown",
+                "assignee_email": "michael@domus.com",
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_004",
+                "project_name": "Retail Park Expansion",
+                "created_date": "2024-10-02T10:00:00Z",
+                "updated_at": "2024-10-03T13:20:00Z",
+                "due_date": "2024-10-04T12:00:00Z",
+                "estimated_hours": 8,
+                "actual_hours": 5,
+                "progress_percentage": 60,
+                "tags": ["presentation", "client", "urgent"],
+                "overdue": False,
+                "blocked": False,
+                "dependencies": [],
+                "subtasks_count": 4,
+                "subtasks_completed": 2,
+                "comments_count": 3,
+                "attachments_count": 5,
+                "watchers": ["user_015"],
+                "last_activity": "Added presentation slides",
+                "workflow_id": "workflow_007",
+                "workflow_step": 3
+            },
+            {
+                "id": "task_008",
+                "title": "Planning Policy Review",
+                "description": "Review latest local planning policies, supplementary planning documents, and neighborhood plans affecting the development",
+                "priority": "high",
+                "status": "overdue",
+                "category": "policy",
+                "assignee_id": "user_001",
+                "assignee_name": "Sarah Johnson",
+                "assignee_email": "sarah@domus.com", 
+                "assignee_avatar": "/api/placeholder/32/32",
+                "project_id": "project_005",
+                "project_name": "Industrial Estate Redevelopment",
+                "created_date": "2024-09-18T08:00:00Z",
+                "updated_at": "2024-09-28T16:00:00Z",
+                "due_date": "2024-10-01T17:00:00Z",
+                "estimated_hours": 12,
+                "actual_hours": 8,
+                "progress_percentage": 70,
+                "tags": ["policy", "review", "overdue"],
+                "overdue": True,
+                "blocked": False,
+                "dependencies": [],
+                "subtasks_count": 3,
+                "subtasks_completed": 2,
+                "comments_count": 4,
+                "attachments_count": 6,
+                "watchers": ["user_016"],
+                "last_activity": "50% complete - needs escalation",
+                "workflow_id": "workflow_008",
+                "workflow_step": 2
+            }
+        ]
+        
+        return {
+            "success": True,
+            "tasks": tasks,
+            "statistics": {
+                "total_tasks": len(tasks),
+                "by_status": {
+                    "todo": len([t for t in tasks if t["status"] == "todo"]),
+                    "in_progress": len([t for t in tasks if t["status"] == "in-progress"]),
+                    "review": len([t for t in tasks if t["status"] == "review"]),
+                    "completed": len([t for t in tasks if t["status"] == "completed"]),
+                    "blocked": len([t for t in tasks if t["status"] == "blocked"]),
+                    "overdue": len([t for t in tasks if t.get("overdue", False)])
+                },
+                "by_priority": {
+                    "high": len([t for t in tasks if t["priority"] == "high"]),
+                    "medium": len([t for t in tasks if t["priority"] == "medium"]),
+                    "low": len([t for t in tasks if t["priority"] == "low"])
+                },
+                "productivity_metrics": {
+                    "average_completion_time": "4.2 days",
+                    "task_velocity": "12 tasks/week",
+                    "completion_rate": "87%",
+                    "team_utilization": "78%"
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch tasks: {str(e)}")
+
+@app.post("/api/tasks/create")
+async def create_task(task: TaskCreate):
+    """Create a new task"""
+    try:
+        task_id = f"task_{int(time.time())}"
+        
+        # Validate task data
+        valid_priorities = ["low", "medium", "high"]
+        valid_statuses = ["todo", "in-progress", "review", "completed", "blocked"]
+        
+        if task.priority not in valid_priorities:
+            raise HTTPException(status_code=400, detail="Invalid priority level")
+        
+        if task.status not in valid_statuses:
+            raise HTTPException(status_code=400, detail="Invalid task status")
+        
+        # Auto-assign workflow if category matches
+        workflow_mapping = {
+            "planning": "workflow_001",
+            "environmental": "workflow_002", 
+            "design": "workflow_003",
+            "survey": "workflow_004",
+            "transport": "workflow_005",
+            "heritage": "workflow_006"
+        }
+        
+        assigned_workflow = workflow_mapping.get(task.category, "workflow_general")
+        
+        return {
+            "success": True,
+            "task_id": task_id,
+            "task": {
+                "title": task.title,
+                "description": task.description,
+                "priority": task.priority,
+                "status": task.status,
+                "category": task.category,
+                "assignee_id": task.assignee_id,
+                "project_id": task.project_id,
+                "due_date": task.due_date,
+                "tags": task.tags,
+                "estimated_hours": task.estimated_hours,
+                "workflow_id": assigned_workflow,
+                "created_date": datetime.now().isoformat(),
+                "progress_percentage": 0
+            },
+            "auto_actions": [
+                f"Task assigned to workflow: {assigned_workflow}",
+                "Notification sent to assignee",
+                "Task indexed for search",
+                "Dependencies analyzed",
+                "Timeline updated"
+            ],
+            "next_steps": [
+                "Add subtasks if needed",
+                "Upload relevant documents",
+                "Set up time tracking",
+                "Configure notifications"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create task: {str(e)}")
+
+@app.put("/api/tasks/{task_id}")
+async def update_task(task_id: str, task_update: TaskUpdate):
+    """Update an existing task"""
+    try:
+        # Simulate task update
+        updated_fields = []
+        changes_log = []
+        
+        if task_update.title:
+            updated_fields.append("title")
+            changes_log.append(f"Title updated to: {task_update.title}")
+        
+        if task_update.status:
+            updated_fields.append("status")
+            changes_log.append(f"Status changed to: {task_update.status}")
+            
+            # Auto-progress workflow if status changed
+            if task_update.status == "completed":
+                changes_log.append("Workflow step marked as completed")
+                changes_log.append("Next workflow step activated")
+        
+        if task_update.assignee_id:
+            updated_fields.append("assignee")
+            changes_log.append("Task reassigned")
+        
+        if task_update.priority:
+            updated_fields.append("priority")
+            changes_log.append(f"Priority changed to: {task_update.priority}")
+        
+        if task_update.due_date:
+            updated_fields.append("due_date")
+            changes_log.append(f"Due date updated to: {task_update.due_date}")
+        
+        return {
+            "success": True,
+            "task_id": task_id,
+            "updated_fields": updated_fields,
+            "changes_log": changes_log,
+            "update_time": datetime.now().isoformat(),
+            "notifications_sent": len(updated_fields),
+            "workflow_progression": task_update.status == "completed",
+            "dependencies_updated": "status" in updated_fields,
+            "timeline_recalculated": "due_date" in updated_fields
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update task: {str(e)}")
+
+@app.get("/api/tasks/workflows")
+async def get_task_workflows():
+    """Get available task workflow templates"""
+    try:
+        workflows = [
+            {
+                "id": "workflow_001",
+                "name": "Planning Application Review",
+                "description": "Standard workflow for planning application review and approval process",
+                "category": "planning",
+                "active": True,
+                "task_count": 34,
+                "avg_completion_time": "12 days",
+                "success_rate": "94%",
+                "auto_progression": True,
+                "steps": [
+                    {
+                        "id": "step_001",
+                        "name": "Initial Review",
+                        "description": "Preliminary application assessment and validation",
+                        "role_required": "Planning Officer",
+                        "estimated_duration": "2 days",
+                        "status": "active",
+                        "auto_approve_conditions": ["All documents present", "Fee paid"]
+                    },
+                    {
+                        "id": "step_002",
+                        "name": "Technical Assessment",
+                        "description": "Detailed technical review of proposals",
+                        "role_required": "Senior Planner",
+                        "estimated_duration": "5 days",
+                        "status": "pending",
+                        "dependencies": ["step_001"]
+                    },
+                    {
+                        "id": "step_003",
+                        "name": "Consultation Review",
+                        "description": "Analysis of consultation responses",
+                        "role_required": "Planning Manager",
+                        "estimated_duration": "3 days",
+                        "status": "pending",
+                        "dependencies": ["step_002"]
+                    },
+                    {
+                        "id": "step_004",
+                        "name": "Final Decision",
+                        "description": "Decision notice preparation and approval",
+                        "role_required": "Director",
+                        "estimated_duration": "2 days",
+                        "status": "pending",
+                        "dependencies": ["step_003"]
+                    }
+                ],
+                "triggers": {
+                    "auto_start": ["task_created", "category_planning"],
+                    "escalation": ["overdue_3_days", "high_priority"],
+                    "notifications": ["status_change", "step_completion", "deadline_approaching"]
+                }
+            },
+            {
+                "id": "workflow_002",
+                "name": "Environmental Assessment",
+                "description": "Comprehensive environmental impact assessment workflow",
+                "category": "environmental",
+                "active": True,
+                "task_count": 18,
+                "avg_completion_time": "18 days",
+                "success_rate": "91%",
+                "auto_progression": False,
+                "steps": [
+                    {
+                        "id": "step_011",
+                        "name": "Scoping Study",
+                        "description": "Define assessment scope and methodology",
+                        "role_required": "Environmental Consultant",
+                        "estimated_duration": "3 days",
+                        "status": "active"
+                    },
+                    {
+                        "id": "step_012",
+                        "name": "Baseline Survey",
+                        "description": "Conduct site surveys and data collection",
+                        "role_required": "Ecologist",
+                        "estimated_duration": "7 days",
+                        "status": "pending",
+                        "dependencies": ["step_011"]
+                    },
+                    {
+                        "id": "step_013",
+                        "name": "Impact Analysis",
+                        "description": "Analyze potential environmental impacts",
+                        "role_required": "Environmental Consultant",
+                        "estimated_duration": "5 days",
+                        "status": "pending",
+                        "dependencies": ["step_012"]
+                    },
+                    {
+                        "id": "step_014",
+                        "name": "Mitigation Planning",
+                        "description": "Develop mitigation and enhancement measures",
+                        "role_required": "Senior Environmental Consultant",
+                        "estimated_duration": "3 days",
+                        "status": "pending",
+                        "dependencies": ["step_013"]
+                    }
+                ],
+                "triggers": {
+                    "auto_start": ["task_created", "category_environmental"],
+                    "quality_gates": ["peer_review_required", "client_approval_needed"],
+                    "compliance_checks": ["statutory_deadlines", "regulation_requirements"]
+                }
+            },
+            {
+                "id": "workflow_003",
+                "name": "Design Review Process",
+                "description": "Architectural and design review workflow with multiple approval stages",
+                "category": "design",
+                "active": True,
+                "task_count": 27,
+                "avg_completion_time": "15 days",
+                "success_rate": "96%",
+                "auto_progression": True,
+                "steps": [
+                    {
+                        "id": "step_021",
+                        "name": "Concept Review",
+                        "description": "Initial design concept evaluation",
+                        "role_required": "Design Manager",
+                        "estimated_duration": "2 days",
+                        "status": "active"
+                    },
+                    {
+                        "id": "step_022",
+                        "name": "Technical Review",
+                        "description": "Technical feasibility and compliance check",
+                        "role_required": "Technical Director",
+                        "estimated_duration": "4 days",
+                        "status": "pending"
+                    },
+                    {
+                        "id": "step_023",
+                        "name": "Client Approval",
+                        "description": "Client presentation and approval",
+                        "role_required": "Project Manager",
+                        "estimated_duration": "3 days",
+                        "status": "pending"
+                    },
+                    {
+                        "id": "step_024",
+                        "name": "Final Documentation",
+                        "description": "Prepare final design documentation",
+                        "role_required": "Senior Architect",
+                        "estimated_duration": "6 days",
+                        "status": "pending"
+                    }
+                ]
+            }
+        ]
+        
+        return {
+            "success": True,
+            "workflows": workflows,
+            "statistics": {
+                "total_workflows": len(workflows),
+                "active_workflows": len([w for w in workflows if w["active"]]),
+                "total_tasks_in_workflows": sum(w["task_count"] for w in workflows),
+                "average_completion_time": "15 days",
+                "overall_success_rate": "94%"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch workflows: {str(e)}")
+
+@app.post("/api/tasks/workflows")
+async def create_workflow_template(workflow: WorkflowTemplateCreate):
+    """Create a new workflow template"""
+    try:
+        workflow_id = f"workflow_{int(time.time())}"
+        
+        # Validate workflow steps
+        if not workflow.steps or len(workflow.steps) == 0:
+            raise HTTPException(status_code=400, detail="Workflow must have at least one step")
+        
+        # Process and validate steps
+        processed_steps = []
+        for i, step in enumerate(workflow.steps):
+            processed_steps.append({
+                "id": f"step_{workflow_id}_{i+1}",
+                "name": step.get("name", f"Step {i+1}"),
+                "description": step.get("description", ""),
+                "role_required": step.get("role_required", "team_member"),
+                "estimated_duration": step.get("estimated_duration", "1 day"),
+                "auto_approve_conditions": step.get("auto_approve_conditions", []),
+                "dependencies": step.get("dependencies", [])
+            })
+        
+        return {
+            "success": True,
+            "workflow_id": workflow_id,
+            "workflow": {
+                "name": workflow.name,
+                "description": workflow.description,
+                "category": workflow.category,
+                "auto_progression": workflow.auto_progression,
+                "steps_count": len(processed_steps),
+                "estimated_total_duration": f"{len(processed_steps) * 2} days"
+            },
+            "steps": processed_steps,
+            "features": [
+                "Automatic task routing",
+                "Progress tracking",
+                "Deadline management",
+                "Notification system",
+                "Performance analytics"
+            ],
+            "next_steps": [
+                "Test workflow with sample task",
+                "Configure notification templates",
+                "Set up approval criteria",
+                "Train team on new workflow"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create workflow: {str(e)}")
+
+@app.get("/api/tasks/analytics")
+async def get_task_analytics():
+    """Get comprehensive task management analytics"""
+    try:
+        analytics = {
+            "performance_metrics": {
+                "tasks_completed_this_month": 167,
+                "average_completion_time": "4.2 days",
+                "team_velocity": "12.3 tasks/week",
+                "completion_rate": "87%",
+                "on_time_delivery": "82%",
+                "quality_score": "94%"
+            },
+            "productivity_trends": {
+                "daily_completions": [8, 12, 9, 15, 11, 7, 3],  # Last 7 days
+                "weekly_velocity": [45, 52, 48, 56, 49],  # Last 5 weeks
+                "monthly_growth": "+12%",
+                "efficiency_improvement": "+8% from last quarter"
+            },
+            "team_performance": {
+                "top_performers": [
+                    {
+                        "user_id": "user_001",
+                        "name": "Sarah Johnson",
+                        "tasks_completed": 23,
+                        "completion_rate": "96%",
+                        "average_time": "3.8 days",
+                        "quality_score": "98%"
+                    },
+                    {
+                        "user_id": "user_004",
+                        "name": "Rachel Green",
+                        "tasks_completed": 19,
+                        "completion_rate": "94%",
+                        "average_time": "4.1 days",
+                        "quality_score": "95%"
+                    },
+                    {
+                        "user_id": "user_008",
+                        "name": "David Chen",
+                        "tasks_completed": 17,
+                        "completion_rate": "89%",
+                        "average_time": "4.5 days",
+                        "quality_score": "92%"
+                    }
+                ],
+                "team_utilization": "78%",
+                "workload_distribution": "Balanced",
+                "collaboration_score": "91%"
+            },
+            "workflow_efficiency": {
+                "workflow_001": {
+                    "name": "Planning Application Review",
+                    "completion_rate": "94%",
+                    "average_duration": "12 days",
+                    "bottleneck_step": "Technical Assessment",
+                    "improvement_suggestion": "Add parallel review tracks"
+                },
+                "workflow_002": {
+                    "name": "Environmental Assessment",
+                    "completion_rate": "91%",
+                    "average_duration": "18 days",
+                    "bottleneck_step": "Impact Analysis",
+                    "improvement_suggestion": "Standardize analysis templates"
+                },
+                "workflow_003": {
+                    "name": "Design Review Process",
+                    "completion_rate": "96%",
+                    "average_duration": "15 days",
+                    "bottleneck_step": "Client Approval",
+                    "improvement_suggestion": "Implement automated reminders"
+                }
+            },
+            "category_breakdown": {
+                "planning": {"count": 89, "avg_duration": "8.2 days", "success_rate": "92%"},
+                "environmental": {"count": 34, "avg_duration": "14.1 days", "success_rate": "88%"},
+                "design": {"count": 56, "avg_duration": "6.7 days", "success_rate": "95%"},
+                "survey": {"count": 23, "avg_duration": "5.4 days", "success_rate": "98%"},
+                "transport": {"count": 18, "avg_duration": "9.8 days", "success_rate": "85%"},
+                "heritage": {"count": 12, "avg_duration": "7.3 days", "success_rate": "90%"}
+            },
+            "risk_indicators": {
+                "overdue_tasks": 3,
+                "blocked_tasks": 2,
+                "high_risk_projects": 1,
+                "capacity_warnings": ["Transport team at 95% capacity"],
+                "deadline_alerts": ["5 tasks due this week", "2 critical deadlines approaching"]
+            },
+            "quality_metrics": {
+                "task_acceptance_rate": "94%",
+                "rework_percentage": "6%",
+                "client_satisfaction": "4.7/5",
+                "error_rate": "2.1%",
+                "process_compliance": "97%"
+            }
+        }
+        
+        return {
+            "success": True,
+            "analytics": analytics,
+            "generated_at": datetime.now().isoformat(),
+            "reporting_period": "Last 30 days",
+            "next_update": (datetime.now() + timedelta(hours=1)).isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch task analytics: {str(e)}")
+
+@app.post("/api/tasks/{task_id}/comments")
+async def add_task_comment(task_id: str, comment: TaskComment):
+    """Add comment to a task"""
+    try:
+        comment_id = f"comment_{int(time.time())}"
+        
+        return {
+            "success": True,
+            "comment_id": comment_id,
+            "task_id": task_id,
+            "comment": {
+                "content": comment.comment,
+                "type": comment.comment_type,
+                "author": "Current User",
+                "timestamp": datetime.now().isoformat(),
+                "mentions": [],
+                "attachments": []
+            },
+            "notifications_sent": 1,
+            "task_updated": True
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add comment: {str(e)}")
+
+@app.get("/api/tasks/dashboard")
+async def get_task_dashboard():
+    """Get task management dashboard data"""
+    try:
+        dashboard_data = {
+            "quick_stats": {
+                "total_tasks": 247,
+                "active_tasks": 89,
+                "completed_this_week": 34,
+                "overdue_tasks": 3,
+                "team_velocity": "12.3 tasks/week",
+                "completion_rate": "87%"
+            },
+            "recent_activity": [
+                {
+                    "id": "activity_001",
+                    "type": "task_completed",
+                    "description": "Sarah Johnson completed 'Site Survey and Analysis'",
+                    "timestamp": "2024-10-03T16:45:00Z",
+                    "user_name": "Sarah Johnson",
+                    "user_avatar": "/api/placeholder/32/32"
+                },
+                {
+                    "id": "activity_002",
+                    "type": "task_assigned",
+                    "description": "Michael Brown assigned 'Client Presentation' to Lisa Park",
+                    "timestamp": "2024-10-03T15:30:00Z",
+                    "user_name": "Michael Brown",
+                    "user_avatar": "/api/placeholder/32/32"
+                },
+                {
+                    "id": "activity_003",
+                    "type": "workflow_progress",
+                    "description": "Environmental Assessment moved to review stage",
+                    "timestamp": "2024-10-03T14:15:00Z",
+                    "user_name": "System",
+                    "user_avatar": "/api/placeholder/32/32"
+                }
+            ],
+            "upcoming_deadlines": [
+                {
+                    "task_id": "task_007",
+                    "title": "Client Presentation Preparation",
+                    "due_date": "2024-10-04T12:00:00Z",
+                    "priority": "high",
+                    "assignee": "Michael Brown",
+                    "project": "Retail Park Expansion"
+                },
+                {
+                    "task_id": "task_002",
+                    "title": "Environmental Impact Assessment",
+                    "due_date": "2024-10-05T17:00:00Z",
+                    "priority": "high",
+                    "assignee": "Rachel Green",
+                    "project": "Riverside Development"
+                }
+            ],
+            "workload_distribution": {
+                "Sarah Johnson": {"active": 4, "capacity": 85},
+                "Rachel Green": {"active": 3, "capacity": 70},
+                "Tom Wilson": {"active": 2, "capacity": 45},
+                "David Chen": {"active": 5, "capacity": 95},
+                "Lisa Park": {"active": 3, "capacity": 60}
+            }
+        }
+        
+        return {
+            "success": True,
+            "dashboard": dashboard_data,
+            "last_updated": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     print("\nStarting Domus Professional Platform...")
