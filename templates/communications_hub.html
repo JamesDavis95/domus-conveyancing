@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communications Hub - Domus Professional Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .message-bubble { transition: all 0.3s ease; }
+        .message-bubble:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .inbox-card { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .compose-card { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .consultation-card { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .calendar-card { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .notifications-card { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .automations-card { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .typing-indicator { animation: pulse 1.5s ease-in-out infinite; }
+        .notification-dot { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-container { height: 400px; }
+        .message-sent { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .message-received { background: #f3f4f6; }
+        .online-indicator { background: #10b981; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="communicationsHub()">
+    <!-- Header -->
+    <div class="gradient-bg text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Communications Hub</h1>
+                    <p class="text-blue-100 mt-2">Unified platform for client messaging, consultations, and stakeholder engagement</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2 relative">
+                        <i class="fas fa-bell mr-2"></i>
+                        <span class="text-sm">Notifications</span>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full notification-dot"></div>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                        <i class="fas fa-users mr-2"></i>
+                        <span class="text-sm" x-text="onlineUsers + ' Online'"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-envelope text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.unreadMessages"></div>
+                        <div class="text-sm text-gray-600">Unread Messages</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-calendar-check text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.upcomingMeetings"></div>
+                        <div class="text-sm text-gray-600">Upcoming Meetings</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-comments text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.activeConsultations"></div>
+                        <div class="text-sm text-gray-600">Active Consultations</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-paper-plane text-orange-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.emailsSent"></div>
+                        <div class="text-sm text-gray-600">Emails Sent Today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-lg">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 px-6">
+                    <button 
+                        @click="activeTab = 'inbox'" 
+                        :class="activeTab === 'inbox' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors relative">
+                        <i class="fas fa-inbox mr-2"></i>Inbox
+                        <span x-show="stats.unreadMessages > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center" x-text="stats.unreadMessages"></span>
+                    </button>
+                    <button 
+                        @click="activeTab = 'compose'" 
+                        :class="activeTab === 'compose' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-edit mr-2"></i>Compose
+                    </button>
+                    <button 
+                        @click="activeTab = 'consultations'" 
+                        :class="activeTab === 'consultations' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-users mr-2"></i>Consultations
+                    </button>
+                    <button 
+                        @click="activeTab = 'calendar'" 
+                        :class="activeTab === 'calendar' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-calendar-alt mr-2"></i>Calendar
+                    </button>
+                    <button 
+                        @click="activeTab = 'automations'" 
+                        :class="activeTab === 'automations' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-robot mr-2"></i>Automations
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Inbox Tab -->
+                <div x-show="activeTab === 'inbox'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Message List -->
+                        <div class="lg:col-span-1">
+                            <div class="inbox-card text-white p-4 rounded-xl mb-4">
+                                <h3 class="text-lg font-bold mb-2">
+                                    <i class="fas fa-inbox mr-2"></i>Messages
+                                </h3>
+                                <div class="flex space-x-2">
+                                    <button 
+                                        @click="messageFilter = 'all'"
+                                        :class="messageFilter === 'all' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'"
+                                        class="px-3 py-1 rounded-lg text-sm font-medium">All</button>
+                                    <button 
+                                        @click="messageFilter = 'unread'"
+                                        :class="messageFilter === 'unread' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'"
+                                        class="px-3 py-1 rounded-lg text-sm font-medium">Unread</button>
+                                    <button 
+                                        @click="messageFilter = 'urgent'"
+                                        :class="messageFilter === 'urgent' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'"
+                                        class="px-3 py-1 rounded-lg text-sm font-medium">Urgent</button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <template x-for="message in filteredMessages" :key="message.id">
+                                    <div 
+                                        @click="selectedMessage = message"
+                                        :class="selectedMessage?.id === message.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'"
+                                        class="message-bubble border rounded-lg p-4 cursor-pointer transition-all">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center">
+                                                <div class="relative">
+                                                    <img :src="message.avatar" :alt="message.sender" class="w-8 h-8 rounded-full">
+                                                    <div x-show="message.online" class="absolute -bottom-1 -right-1 w-3 h-3 online-indicator rounded-full border-2 border-white"></div>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <div class="font-semibold text-sm" x-text="message.sender"></div>
+                                                    <div class="text-xs text-gray-500" x-text="message.time"></div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span x-show="message.urgent" class="w-2 h-2 bg-red-500 rounded-full"></span>
+                                                <span x-show="!message.read" class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                            </div>
+                                        </div>
+                                        <div class="text-sm font-medium text-gray-900 mb-1" x-text="message.subject"></div>
+                                        <div class="text-sm text-gray-600 line-clamp-2" x-text="message.preview"></div>
+                                        <div x-show="message.attachments > 0" class="flex items-center mt-2">
+                                            <i class="fas fa-paperclip text-gray-400 text-xs mr-1"></i>
+                                            <span class="text-xs text-gray-500" x-text="message.attachments + ' attachment(s)'"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Message Content -->
+                        <div class="lg:col-span-2">
+                            <div x-show="selectedMessage" class="bg-white rounded-xl shadow-lg">
+                                <div class="border-b border-gray-200 p-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <img :src="selectedMessage?.avatar" :alt="selectedMessage?.sender" class="w-10 h-10 rounded-full">
+                                            <div class="ml-4">
+                                                <h3 class="text-lg font-semibold" x-text="selectedMessage?.subject"></h3>
+                                                <p class="text-sm text-gray-600">
+                                                    From: <span x-text="selectedMessage?.sender"></span> • <span x-text="selectedMessage?.time"></span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button class="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm hover:bg-blue-200">
+                                                <i class="fas fa-reply mr-1"></i>Reply
+                                            </button>
+                                            <button class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200">
+                                                <i class="fas fa-forward mr-1"></i>Forward
+                                            </button>
+                                            <button class="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-sm hover:bg-red-200">
+                                                <i class="fas fa-trash mr-1"></i>Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-6">
+                                    <div class="prose max-w-none" x-html="selectedMessage?.content"></div>
+                                    <div x-show="selectedMessage?.attachments > 0" class="mt-6 border-t border-gray-200 pt-4">
+                                        <h4 class="text-sm font-medium text-gray-900 mb-2">Attachments</h4>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                                <i class="fas fa-file-pdf text-red-500 mr-3"></i>
+                                                <div class="flex-1">
+                                                    <div class="text-sm font-medium">Planning Application.pdf</div>
+                                                    <div class="text-xs text-gray-500">2.4 MB</div>
+                                                </div>
+                                                <button class="text-blue-600 hover:text-blue-800">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No message selected state -->
+                            <div x-show="!selectedMessage" class="bg-white rounded-xl shadow-lg p-12 text-center">
+                                <i class="fas fa-envelope-open text-gray-300 text-6xl mb-4"></i>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Select a message</h3>
+                                <p class="text-gray-600">Choose a message from the list to view its content</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compose Tab -->
+                <div x-show="activeTab === 'compose'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="compose-card text-white p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-edit mr-2"></i>Compose Message
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">To</label>
+                                    <input type="email" x-model="composeForm.to" placeholder="recipient@example.com" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">CC</label>
+                                        <input type="email" x-model="composeForm.cc" placeholder="cc@example.com" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Priority</label>
+                                        <select x-model="composeForm.priority" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                            <option value="normal">Normal</option>
+                                            <option value="high">High</option>
+                                            <option value="urgent">Urgent</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Subject</label>
+                                    <input type="text" x-model="composeForm.subject" placeholder="Message subject" class="w-full px-4 py-2 rounded-lg border-0 text-gray-900">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Message</label>
+                                    <textarea x-model="composeForm.message" rows="6" placeholder="Type your message..." class="w-full px-4 py-2 rounded-lg border-0 text-gray-900 resize-none"></textarea>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <button class="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors">
+                                            <i class="fas fa-paperclip"></i>
+                                        </button>
+                                        <button class="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors">
+                                            <i class="fas fa-image"></i>
+                                        </button>
+                                        <button class="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors">
+                                            <i class="fas fa-smile"></i>
+                                        </button>
+                                    </div>
+                                    <button 
+                                        @click="sendMessage()"
+                                        class="px-6 py-2 bg-white text-green-600 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-paper-plane mr-2"></i>Send
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">Message Templates</h4>
+                                <div class="space-y-2">
+                                    <template x-for="template in messageTemplates" :key="template.id">
+                                        <div 
+                                            @click="useTemplate(template)"
+                                            class="p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors">
+                                            <div class="font-medium text-sm" x-text="template.name"></div>
+                                            <div class="text-xs text-gray-600" x-text="template.description"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">Recent Contacts</h4>
+                                <div class="space-y-3">
+                                    <template x-for="contact in recentContacts" :key="contact.id">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <img :src="contact.avatar" :alt="contact.name" class="w-8 h-8 rounded-full">
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium" x-text="contact.name"></div>
+                                                    <div class="text-xs text-gray-500" x-text="contact.email"></div>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                @click="composeForm.to = contact.email"
+                                                class="text-blue-600 hover:text-blue-800 text-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consultations Tab -->
+                <div x-show="activeTab === 'consultations'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">
+                                    <i class="fas fa-users mr-2 text-purple-500"></i>Public Consultations
+                                </h4>
+                                <div class="space-y-4">
+                                    <template x-for="consultation in consultations" :key="consultation.id">
+                                        <div class="border border-gray-200 rounded-lg p-4">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <h5 class="font-semibold text-gray-900" x-text="consultation.title"></h5>
+                                                    <p class="text-sm text-gray-600 mt-1" x-text="consultation.description"></p>
+                                                    <div class="flex items-center mt-3 space-x-4">
+                                                        <span class="text-sm text-gray-500">
+                                                            <i class="fas fa-calendar mr-1"></i>
+                                                            Closes: <span x-text="consultation.closingDate"></span>
+                                                        </span>
+                                                        <span class="text-sm text-gray-500">
+                                                            <i class="fas fa-comment mr-1"></i>
+                                                            <span x-text="consultation.responses"></span> responses
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span :class="getConsultationStatusColor(consultation.status)" class="px-2 py-1 rounded-full text-xs font-medium" x-text="consultation.status"></span>
+                                            </div>
+                                            <div class="flex space-x-2 mt-4">
+                                                <button class="px-3 py-1 bg-blue-100 text-blue-600 rounded-md text-sm hover:bg-blue-200">
+                                                    <i class="fas fa-eye mr-1"></i>View
+                                                </button>
+                                                <button class="px-3 py-1 bg-green-100 text-green-600 rounded-md text-sm hover:bg-green-200">
+                                                    <i class="fas fa-comment mr-1"></i>Respond
+                                                </button>
+                                                <button class="px-3 py-1 bg-purple-100 text-purple-600 rounded-md text-sm hover:bg-purple-200">
+                                                    <i class="fas fa-share mr-1"></i>Share
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="consultation-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-plus-circle mr-2"></i>Create Consultation
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Consultation Title</label>
+                                    <input type="text" placeholder="e.g., Riverside Development Public Consultation" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Type</label>
+                                    <select class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                        <option>Pre-application</option>
+                                        <option>Planning Application</option>
+                                        <option>Post-approval</option>
+                                        <option>Community Feedback</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Start Date</label>
+                                        <input type="date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">End Date</label>
+                                        <input type="date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    </div>
+                                </div>
+                                <button class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Create Consultation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Tab -->
+                <div x-show="activeTab === 'calendar'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">
+                                    <i class="fas fa-calendar-alt mr-2 text-blue-500"></i>Upcoming Events
+                                </h4>
+                                <div class="space-y-4">
+                                    <template x-for="event in upcomingEvents" :key="event.id">
+                                        <div class="border-l-4 border-blue-500 pl-4 py-3">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <h5 class="font-semibold text-gray-900" x-text="event.title"></h5>
+                                                    <p class="text-sm text-gray-600" x-text="event.description"></p>
+                                                    <div class="flex items-center mt-2 space-x-4">
+                                                        <span class="text-sm text-gray-500">
+                                                            <i class="fas fa-clock mr-1"></i>
+                                                            <span x-text="event.time"></span>
+                                                        </span>
+                                                        <span class="text-sm text-gray-500">
+                                                            <i class="fas fa-map-marker-alt mr-1"></i>
+                                                            <span x-text="event.location"></span>
+                                                        </span>
+                                                        <span class="text-sm text-gray-500">
+                                                            <i class="fas fa-users mr-1"></i>
+                                                            <span x-text="event.attendees"></span> attendees
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span :class="getEventTypeColor(event.type)" class="px-2 py-1 rounded-full text-xs font-medium" x-text="event.type"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="calendar-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-calendar-plus mr-2"></i>Schedule Meeting
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Meeting Title</label>
+                                    <input type="text" placeholder="Client consultation" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Type</label>
+                                    <select class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                        <option>Client Meeting</option>
+                                        <option>Site Visit</option>
+                                        <option>Council Meeting</option>
+                                        <option>Public Consultation</option>
+                                        <option>Internal Review</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Date</label>
+                                        <input type="date" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Time</label>
+                                        <input type="time" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Attendees</label>
+                                    <input type="email" placeholder="attendee@example.com" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                </div>
+                                <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-calendar-plus mr-2"></i>Schedule Meeting
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automations Tab -->
+                <div x-show="activeTab === 'automations'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="automations-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-robot mr-2"></i>Email Automations
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm">Welcome email for new clients</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm">Application status updates</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm">Weekly progress reports</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm">Meeting reminders (24h before)</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span class="ml-2 text-sm">Consultation period notifications</span>
+                                    </label>
+                                </div>
+                                <button class="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors">
+                                    <i class="fas fa-save mr-2"></i>Save Automation Settings
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h4 class="text-lg font-semibold mb-4">Automation Statistics</h4>
+                            <div class="space-y-4">
+                                <div class="border-l-4 border-green-500 pl-4">
+                                    <div class="text-2xl font-bold text-green-600">1,247</div>
+                                    <div class="text-sm text-gray-600">Automated emails sent this month</div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="font-semibold">94.2%</div>
+                                        <div class="text-sm text-gray-600">Delivery Rate</div>
+                                    </div>
+                                    <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="font-semibold">68.5%</div>
+                                        <div class="text-sm text-gray-600">Open Rate</div>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <h5 class="font-semibold mb-2">Recent Automations</h5>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span>Welcome email - John Smith</span>
+                                            <span class="text-green-600">Delivered</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span>Status update - Riverside Project</span>
+                                            <span class="text-green-600">Delivered</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span>Meeting reminder - Council</span>
+                                            <span class="text-blue-600">Scheduled</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function communicationsHub() {
+            return {
+                activeTab: 'inbox',
+                messageFilter: 'all',
+                selectedMessage: null,
+                onlineUsers: 12,
+                stats: {
+                    unreadMessages: 7,
+                    upcomingMeetings: 3,
+                    activeConsultations: 5,
+                    emailsSent: 24
+                },
+                composeForm: {
+                    to: '',
+                    cc: '',
+                    subject: '',
+                    message: '',
+                    priority: 'normal'
+                },
+                messages: [
+                    {
+                        id: 1,
+                        sender: 'Sarah Johnson',
+                        avatar: '/api/placeholder/32/32',
+                        subject: 'Planning Application Update',
+                        preview: 'The council has requested additional information for the Riverside Development...',
+                        content: '<p>Dear Team,</p><p>The council has requested additional information for the Riverside Development project. We need to provide an updated flood risk assessment by Friday.</p><p>Best regards,<br>Sarah</p>',
+                        time: '10:30 AM',
+                        read: false,
+                        urgent: true,
+                        online: true,
+                        attachments: 2
+                    },
+                    {
+                        id: 2,
+                        sender: 'Michael Brown',
+                        avatar: '/api/placeholder/32/32',
+                        subject: 'Site Visit Confirmation',
+                        preview: 'Confirming our site visit scheduled for tomorrow at 2 PM...',
+                        content: '<p>Hi there,</p><p>Just confirming our site visit scheduled for tomorrow at 2 PM for the Green Valley project. Please bring the latest drawings.</p><p>Thanks,<br>Michael</p>',
+                        time: '9:15 AM',
+                        read: true,
+                        urgent: false,
+                        online: false,
+                        attachments: 0
+                    },
+                    {
+                        id: 3,
+                        sender: 'Emma Wilson',
+                        avatar: '/api/placeholder/32/32',
+                        subject: 'BNG Credits Available',
+                        preview: 'New biodiversity credits are available for the Westminster project...',
+                        content: '<p>Hello,</p><p>I wanted to let you know that new biodiversity credits are available for the Westminster project. The provider has excellent ratings.</p><p>Kind regards,<br>Emma</p>',
+                        time: 'Yesterday',
+                        read: false,
+                        urgent: false,
+                        online: true,
+                        attachments: 1
+                    }
+                ],
+                messageTemplates: [
+                    {
+                        id: 1,
+                        name: 'Welcome New Client',
+                        description: 'Initial welcome message for new clients',
+                        subject: 'Welcome to Domus Planning',
+                        content: 'Welcome to our planning consultancy. We\'re excited to work with you...'
+                    },
+                    {
+                        id: 2,
+                        name: 'Application Status Update',
+                        description: 'Regular update on application progress',
+                        subject: 'Planning Application Update',
+                        content: 'We wanted to update you on the progress of your planning application...'
+                    },
+                    {
+                        id: 3,
+                        name: 'Meeting Follow-up',
+                        description: 'Follow-up message after client meetings',
+                        subject: 'Follow-up from our meeting',
+                        content: 'Thank you for taking the time to meet with us today...'
+                    }
+                ],
+                recentContacts: [
+                    { id: 1, name: 'Sarah Johnson', email: 'sarah@example.com', avatar: '/api/placeholder/32/32' },
+                    { id: 2, name: 'Michael Brown', email: 'michael@example.com', avatar: '/api/placeholder/32/32' },
+                    { id: 3, name: 'Emma Wilson', email: 'emma@example.com', avatar: '/api/placeholder/32/32' }
+                ],
+                consultations: [
+                    {
+                        id: 1,
+                        title: 'Riverside Development Public Consultation',
+                        description: 'Mixed-use development with 50 residential units and commercial space',
+                        status: 'Active',
+                        closingDate: '15 Nov 2024',
+                        responses: 23
+                    },
+                    {
+                        id: 2,
+                        title: 'Green Valley Homes Community Feedback',
+                        description: 'Affordable housing development with community facilities',
+                        status: 'Closing Soon',
+                        closingDate: '8 Oct 2024',
+                        responses: 47
+                    },
+                    {
+                        id: 3,
+                        title: 'City Centre Plaza Pre-Application',
+                        description: 'Commercial redevelopment with retail and office space',
+                        status: 'Draft',
+                        closingDate: '1 Dec 2024',
+                        responses: 3
+                    }
+                ],
+                upcomingEvents: [
+                    {
+                        id: 1,
+                        title: 'Client Meeting - Riverside Development',
+                        description: 'Project review and next steps discussion',
+                        time: 'Today, 2:00 PM',
+                        location: 'Office',
+                        attendees: 4,
+                        type: 'Client Meeting'
+                    },
+                    {
+                        id: 2,
+                        title: 'Council Planning Committee',
+                        description: 'Green Valley Homes application presentation',
+                        time: 'Tomorrow, 10:00 AM',
+                        location: 'Town Hall',
+                        attendees: 12,
+                        type: 'Council Meeting'
+                    },
+                    {
+                        id: 3,
+                        title: 'Site Visit - City Centre Plaza',
+                        description: 'Pre-application site assessment',
+                        time: 'Friday, 9:30 AM',
+                        location: 'City Centre',
+                        attendees: 6,
+                        type: 'Site Visit'
+                    }
+                ],
+
+                get filteredMessages() {
+                    if (this.messageFilter === 'all') return this.messages;
+                    if (this.messageFilter === 'unread') return this.messages.filter(m => !m.read);
+                    if (this.messageFilter === 'urgent') return this.messages.filter(m => m.urgent);
+                    return this.messages;
+                },
+
+                sendMessage() {
+                    // Simulate sending message
+                    console.log('Sending message:', this.composeForm);
+                    // Reset form
+                    this.composeForm = {
+                        to: '',
+                        cc: '',
+                        subject: '',
+                        message: '',
+                        priority: 'normal'
+                    };
+                },
+
+                useTemplate(template) {
+                    this.composeForm.subject = template.subject;
+                    this.composeForm.message = template.content;
+                },
+
+                getConsultationStatusColor(status) {
+                    const colors = {
+                        'Active': 'bg-green-100 text-green-800',
+                        'Closing Soon': 'bg-yellow-100 text-yellow-800',
+                        'Draft': 'bg-gray-100 text-gray-800',
+                        'Closed': 'bg-red-100 text-red-800'
+                    };
+                    return colors[status] || 'bg-gray-100 text-gray-800';
+                },
+
+                getEventTypeColor(type) {
+                    const colors = {
+                        'Client Meeting': 'bg-blue-100 text-blue-800',
+                        'Council Meeting': 'bg-purple-100 text-purple-800',
+                        'Site Visit': 'bg-green-100 text-green-800',
+                        'Public Consultation': 'bg-orange-100 text-orange-800'
+                    };
+                    return colors[type] || 'bg-gray-100 text-gray-800';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -554,6 +554,9 @@
                     items: [
                         { title: 'Planning AI', route: '/planning-ai' },
                         { title: 'Auto-Docs', route: '/auto-docs' },
+                        { title: 'Property API', route: '/property-api' },
+                        { title: 'Offsets Marketplace', route: '/offsets-marketplace' },
+                        { title: 'Communications Hub', route: '/communications-hub' },
                         { title: 'Documents Hub', route: '/documents' }
                     ]
                 });
@@ -713,6 +716,9 @@
                 '/projects/new': { title: 'New Project', breadcrumb: 'Projects > New Project' },
                 '/planning-ai': { title: 'Planning AI', breadcrumb: 'Planning Services > Planning AI' },
                 '/auto-docs': { title: 'Auto-Docs', breadcrumb: 'Planning Services > Auto-Docs' },
+                '/property-api': { title: 'Property API', breadcrumb: 'Planning Services > Property API' },
+                '/offsets-marketplace': { title: 'Offsets Marketplace', breadcrumb: 'Planning Services > Offsets Marketplace' },
+                '/communications-hub': { title: 'Communications Hub', breadcrumb: 'Planning Services > Communications Hub' },
                 '/documents': { title: 'Documents Hub', breadcrumb: 'Planning Services > Documents Hub' },
                 '/marketplace/supply': { title: 'Supply Listings', breadcrumb: 'Marketplace > Supply Listings' },
                 '/marketplace/demand': { title: 'Demand Posts', breadcrumb: 'Marketplace > Demand Posts' },
@@ -736,6 +742,9 @@
                 '/projects/new': getNewProjectContent(),
                 '/planning-ai': getPlanningAIContent(),
                 '/auto-docs': getAutoDocsContent(),
+                '/property-api': getPropertyAPIContent(),
+                '/offsets-marketplace': getOffsetsMarketplaceContent(),
+                '/communications-hub': getCommunicationsHubContent(),
                 '/documents': getDocumentsContent(),
                 '/marketplace/supply': getSupplyContent(),
                 '/marketplace/demand': getDemandContent(),
@@ -1148,6 +1157,42 @@
                     <p>Automated document generation</p>
                     <div style="margin-top: 20px;">
                         <p style="color: var(--text-light);">Document generation interface will be loaded here...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getPropertyAPIContent() {
+            return `
+                <div>
+                    <h1>Property API</h1>
+                    <p>UK property data integration</p>
+                    <div style="margin-top: 20px;">
+                        <p style="color: var(--text-light);">Property API interface will be loaded here...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getOffsetsMarketplaceContent() {
+            return `
+                <div>
+                    <h1>Offsets Marketplace</h1>
+                    <p>Biodiversity Net Gain trading platform</p>
+                    <div style="margin-top: 20px;">
+                        <p style="color: var(--text-light);">Offsets marketplace interface will be loaded here...</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getCommunicationsHubContent() {
+            return `
+                <div>
+                    <h1>Communications Hub</h1>
+                    <p>Unified client messaging, consultations, and stakeholder engagement</p>
+                    <div style="margin-top: 20px;">
+                        <p style="color: var(--text-light);">Communications hub interface will be loaded here...</p>
                     </div>
                 </div>
             `;
