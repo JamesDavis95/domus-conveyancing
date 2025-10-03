@@ -22,17 +22,38 @@ PLAN_QUOTAS = {
     PlanType.CORE: {
         "projects": 1,
         "docs": 5,
-        "api_calls": 100
+        "api_calls": 100,
+        "viability_runs": 1,
+        "bng_calculations": 0,
+        "transport_assessments": 0,
+        "environment_assessments": 0,
+        "submission_packs": 0,
+        "appeals_queries": 0,
+        "collaboration_invites": 0
     },
     PlanType.PROFESSIONAL: {
         "projects": 10,
         "docs": 50,
-        "api_calls": 1000
+        "api_calls": 1000,
+        "viability_runs": 25,
+        "bng_calculations": 25,
+        "transport_assessments": 25,
+        "environment_assessments": 25,
+        "submission_packs": 10,
+        "appeals_queries": 100,
+        "collaboration_invites": 50
     },
     PlanType.ENTERPRISE: {
         "projects": -1,  # Unlimited
         "docs": -1,     # Unlimited
-        "api_calls": -1  # Unlimited
+        "api_calls": -1,  # Unlimited
+        "viability_runs": -1,
+        "bng_calculations": -1,
+        "transport_assessments": -1,
+        "environment_assessments": -1,
+        "submission_packs": -1,
+        "appeals_queries": -1,
+        "collaboration_invites": -1
     }
 }
 
@@ -40,23 +61,30 @@ PLAN_QUOTAS = {
 ROLE_PERMISSIONS = {
     UserRole.DEVELOPER: [
         "dashboard", "projects", "planning-ai", "auto-docs", 
-        "documents", "marketplace-demand", "analytics", "settings"
+        "documents", "marketplace-demand", "analytics", "settings",
+        "viability", "bng", "transport", "environment", "submission-pack",
+        "objection-risk", "appeals", "collaboration"
     ],
     UserRole.CONSULTANT: [
         "dashboard", "projects", "planning-ai", "auto-docs", 
-        "documents", "marketplace-demand", "analytics", "settings"
+        "documents", "marketplace-demand", "analytics", "settings",
+        "viability", "bng", "transport", "environment", "submission-pack",
+        "objection-risk", "appeals", "collaboration"
     ],
     UserRole.LANDOWNER: [
         "dashboard", "marketplace-supply", "marketplace-demand", 
-        "contracts", "analytics", "settings"
+        "contracts", "analytics", "settings", "bng"
     ],
     UserRole.AUTHORITY: [
-        "authority-portal"  # Limited access via token
+        "authority-portal", "submission-pack-view", "comments"
     ],
     UserRole.ADMIN: [
         "dashboard", "projects", "planning-ai", "auto-docs", 
         "documents", "marketplace-supply", "marketplace-demand", 
-        "contracts", "analytics", "settings", "admin"
+        "contracts", "analytics", "settings", "admin",
+        "viability", "bng", "transport", "environment", "submission-pack",
+        "objection-risk", "appeals", "collaboration", "analytics-lpa",
+        "analytics-org", "org-insights"
     ],
     UserRole.SUPER_ADMIN: [
         "*"  # All permissions

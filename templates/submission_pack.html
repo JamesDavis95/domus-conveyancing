@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Pack - Domus Platform</title>
+    <link rel="stylesheet" href="/static/css/global.css">
+    <style>
+        .pack-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .pack-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .pack-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+        
+        .pack-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .document-list {
+            margin-bottom: 24px;
+        }
+        
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: white;
+            transition: all 0.2s ease;
+        }
+        
+        .document-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .document-item input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+        
+        .document-icon {
+            width: 32px;
+            height: 32px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 14px;
+        }
+        
+        .document-info {
+            flex: 1;
+        }
+        
+        .document-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .document-meta {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        
+        .document-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-ready {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-generating {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-missing {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .pack-summary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .summary-item:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+        
+        .pack-history {
+            margin-top: 24px;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            background: white;
+        }
+        
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 16px;
+        }
+        
+        .history-content {
+            flex: 1;
+        }
+        
+        .history-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .history-meta {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+        
+        .pack-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .pack-preview h4 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+        
+        .pack-preview p {
+            margin: 0 0 16px 0;
+            opacity: 0.9;
+        }
+        
+        .authority-info {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .authority-info h5 {
+            margin: 0 0 8px 0;
+            color: #1e40af;
+        }
+        
+        .authority-info p {
+            margin: 0;
+            font-size: 14px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="pack-container">
+        <div class="pack-header">
+            <div>
+                <h1>Submission Pack Manager</h1>
+                <p style="color: var(--muted); margin: 4px 0 0 0;">Create planning application bundles ready for submission</p>
+            </div>
+            <div class="actions-bar">
+                <button class="btn btn-outline" onclick="previewPack()">Preview Pack</button>
+                <button class="btn btn-primary" onclick="createSubmissionPack()">Create Pack</button>
+            </div>
+        </div>
+        
+        <div class="pack-grid">
+            <!-- Document Selection -->
+            <div class="pack-panel">
+                <h3 style="margin: 0 0 20px 0;">Select Documents for Submission</h3>
+                
+                <div class="document-list" id="documentList">
+                    <!-- Planning Documents -->
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-planning-statement" checked>
+                        <div class="document-icon">📄</div>
+                        <div class="document-info">
+                            <div class="document-name">Planning Statement</div>
+                            <div class="document-meta">Generated 2 days ago • 2.4 MB</div>
+                        </div>
+                        <div class="document-status status-ready">Ready</div>
+                    </div>
+                    
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-design-access" checked>
+                        <div class="document-icon">🏗️</div>
+                        <div class="document-info">
+                            <div class="document-name">Design & Access Statement</div>
+                            <div class="document-meta">Generated yesterday • 3.1 MB</div>
+                        </div>
+                        <div class="document-status status-ready">Ready</div>
+                    </div>
+                    
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-heritage" checked>
+                        <div class="document-icon">🏛️</div>
+                        <div class="document-info">
+                            <div class="document-name">Heritage Statement</div>
+                            <div class="document-meta">Generated 3 days ago • 1.8 MB</div>
+                        </div>
+                        <div class="document-status status-ready">Ready</div>
+                    </div>
+                    
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-viability">
+                        <div class="document-icon">💰</div>
+                        <div class="document-info">
+                            <div class="document-name">Viability Assessment</div>
+                            <div class="document-meta">Last run 1 hour ago • Pending export</div>
+                        </div>
+                        <div class="document-status status-generating">Generating</div>
+                    </div>
+                    
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-bng" checked>
+                        <div class="document-icon">🌿</div>
+                        <div class="document-info">
+                            <div class="document-name">BNG Assessment</div>
+                            <div class="document-meta">Generated today • 1.2 MB</div>
+                        </div>
+                        <div class="document-status status-ready">Ready</div>
+                    </div>
+                    
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-transport" checked>
+                        <div class="document-icon">🚗</div>
+                        <div class="document-info">
+                            <div class="document-name">Transport Statement</div>
+                            <div class="document-meta">Generated today • 2.0 MB</div>
+                        </div>
+                        <div class="document-status status-ready">Ready</div>
+                    </div>
+                    
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-environment">
+                        <div class="document-icon">🌍</div>
+                        <div class="document-info">
+                            <div class="document-name">Environmental Assessment</div>
+                            <div class="document-meta">Not generated yet</div>
+                        </div>
+                        <div class="document-status status-missing">Missing</div>
+                    </div>
+                    
+                    <div class="document-item">
+                        <input type="checkbox" id="doc-plans" checked>
+                        <div class="document-icon">📐</div>
+                        <div class="document-info">
+                            <div class="document-name">Site Plans & Drawings</div>
+                            <div class="document-meta">Uploaded last week • 5.7 MB</div>
+                        </div>
+                        <div class="document-status status-ready">Ready</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn btn-outline" onclick="generateMissing()">Generate Missing Documents</button>
+                </div>
+            </div>
+            
+            <!-- Pack Configuration -->
+            <div class="pack-panel">
+                <h3 style="margin: 0 0 20px 0;">Pack Configuration</h3>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Pack Name</label>
+                    <input type="text" id="packName" value="Planning Application - Riverside Development" 
+                           style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Submission Type</label>
+                    <select id="submissionType" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                        <option value="full">Full Planning Application</option>
+                        <option value="outline">Outline Planning Application</option>
+                        <option value="reserved">Reserved Matters</option>
+                        <option value="variation">Section 73 Variation</option>
+                        <option value="prior_approval">Prior Approval</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Authority Portal Access</label>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="authorityAccess" checked>
+                        <span style="font-size: 14px;">Generate authority review link</span>
+                    </div>
+                </div>
+                
+                <div class="pack-summary">
+                    <div class="summary-item">
+                        <span>Selected Documents:</span>
+                        <span id="selectedCount">6</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Size:</span>
+                        <span id="totalSize">16.2 MB</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Ready to Submit:</span>
+                        <span id="readyCount">5 of 6</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Estimated Pack Size:</span>
+                        <span id="packSize">18.5 MB</span>
+                    </div>
+                </div>
+                
+                <div class="pack-preview">
+                    <h4>Authority Portal Preview</h4>
+                    <p>External stakeholders will access documents via secure link</p>
+                    <div style="background: rgba(255,255,255,0.2); border-radius: 4px; padding: 12px; font-family: monospace; font-size: 12px;">
+                        https://domusplanning.co.uk/authority/pack-{{ pack_id }}
+                    </div>
+                </div>
+                
+                <div class="actions-bar" style="justify-content: stretch;">
+                    <button class="btn btn-primary" onclick="createSubmissionPack()" style="flex: 1;">
+                        Create Submission Pack
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pack History -->
+        <div class="pack-history">
+            <h3 style="margin: 0 0 20px 0;">Recent Submission Packs</h3>
+            
+            <div class="history-item">
+                <div class="history-icon">📦</div>
+                <div class="history-content">
+                    <div class="history-title">Planning Application - Riverside Development</div>
+                    <div class="history-meta">Created 2 days ago • 8 documents • 18.5 MB</div>
+                    <div class="authority-info" style="margin-top: 8px;">
+                        <h5>Authority Access Token: AUTH-789456</h5>
+                        <p>Link expires in 88 days • Last viewed by authority 12 hours ago</p>
+                    </div>
+                </div>
+                <div class="history-actions">
+                    <button class="btn btn-outline btn-sm" onclick="downloadPack('pack-123')">Download</button>
+                    <button class="btn btn-secondary btn-sm" onclick="viewAuthorityPortal('pack-123')">Authority View</button>
+                </div>
+            </div>
+            
+            <div class="history-item">
+                <div class="history-icon">📦</div>
+                <div class="history-content">
+                    <div class="history-title">Pre-application Documents</div>
+                    <div class="history-meta">Created 1 week ago • 5 documents • 12.1 MB</div>
+                </div>
+                <div class="history-actions">
+                    <button class="btn btn-outline btn-sm" onclick="downloadPack('pack-122')">Download</button>
+                    <button class="btn btn-outline btn-sm" onclick="duplicatePack('pack-122')">Duplicate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Update pack summary when documents are selected
+        function updatePackSummary() {
+            const checkboxes = document.querySelectorAll('#documentList input[type="checkbox"]');
+            const checked = Array.from(checkboxes).filter(cb => cb.checked);
+            
+            document.getElementById('selectedCount').textContent = checked.length;
+            document.getElementById('readyCount').textContent = `${checked.length - 1} of ${checked.length}`;
+            
+            // Mock size calculation
+            const totalSize = checked.length * 2.5; // Average 2.5MB per doc
+            document.getElementById('totalSize').textContent = `${totalSize.toFixed(1)} MB`;
+            document.getElementById('packSize').textContent = `${(totalSize * 1.15).toFixed(1)} MB`;
+        }
+        
+        // Create submission pack
+        async function createSubmissionPack() {
+            const selectedDocs = Array.from(document.querySelectorAll('#documentList input[type="checkbox"]:checked'))
+                .map(cb => ({
+                    id: cb.id,
+                    filename: cb.closest('.document-item').querySelector('.document-name').textContent,
+                    type: cb.id.replace('doc-', '').replace('-', '_')
+                }));
+            
+            const packData = {
+                pack_name: document.getElementById('packName').value,
+                submission_type: document.getElementById('submissionType').value,
+                documents: selectedDocs,
+                authority_access: document.getElementById('authorityAccess').checked
+            };
+            
+            try {
+                const response = await fetch('/api/submission-pack/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(packData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Submission pack created successfully!\n\nPack ID: ${result.submission_pack.pack_id}\nAuthority Token: ${result.submission_pack.authority_token}`);
+                    location.reload(); // Refresh to show new pack in history
+                } else {
+                    alert('Pack creation failed: ' + result.detail);
+                }
+            } catch (error) {
+                console.error('Pack creation error:', error);
+                alert('Pack creation failed. Please try again.');
+            }
+        }
+        
+        function previewPack() {
+            console.log('Previewing submission pack...');
+        }
+        
+        function generateMissing() {
+            console.log('Generating missing documents...');
+        }
+        
+        function downloadPack(packId) {
+            console.log('Downloading pack:', packId);
+            // Mock download
+            window.open(`/api/submission-pack/${packId}/download`, '_blank');
+        }
+        
+        function viewAuthorityPortal(packId) {
+            console.log('Opening authority portal for:', packId);
+            window.open(`/authority/${packId}`, '_blank');
+        }
+        
+        function duplicatePack(packId) {
+            console.log('Duplicating pack:', packId);
+        }
+        
+        // Event listeners
+        document.getElementById('documentList').addEventListener('change', updatePackSummary);
+        
+        // Initialize
+        updatePackSummary();
+    </script>
+</body>
+</html>

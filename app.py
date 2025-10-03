@@ -838,6 +838,107 @@ async def offsets_marketplace_page(request: Request):
     """Serve the Biodiversity Net Gain marketplace page"""
     return templates.TemplateResponse("offsets_marketplace.html", {"request": request})
 
+# =====================================
+# NEW ENTERPRISE MODULE ROUTES
+# =====================================
+
+# Viability Assessment page
+@app.get("/projects/{project_id}/viability", response_class=HTMLResponse)
+async def project_viability_page(request: Request, project_id: int):
+    """Serve the project viability assessment page"""
+    return templates.TemplateResponse("viability_assessment.html", {"request": request, "project_id": project_id})
+
+# BNG (Biodiversity Net Gain) page
+@app.get("/projects/{project_id}/bng", response_class=HTMLResponse)
+async def project_bng_page(request: Request, project_id: int):
+    """Serve the project BNG assessment page"""
+    return templates.TemplateResponse("bng_assessment.html", {"request": request, "project_id": project_id})
+
+# Transport & Highways page
+@app.get("/projects/{project_id}/transport", response_class=HTMLResponse)
+async def project_transport_page(request: Request, project_id: int):
+    """Serve the project transport assessment page"""
+    return templates.TemplateResponse("transport_assessment.html", {"request": request, "project_id": project_id})
+
+# Environment & Climate page
+@app.get("/projects/{project_id}/environment", response_class=HTMLResponse)
+async def project_environment_page(request: Request, project_id: int):
+    """Serve the project environment assessment page"""
+    return templates.TemplateResponse("environment_assessment.html", {"request": request, "project_id": project_id})
+
+# Appeals Intelligence page
+@app.get("/projects/{project_id}/appeals", response_class=HTMLResponse)
+async def project_appeals_page(request: Request, project_id: int):
+    """Serve the project appeals intelligence page"""
+    return templates.TemplateResponse("appeals_intelligence.html", {"request": request, "project_id": project_id})
+
+# Collaboration page
+@app.get("/projects/{project_id}/collaboration", response_class=HTMLResponse)
+async def project_collaboration_page(request: Request, project_id: int):
+    """Serve the project collaboration page"""
+    return templates.TemplateResponse("collaboration.html", {"request": request, "project_id": project_id})
+
+# Submission Pack page
+@app.get("/submission-pack", response_class=HTMLResponse)
+async def submission_pack_page(request: Request):
+    """Serve the submission pack management page"""
+    return templates.TemplateResponse("submission_pack.html", {"request": request})
+
+# Analytics LPA page
+@app.get("/analytics/lpa", response_class=HTMLResponse)
+async def analytics_lpa_page(request: Request):
+    """Serve the LPA performance analytics page"""
+    return templates.TemplateResponse("analytics_lpa.html", {"request": request})
+
+# Analytics Org Insights page
+@app.get("/analytics/org-insights", response_class=HTMLResponse)
+async def analytics_org_insights_page(request: Request):
+    """Serve the organization insights page"""
+    return templates.TemplateResponse("analytics_org_insights.html", {"request": request})
+
+# Settings - Viability Presets page
+@app.get("/settings/viability-presets", response_class=HTMLResponse)
+async def settings_viability_presets_page(request: Request):
+    """Serve the viability presets management page"""
+    return templates.TemplateResponse("settings_viability_presets.html", {"request": request})
+
+# Authority Portal page
+@app.get("/authority/{token}", response_class=HTMLResponse)
+async def authority_portal_page(request: Request, token: str):
+    """Serve the authority portal page for external authority access"""
+    return templates.TemplateResponse("authority_portal.html", {"request": request, "token": token})
+
+# Route aliases for navigation consistency
+@app.get("/viability")
+async def viability_redirect():
+    """Redirect to first project viability (for demo navigation)"""
+    return JSONResponse({"redirect": "/projects/1/viability"})
+
+@app.get("/bng")
+async def bng_redirect():
+    """Redirect to first project BNG (for demo navigation)"""
+    return JSONResponse({"redirect": "/projects/1/bng"})
+
+@app.get("/transport")
+async def transport_redirect():
+    """Redirect to first project transport (for demo navigation)"""
+    return JSONResponse({"redirect": "/projects/1/transport"})
+
+@app.get("/environment")
+async def environment_redirect():
+    """Redirect to first project environment (for demo navigation)"""
+    return JSONResponse({"redirect": "/projects/1/environment"})
+
+@app.get("/appeals")
+async def appeals_redirect():
+    """Redirect to first project appeals (for demo navigation)"""
+    return JSONResponse({"redirect": "/projects/1/appeals"})
+
+@app.get("/collaboration")
+async def collaboration_redirect():
+    """Redirect to first project collaboration (for demo navigation)"""
+    return JSONResponse({"redirect": "/projects/1/collaboration"})
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
     """Serve the login page"""
@@ -9021,6 +9122,819 @@ async def optimize_enterprise_performance():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start optimization: {str(e)}")
+
+# =====================================
+# VIABILITY ASSESSMENT MODULE
+# =====================================
+
+@app.get("/api/viability/presets")
+async def get_viability_presets(current_user: dict = Depends(get_current_user)):
+    """Get organization's viability presets"""
+    try:
+        # TODO: Implement org-scoped preset retrieval
+        default_presets = [
+            {
+                "id": 1,
+                "name": "Residential Development",
+                "description": "Standard assumptions for residential schemes",
+                "config": {
+                    "build_costs_sqm": 1800,
+                    "professional_fees_percent": 12,
+                    "marketing_percent": 3,
+                    "contingency_percent": 5,
+                    "finance_rate_percent": 6.5,
+                    "profit_target_percent": 20,
+                    "cil_rate_sqm": 120
+                },
+                "is_default": True
+            },
+            {
+                "id": 2,
+                "name": "Commercial Office",
+                "description": "Office development assumptions",
+                "config": {
+                    "build_costs_sqm": 2200,
+                    "professional_fees_percent": 15,
+                    "marketing_percent": 2,
+                    "contingency_percent": 7,
+                    "finance_rate_percent": 5.8,
+                    "profit_target_percent": 18,
+                    "cil_rate_sqm": 185
+                },
+                "is_default": False
+            }
+        ]
+        
+        return {
+            "success": True,
+            "presets": default_presets,
+            "org_id": current_user["org_id"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch viability presets: {str(e)}")
+
+@app.post("/api/viability/presets")
+async def create_viability_preset(
+    preset_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create or update viability preset"""
+    try:
+        # TODO: Implement preset creation with RBAC check
+        preset_id = f"preset-{int(time.time())}"
+        
+        return {
+            "success": True,
+            "preset_id": preset_id,
+            "preset": {
+                "id": preset_id,
+                "name": preset_data.get("name", "New Preset"),
+                "description": preset_data.get("description", ""),
+                "config": preset_data.get("config", {}),
+                "created_at": datetime.now().isoformat()
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create viability preset: {str(e)}")
+
+@app.post("/api/viability/run")
+async def run_viability_assessment(
+    assessment_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Run viability assessment"""
+    try:
+        # TODO: Implement quota check and viability calculation
+        project_id = assessment_data.get("project_id")
+        preset_id = assessment_data.get("preset_id")
+        
+        # Mock viability calculation
+        gdv = assessment_data.get("gdv", 5000000)
+        build_costs = gdv * 0.65
+        fees = build_costs * 0.12
+        total_costs = build_costs + fees
+        residual = gdv - total_costs
+        profit_percent = (residual / gdv) * 100
+        
+        viability_result = {
+            "run_id": f"viab-{int(time.time())}",
+            "project_id": project_id,
+            "preset_id": preset_id,
+            "inputs": assessment_data,
+            "outputs": {
+                "gdv": gdv,
+                "build_costs": build_costs,
+                "professional_fees": fees,
+                "total_costs": total_costs,
+                "residual_value": residual,
+                "profit_percentage": round(profit_percent, 2),
+                "viability_status": "viable" if profit_percent > 15 else "marginal" if profit_percent > 10 else "unviable"
+            },
+            "created_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "assessment": viability_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to run viability assessment: {str(e)}")
+
+@app.get("/api/viability/runs")
+async def get_viability_runs(
+    project_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get viability assessment runs for project"""
+    try:
+        # TODO: Implement org-scoped run retrieval
+        mock_runs = [
+            {
+                "id": "viab-1635789123",
+                "project_id": project_id or "proj-123",
+                "scenario_name": "Base Case",
+                "profit_percentage": 18.5,
+                "viability_status": "viable",
+                "created_at": "2024-10-02T14:30:00Z"
+            },
+            {
+                "id": "viab-1635789456",
+                "project_id": project_id or "proj-123",
+                "scenario_name": "Affordable Housing 35%",
+                "profit_percentage": 12.3,
+                "viability_status": "marginal",
+                "created_at": "2024-10-02T15:45:00Z"
+            }
+        ]
+        
+        return {
+            "success": True,
+            "runs": mock_runs,
+            "total": len(mock_runs)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch viability runs: {str(e)}")
+
+# =====================================
+# BNG (BIODIVERSITY NET GAIN) MODULE
+# =====================================
+
+@app.post("/api/bng/baseline")
+async def upload_bng_baseline(
+    baseline_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload and parse BNG baseline data"""
+    try:
+        # TODO: Implement file upload to S3 and parsing
+        baseline_id = f"baseline-{int(time.time())}"
+        
+        return {
+            "success": True,
+            "baseline_id": baseline_id,
+            "baseline": {
+                "id": baseline_id,
+                "project_id": baseline_data.get("project_id"),
+                "habitat_units": baseline_data.get("habitat_units", 0),
+                "hedgerow_units": baseline_data.get("hedgerow_units", 0),
+                "watercourse_units": baseline_data.get("watercourse_units", 0),
+                "created_at": datetime.now().isoformat()
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload BNG baseline: {str(e)}")
+
+@app.post("/api/bng/calc")
+async def calculate_bng(
+    calc_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Calculate BNG deficit/surplus"""
+    try:
+        # TODO: Implement quota check and BNG calculation
+        baseline_units = calc_data.get("baseline_units", 100)
+        post_dev_units = calc_data.get("post_dev_units", 85)
+        net_gain_target = calc_data.get("net_gain_target", 10)  # 10% minimum
+        
+        required_units = baseline_units * (1 + net_gain_target / 100)
+        deficit_units = max(0, required_units - post_dev_units)
+        surplus_units = max(0, post_dev_units - required_units)
+        net_gain_percent = ((post_dev_units - baseline_units) / baseline_units) * 100
+        
+        calculation_result = {
+            "calculation_id": f"bng-{int(time.time())}",
+            "project_id": calc_data.get("project_id"),
+            "baseline_id": calc_data.get("baseline_id"),
+            "inputs": calc_data,
+            "results": {
+                "baseline_units": baseline_units,
+                "post_development_units": post_dev_units,
+                "required_units": required_units,
+                "deficit_units": deficit_units,
+                "surplus_units": surplus_units,
+                "net_gain_percentage": round(net_gain_percent, 2),
+                "compliant": net_gain_percent >= net_gain_target
+            },
+            "created_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "calculation": calculation_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to calculate BNG: {str(e)}")
+
+@app.get("/api/bng/runs")
+async def get_bng_runs(
+    project_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get BNG calculation runs for project"""
+    try:
+        # TODO: Implement org-scoped run retrieval
+        mock_runs = [
+            {
+                "id": "bng-1635789123",
+                "project_id": project_id or "proj-123",
+                "net_gain_percentage": 12.5,
+                "deficit_units": 0,
+                "surplus_units": 15.2,
+                "compliant": True,
+                "created_at": "2024-10-02T14:30:00Z"
+            }
+        ]
+        
+        return {
+            "success": True,
+            "runs": mock_runs,
+            "total": len(mock_runs)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch BNG runs: {str(e)}")
+
+# =====================================
+# TRANSPORT & HIGHWAYS MODULE
+# =====================================
+
+@app.post("/api/transport/assess")
+async def assess_transport_impact(
+    assessment_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Run transport impact assessment"""
+    try:
+        # TODO: Implement quota check and transport assessment
+        development_type = assessment_data.get("development_type", "residential")
+        units = assessment_data.get("units", 50)
+        
+        # Mock transport assessment calculation
+        trip_rate = {"residential": 0.85, "office": 0.45, "retail": 2.1}.get(development_type, 0.85)
+        daily_trips = units * trip_rate
+        peak_hour_trips = daily_trips * 0.12
+        parking_spaces = units * 1.5 if development_type == "residential" else units * 0.3
+        
+        risk_factors = [
+            {"factor": "Junction capacity", "risk": "medium", "score": 60},
+            {"factor": "Pedestrian safety", "risk": "low", "score": 25},
+            {"factor": "Parking provision", "risk": "low", "score": 30}
+        ]
+        
+        overall_risk = sum(f["score"] for f in risk_factors) / len(risk_factors)
+        
+        assessment_result = {
+            "assessment_id": f"transport-{int(time.time())}",
+            "project_id": assessment_data.get("project_id"),
+            "inputs": assessment_data,
+            "trip_generation": {
+                "daily_trips": round(daily_trips),
+                "peak_hour_trips": round(peak_hour_trips),
+                "trip_rate_used": trip_rate
+            },
+            "parking": {
+                "spaces_required": round(parking_spaces),
+                "spaces_provided": assessment_data.get("parking_spaces", parking_spaces)
+            },
+            "risk_assessment": {
+                "overall_score": round(overall_risk, 1),
+                "risk_level": "low" if overall_risk < 40 else "medium" if overall_risk < 70 else "high",
+                "factors": risk_factors
+            },
+            "mitigations": [
+                "Travel Plan implementation required",
+                "Contribution to junction improvements: £15,000",
+                "Cycle parking provision: 1 space per unit",
+                "Car club membership for residents"
+            ],
+            "created_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "assessment": assessment_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to assess transport impact: {str(e)}")
+
+@app.get("/api/transport/runs")
+async def get_transport_runs(
+    project_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get transport assessment runs for project"""
+    try:
+        # TODO: Implement org-scoped run retrieval
+        mock_runs = [
+            {
+                "id": "transport-1635789123",
+                "project_id": project_id or "proj-123",
+                "daily_trips": 42,
+                "risk_level": "medium",
+                "overall_score": 55.5,
+                "created_at": "2024-10-02T14:30:00Z"
+            }
+        ]
+        
+        return {
+            "success": True,
+            "runs": mock_runs,
+            "total": len(mock_runs)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch transport runs: {str(e)}")
+
+# =====================================
+# ENVIRONMENT & CLIMATE MODULE
+# =====================================
+
+@app.post("/api/environment/assess")
+async def assess_environment_risk(
+    assessment_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Run environmental risk assessment"""
+    try:
+        # TODO: Implement quota check and environmental assessment
+        assessment_types = assessment_data.get("assessment_types", ["air_quality", "climate"])
+        
+        risk_results = {}
+        overall_scores = []
+        all_mitigations = []
+        all_citations = []
+        
+        for assess_type in assessment_types:
+            if assess_type == "air_quality":
+                score = random.randint(15, 45)
+                risk_results[assess_type] = {
+                    "score": score,
+                    "risk_level": "low" if score < 30 else "medium" if score < 60 else "high",
+                    "indicators": {
+                        "pm25_ugm3": random.randint(8, 15),
+                        "no2_ugm3": random.randint(20, 35),
+                        "distance_to_aqma_m": random.randint(500, 2000)
+                    }
+                }
+                all_mitigations.extend([
+                    "Electric vehicle charging points",
+                    "Green roof implementation",
+                    "Air quality monitoring during construction"
+                ])
+                all_citations.append({
+                    "policy": "National Planning Policy Framework",
+                    "section": "Paragraph 174",
+                    "url": "https://gov.uk/nppf"
+                })
+                
+            elif assess_type == "climate":
+                score = random.randint(25, 55)
+                risk_results[assess_type] = {
+                    "score": score,
+                    "risk_level": "low" if score < 30 else "medium" if score < 60 else "high",
+                    "indicators": {
+                        "overheating_risk": "medium",
+                        "flood_risk_zone": "1",
+                        "energy_efficiency": "A-rated"
+                    }
+                }
+                all_mitigations.extend([
+                    "Solar panel installation",
+                    "Heat pump heating system",
+                    "Enhanced insulation standards",
+                    "Sustainable drainage systems"
+                ])
+                all_citations.append({
+                    "policy": "Climate Change Act 2008",
+                    "section": "Net Zero Target",
+                    "url": "https://legislation.gov.uk/ukpga/2008/27"
+                })
+            
+            overall_scores.append(score)
+        
+        overall_risk = sum(overall_scores) / len(overall_scores)
+        
+        assessment_result = {
+            "assessment_id": f"env-{int(time.time())}",
+            "project_id": assessment_data.get("project_id"),
+            "assessment_types": assessment_types,
+            "risk_results": risk_results,
+            "overall_risk": {
+                "score": round(overall_risk, 1),
+                "risk_level": "low" if overall_risk < 30 else "medium" if overall_risk < 60 else "high"
+            },
+            "mitigations": list(set(all_mitigations)),
+            "citations": all_citations,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "assessment": assessment_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to assess environmental risk: {str(e)}")
+
+@app.get("/api/environment/runs")
+async def get_environment_runs(
+    project_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get environmental assessment runs for project"""
+    try:
+        # TODO: Implement org-scoped run retrieval
+        mock_runs = [
+            {
+                "id": "env-1635789123",
+                "project_id": project_id or "proj-123",
+                "assessment_types": ["air_quality", "climate"],
+                "overall_risk_level": "medium",
+                "overall_score": 42.5,
+                "created_at": "2024-10-02T14:30:00Z"
+            }
+        ]
+        
+        return {
+            "success": True,
+            "runs": mock_runs,
+            "total": len(mock_runs)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch environment runs: {str(e)}")
+
+# =====================================
+# SUBMISSION PACK MODULE
+# =====================================
+
+@app.post("/api/submission-pack/create")
+async def create_submission_pack(
+    pack_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create submission pack for project"""
+    try:
+        # TODO: Implement quota check and pack creation with S3 storage
+        project_id = pack_data.get("project_id")
+        selected_docs = pack_data.get("documents", [])
+        
+        # Mock document checksums
+        manifest = {
+            "pack_id": f"pack-{int(time.time())}",
+            "project_id": project_id,
+            "created_at": datetime.now().isoformat(),
+            "documents": [
+                {
+                    "filename": doc["filename"],
+                    "type": doc["type"],
+                    "sha256": f"sha256_{hash(doc['filename'])}"[:16] + "...",
+                    "size_bytes": random.randint(100000, 5000000)
+                }
+                for doc in selected_docs
+            ],
+            "total_size_mb": round(sum(random.randint(100000, 5000000) for _ in selected_docs) / 1024 / 1024, 2)
+        }
+        
+        pack_result = {
+            "pack_id": manifest["pack_id"],
+            "project_id": project_id,
+            "pack_name": pack_data.get("pack_name", "Planning Submission"),
+            "manifest": manifest,
+            "download_url": f"https://storage.domusplanning.co.uk/packs/{manifest['pack_id']}.zip",
+            "authority_token": f"auth-{random.randint(100000, 999999)}",
+            "authority_url": f"https://domusplanning.co.uk/authority/{manifest['pack_id']}",
+            "created_at": datetime.now().isoformat(),
+            "expires_at": (datetime.now() + timedelta(days=90)).isoformat()
+        }
+        
+        return {
+            "success": True,
+            "submission_pack": pack_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create submission pack: {str(e)}")
+
+@app.get("/api/submission-pack")
+async def get_submission_packs(
+    project_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get submission packs for project"""
+    try:
+        # TODO: Implement org-scoped pack retrieval
+        mock_packs = [
+            {
+                "pack_id": "pack-1635789123",
+                "project_id": project_id or "proj-123",
+                "pack_name": "Full Planning Application",
+                "document_count": 8,
+                "total_size_mb": 24.5,
+                "authority_token": "auth-456789",
+                "status": "active",
+                "created_at": "2024-10-02T14:30:00Z",
+                "expires_at": "2025-01-02T14:30:00Z"
+            }
+        ]
+        
+        return {
+            "success": True,
+            "packs": mock_packs,
+            "total": len(mock_packs)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch submission packs: {str(e)}")
+
+# =====================================
+# OBJECTION RISK & APPEALS MODULE
+# =====================================
+
+@app.get("/api/objection/themes")
+async def get_objection_themes(
+    lpa: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get objection themes for LPA"""
+    try:
+        # TODO: Implement objection corpus query
+        mock_themes = [
+            {
+                "theme": "traffic_impact",
+                "frequency": 85,
+                "common_concerns": [
+                    "Increased traffic congestion",
+                    "Safety concerns at school times",
+                    "Inadequate parking provision"
+                ],
+                "mitigations": [
+                    "Comprehensive Traffic Impact Assessment",
+                    "Travel Plan implementation",
+                    "Junction improvement contribution"
+                ],
+                "citations": [
+                    {
+                        "policy": "Local Transport Plan",
+                        "section": "Policy T1",
+                        "url": f"https://{lpa}.gov.uk/transport-policy"
+                    }
+                ]
+            },
+            {
+                "theme": "character_design",
+                "frequency": 72,
+                "common_concerns": [
+                    "Out of character with area",
+                    "Overdevelopment of site",
+                    "Building height concerns"
+                ],
+                "mitigations": [
+                    "Detailed Design and Access Statement",
+                    "Character assessment",
+                    "Community consultation"
+                ],
+                "citations": [
+                    {
+                        "policy": "Local Plan",
+                        "section": "Policy DES1",
+                        "url": f"https://{lpa}.gov.uk/local-plan"
+                    }
+                ]
+            }
+        ]
+        
+        return {
+            "success": True,
+            "lpa_code": lpa,
+            "themes": mock_themes,
+            "total_objections_analyzed": 1247,
+            "last_updated": "2024-10-01T00:00:00Z"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch objection themes: {str(e)}")
+
+@app.get("/api/appeals/cases")
+async def get_appeals_cases(
+    lpa: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get appeals cases for LPA"""
+    try:
+        # TODO: Implement appeals database query
+        mock_cases = [
+            {
+                "appeal_ref": "APP/2024/123456",
+                "application_ref": "24/00123/FUL",
+                "decision": "allowed",
+                "appeal_type": "written_representations",
+                "development_type": "residential",
+                "decision_date": "2024-09-15",
+                "summary": "Appeal allowed due to insufficient harm to justify refusal",
+                "key_issues": [
+                    "Character and appearance",
+                    "Highway safety",
+                    "Residential amenity"
+                ],
+                "inspector_conclusions": [
+                    "Limited harm to character area",
+                    "Adequate visibility splays demonstrated",
+                    "No significant overlooking issues"
+                ],
+                "url": "https://planninginspectorate.gov.uk/appeals/APP/2024/123456"
+            }
+        ]
+        
+        success_rate = random.randint(35, 65)
+        
+        return {
+            "success": True,
+            "lpa_code": lpa,
+            "cases": mock_cases,
+            "statistics": {
+                "total_appeals": 45,
+                "allowed": 28,
+                "dismissed": 17,
+                "success_rate_percent": success_rate,
+                "average_determination_weeks": 12.5
+            },
+            "last_updated": "2024-10-01T00:00:00Z"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch appeals cases: {str(e)}")
+
+# =====================================
+# COLLABORATION MODULE
+# =====================================
+
+@app.post("/api/collab/invite")
+async def invite_collaborator(
+    invite_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Invite collaborator to project"""
+    try:
+        # TODO: Implement RBAC check and email invitation
+        invite_id = f"invite-{int(time.time())}"
+        
+        invitation = {
+            "invite_id": invite_id,
+            "project_id": invite_data.get("project_id"),
+            "email": invite_data.get("email"),
+            "role": invite_data.get("role", "viewer"),
+            "invited_by": current_user["email"],
+            "invited_at": datetime.now().isoformat(),
+            "status": "pending",
+            "expires_at": (datetime.now() + timedelta(days=7)).isoformat()
+        }
+        
+        return {
+            "success": True,
+            "invitation": invitation,
+            "message": f"Invitation sent to {invite_data.get('email')}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send invitation: {str(e)}")
+
+@app.post("/api/comments")
+async def create_comment(
+    comment_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create comment on project"""
+    try:
+        # TODO: Implement comment creation with audit logging
+        comment_id = f"comment-{int(time.time())}"
+        
+        comment = {
+            "comment_id": comment_id,
+            "project_id": comment_data.get("project_id"),
+            "context": comment_data.get("context", "doc"),
+            "body": comment_data.get("body"),
+            "author": {
+                "id": current_user["id"],
+                "email": current_user["email"],
+                "role": current_user["role"]
+            },
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "comment": comment
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create comment: {str(e)}")
+
+# =====================================
+# ADVANCED ANALYTICS MODULE
+# =====================================
+
+@app.get("/api/analytics/lpa")
+async def get_lpa_analytics(
+    lpa_code: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get LPA performance analytics"""
+    try:
+        # TODO: Implement LPA metrics aggregation
+        lpa_data = {
+            "lpa_code": lpa_code or "E07000008",
+            "lpa_name": "Cambridge City Council",
+            "performance_metrics": {
+                "approval_rate_percent": random.randint(70, 90),
+                "average_decision_time_weeks": random.randint(10, 16),
+                "appeal_success_rate_percent": random.randint(30, 60),
+                "housing_delivery_test_percent": random.randint(85, 120),
+                "five_year_land_supply_years": round(random.uniform(3.5, 6.2), 1),
+                "tilted_balance_active": random.choice([True, False])
+            },
+            "trend_data": {
+                "approval_rates_12m": [random.randint(70, 90) for _ in range(12)],
+                "decision_times_12m": [random.randint(10, 16) for _ in range(12)],
+                "application_volumes_12m": [random.randint(50, 150) for _ in range(12)]
+            },
+            "last_updated": "2024-10-01T00:00:00Z"
+        }
+        
+        return {
+            "success": True,
+            "lpa_analytics": lpa_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch LPA analytics: {str(e)}")
+
+@app.get("/api/analytics/org-insights")
+async def get_org_insights(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get organization insights and knowledge graph"""
+    try:
+        # TODO: Implement org knowledge graph analysis
+        insights = {
+            "org_id": current_user["org_id"],
+            "success_patterns": [
+                {
+                    "pattern": "Early community engagement",
+                    "frequency": 12,
+                    "success_rate_percent": 89,
+                    "description": "Projects with early engagement have higher approval rates"
+                },
+                {
+                    "pattern": "Comprehensive transport assessment",
+                    "frequency": 8,
+                    "success_rate_percent": 85,
+                    "description": "Detailed transport work reduces objection risk"
+                }
+            ],
+            "risk_factors": [
+                {
+                    "factor": "Insufficient parking provision",
+                    "frequency": 6,
+                    "impact_score": 75,
+                    "mitigation": "Robust parking demand analysis"
+                },
+                {
+                    "factor": "Heritage concerns",
+                    "frequency": 4,
+                    "impact_score": 65,
+                    "mitigation": "Early heritage pre-application advice"
+                }
+            ],
+            "performance_trends": {
+                "approval_rate_6m": [82, 85, 78, 91, 88, 86],
+                "average_determination_time_weeks": [14, 13, 15, 12, 13, 14],
+                "cost_savings_gbp": [15000, 22000, 18000, 31000, 28000, 25000]
+            },
+            "recommendations": [
+                "Consider standardizing community engagement approach",
+                "Develop heritage assessment checklist",
+                "Improve transport consultant briefing process"
+            ],
+            "last_updated": datetime.now().isoformat()
+        }
+        
+        return {
+            "success": True,
+            "org_insights": insights
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch org insights: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
