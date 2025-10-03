@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Management System - Domus Professional Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .document-card { transition: all 0.3s ease; }
+        .document-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .library-card { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .upload-card { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .templates-card { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .versions-card { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .approval-card { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .collaboration-card { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-draft { background: #e0e7ff; color: #3730a3; }
+        .version-badge { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .tree-view { border-left: 2px solid #e5e7eb; }
+        .tree-item { position: relative; }
+        .tree-item::before { content: ''; position: absolute; left: -8px; top: 18px; width: 14px; height: 1px; background: #e5e7eb; }
+        .folder-icon { color: #f59e0b; }
+        .file-icon { color: #3b82f6; }
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-circle { stroke-dasharray: 251.2; stroke-dashoffset: 251.2; transition: stroke-dashoffset 0.5s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="documentManagement()">
+    <!-- Header -->
+    <div class="gradient-bg text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">Document Management System</h1>
+                    <p class="text-blue-100 mt-2">Comprehensive document lifecycle management with version control and collaborative workflows</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>
+                        <span class="text-sm">Auto-sync: ON</span>
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                        <i class="fas fa-users mr-2"></i>
+                        <span class="text-sm" x-text="activeCollaborators + ' active'"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-file-alt text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.totalDocuments"></div>
+                        <div class="text-sm text-gray-600">Total Documents</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.approved"></div>
+                        <div class="text-sm text-gray-600">Approved</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-clock text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.pending"></div>
+                        <div class="text-sm text-gray-600">Pending Review</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-code-branch text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.versions"></div>
+                        <div class="text-sm text-gray-600">Active Versions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-users text-orange-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.collaborators"></div>
+                        <div class="text-sm text-gray-600">Collaborators</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-database text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900" x-text="stats.storageUsed"></div>
+                        <div class="text-sm text-gray-600">Storage Used</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-lg">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 px-6">
+                    <button 
+                        @click="activeTab = 'library'" 
+                        :class="activeTab === 'library' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-folder-open mr-2"></i>Document Library
+                    </button>
+                    <button 
+                        @click="activeTab = 'upload'" 
+                        :class="activeTab === 'upload' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>Upload & Create
+                    </button>
+                    <button 
+                        @click="activeTab = 'templates'" 
+                        :class="activeTab === 'templates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-file-contract mr-2"></i>Templates
+                    </button>
+                    <button 
+                        @click="activeTab = 'approval'" 
+                        :class="activeTab === 'approval' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-tasks mr-2"></i>Approval Workflows
+                    </button>
+                    <button 
+                        @click="activeTab = 'collaboration'" 
+                        :class="activeTab === 'collaboration' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <i class="fas fa-users-cog mr-2"></i>Collaboration
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Document Library Tab -->
+                <div x-show="activeTab === 'library'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <!-- Folder Tree -->
+                        <div class="lg:col-span-1">
+                            <div class="library-card text-white p-4 rounded-xl mb-4">
+                                <h3 class="text-lg font-bold mb-2">
+                                    <i class="fas fa-folder-tree mr-2"></i>Folder Structure
+                                </h3>
+                                <div class="flex space-x-2">
+                                    <button 
+                                        @click="viewMode = 'tree'"
+                                        :class="viewMode === 'tree' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'"
+                                        class="px-3 py-1 rounded-lg text-sm font-medium">Tree</button>
+                                    <button 
+                                        @click="viewMode = 'grid'"
+                                        :class="viewMode === 'grid' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'"
+                                        class="px-3 py-1 rounded-lg text-sm font-medium">Grid</button>
+                                    <button 
+                                        @click="viewMode = 'list'"
+                                        :class="viewMode === 'list' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'"
+                                        class="px-3 py-1 rounded-lg text-sm font-medium">List</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-lg p-4">
+                                <div class="tree-view space-y-2">
+                                    <template x-for="folder in folderStructure" :key="folder.id">
+                                        <div class="tree-item">
+                                            <div 
+                                                @click="toggleFolder(folder.id)"
+                                                class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                                <i :class="folder.expanded ? 'fas fa-folder-open folder-icon' : 'fas fa-folder folder-icon'" class="mr-2"></i>
+                                                <span class="text-sm font-medium" x-text="folder.name"></span>
+                                                <span class="ml-auto text-xs text-gray-500" x-text="folder.count + ' items'"></span>
+                                            </div>
+                                            <div x-show="folder.expanded" class="ml-6 space-y-1">
+                                                <template x-for="subfolder in folder.children" :key="subfolder.id">
+                                                    <div class="flex items-center p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                                        <i class="fas fa-folder-open folder-icon mr-2 text-sm"></i>
+                                                        <span class="text-sm" x-text="subfolder.name"></span>
+                                                        <span class="ml-auto text-xs text-gray-500" x-text="subfolder.count"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Document Grid -->
+                        <div class="lg:col-span-3">
+                            <div class="flex justify-between items-center mb-6">
+                                <div class="flex items-center space-x-4">
+                                    <div class="relative">
+                                        <input 
+                                            type="text" 
+                                            x-model="searchQuery"
+                                            placeholder="Search documents..." 
+                                            class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                    </div>
+                                    <select x-model="filterType" class="border border-gray-300 rounded-lg px-3 py-2">
+                                        <option value="all">All Types</option>
+                                        <option value="pdf">PDF Documents</option>
+                                        <option value="docx">Word Documents</option>
+                                        <option value="xlsx">Spreadsheets</option>
+                                        <option value="pptx">Presentations</option>
+                                        <option value="dwg">CAD Files</option>
+                                    </select>
+                                    <select x-model="sortBy" class="border border-gray-300 rounded-lg px-3 py-2">
+                                        <option value="modified">Last Modified</option>
+                                        <option value="name">Name</option>
+                                        <option value="size">File Size</option>
+                                        <option value="type">File Type</option>
+                                    </select>
+                                </div>
+                                <button 
+                                    @click="createNewFolder()"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-folder-plus mr-2"></i>New Folder
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <template x-for="document in filteredDocuments" :key="document.id">
+                                    <div 
+                                        @click="selectDocument(document)"
+                                        :class="selectedDocument?.id === document.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'"
+                                        class="document-card border rounded-lg p-4 cursor-pointer transition-all">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <div class="flex items-center">
+                                                <i :class="getFileIcon(document.type)" class="file-icon text-2xl mr-3"></i>
+                                                <div>
+                                                    <div class="font-semibold text-sm text-gray-900" x-text="document.name"></div>
+                                                    <div class="text-xs text-gray-500" x-text="document.size"></div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span :class="getStatusClass(document.status)" class="px-2 py-1 rounded-full text-xs font-medium" x-text="document.status"></span>
+                                                <span x-show="document.hasNewVersion" class="w-2 h-2 bg-red-500 rounded-full version-badge"></span>
+                                            </div>
+                                        </div>
+                                        <div class="text-sm text-gray-600 mb-3" x-text="document.description"></div>
+                                        <div class="flex items-center justify-between text-xs text-gray-500">
+                                            <span>Modified: <span x-text="document.lastModified"></span></span>
+                                            <span>v<span x-text="document.version"></span></span>
+                                        </div>
+                                        <div class="flex items-center mt-2">
+                                            <div class="flex -space-x-2">
+                                                <template x-for="collaborator in document.collaborators.slice(0, 3)" :key="collaborator.id">
+                                                    <img :src="collaborator.avatar" :alt="collaborator.name" class="w-6 h-6 rounded-full border-2 border-white">
+                                                </template>
+                                                <div x-show="document.collaborators.length > 3" class="w-6 h-6 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium">
+                                                    +<span x-text="document.collaborators.length - 3"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload & Create Tab -->
+                <div x-show="activeTab === 'upload'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="upload-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-cloud-upload-alt mr-2"></i>Upload Documents
+                            </h3>
+                            <div 
+                                @drop="handleDrop($event)" 
+                                @dragover.prevent 
+                                @dragenter.prevent
+                                class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4 transition-colors hover:border-blue-400">
+                                <div class="mb-4">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                                </div>
+                                <p class="text-lg font-medium text-gray-900 mb-2">Drop files here or click to browse</p>
+                                <p class="text-sm text-gray-600 mb-4">Supports PDF, DOC, XLS, PPT, DWG, and more</p>
+                                <input type="file" multiple class="hidden" @change="handleFileSelect($event)">
+                                <button 
+                                    @click="$event.target.previousElementSibling.click()"
+                                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    Choose Files
+                                </button>
+                            </div>
+                            <div x-show="uploadFiles.length > 0" class="space-y-2">
+                                <h4 class="font-semibold">Files to Upload:</h4>
+                                <template x-for="file in uploadFiles" :key="file.name">
+                                    <div class="flex items-center justify-between p-2 bg-white/50 rounded">
+                                        <span class="text-sm" x-text="file.name"></span>
+                                        <button @click="removeFile(file)" class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </template>
+                                <button 
+                                    @click="uploadFiles()"
+                                    class="w-full mt-4 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-upload mr-2"></i>Upload All Files
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">Create New Document</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button 
+                                        @click="createDocument('word')"
+                                        class="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors text-center">
+                                        <i class="fas fa-file-word text-blue-600 text-2xl mb-2"></i>
+                                        <div class="text-sm font-medium">Word Document</div>
+                                    </button>
+                                    <button 
+                                        @click="createDocument('excel')"
+                                        class="p-4 border border-gray-200 rounded-lg hover:border-green-300 transition-colors text-center">
+                                        <i class="fas fa-file-excel text-green-600 text-2xl mb-2"></i>
+                                        <div class="text-sm font-medium">Excel Spreadsheet</div>
+                                    </button>
+                                    <button 
+                                        @click="createDocument('powerpoint')"
+                                        class="p-4 border border-gray-200 rounded-lg hover:border-orange-300 transition-colors text-center">
+                                        <i class="fas fa-file-powerpoint text-orange-600 text-2xl mb-2"></i>
+                                        <div class="text-sm font-medium">PowerPoint</div>
+                                    </button>
+                                    <button 
+                                        @click="createDocument('pdf')"
+                                        class="p-4 border border-gray-200 rounded-lg hover:border-red-300 transition-colors text-center">
+                                        <i class="fas fa-file-pdf text-red-600 text-2xl mb-2"></i>
+                                        <div class="text-sm font-medium">PDF Document</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">Recent Uploads</h4>
+                                <div class="space-y-3">
+                                    <template x-for="upload in recentUploads" :key="upload.id">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <i :class="getFileIcon(upload.type)" class="file-icon mr-3"></i>
+                                                <div>
+                                                    <div class="text-sm font-medium" x-text="upload.name"></div>
+                                                    <div class="text-xs text-gray-500" x-text="upload.uploadTime"></div>
+                                                </div>
+                                            </div>
+                                            <span :class="getStatusClass(upload.status)" class="px-2 py-1 rounded-full text-xs font-medium" x-text="upload.status"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Templates Tab -->
+                <div x-show="activeTab === 'templates'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">
+                                    <i class="fas fa-file-contract mr-2 text-yellow-500"></i>Document Templates
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <template x-for="template in documentTemplates" :key="template.id">
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                            <div class="flex items-start justify-between">
+                                                <div class="flex-1">
+                                                    <h5 class="font-semibold text-gray-900" x-text="template.name"></h5>
+                                                    <p class="text-sm text-gray-600 mt-1" x-text="template.description"></p>
+                                                    <div class="flex items-center mt-3 space-x-4">
+                                                        <span class="text-sm text-gray-500">
+                                                            <i class="fas fa-download mr-1"></i>
+                                                            <span x-text="template.downloads"></span> uses
+                                                        </span>
+                                                        <span class="text-sm text-gray-500">
+                                                            <i class="fas fa-star mr-1"></i>
+                                                            <span x-text="template.rating"></span>/5
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <i :class="getFileIcon(template.type)" class="file-icon text-2xl"></i>
+                                            </div>
+                                            <div class="flex space-x-2 mt-4">
+                                                <button 
+                                                    @click="useTemplate(template)"
+                                                    class="flex-1 px-3 py-1 bg-blue-100 text-blue-600 rounded-md text-sm hover:bg-blue-200">
+                                                    <i class="fas fa-play mr-1"></i>Use Template
+                                                </button>
+                                                <button 
+                                                    @click="previewTemplate(template)"
+                                                    class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200">
+                                                    <i class="fas fa-eye mr-1"></i>Preview
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="templates-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-plus-circle mr-2"></i>Create Template
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Template Name</label>
+                                    <input type="text" placeholder="e.g., Planning Application Template" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Category</label>
+                                    <select class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                        <option>Planning Applications</option>
+                                        <option>Reports & Studies</option>
+                                        <option>Legal Documents</option>
+                                        <option>Correspondence</option>
+                                        <option>Technical Drawings</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Base Document</label>
+                                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                        <i class="fas fa-upload text-gray-400 text-xl mb-2"></i>
+                                        <p class="text-sm text-gray-600">Upload base document</p>
+                                    </div>
+                                </div>
+                                <button class="w-full bg-yellow-600 text-white py-3 rounded-lg font-semibold hover:bg-yellow-700 transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Create Template
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approval Workflows Tab -->
+                <div x-show="activeTab === 'approval'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white p-6 rounded-xl shadow-lg">
+                                <h4 class="text-lg font-semibold mb-4">
+                                    <i class="fas fa-tasks mr-2 text-purple-500"></i>Active Approval Workflows
+                                </h4>
+                                <div class="space-y-4">
+                                    <template x-for="workflow in approvalWorkflows" :key="workflow.id">
+                                        <div class="border border-gray-200 rounded-lg p-4">
+                                            <div class="flex justify-between items-start mb-3">
+                                                <div>
+                                                    <h5 class="font-semibold text-gray-900" x-text="workflow.documentName"></h5>
+                                                    <p class="text-sm text-gray-600" x-text="workflow.workflow"></p>
+                                                </div>
+                                                <span :class="getStatusClass(workflow.status)" class="px-2 py-1 rounded-full text-xs font-medium" x-text="workflow.status"></span>
+                                            </div>
+                                            <div class="flex items-center mb-3">
+                                                <div class="flex-1 relative">
+                                                    <div class="absolute inset-0 flex items-center">
+                                                        <div class="w-full border-t border-gray-300"></div>
+                                                    </div>
+                                                    <div class="relative flex justify-between">
+                                                        <template x-for="(step, index) in workflow.steps" :key="index">
+                                                            <div class="flex flex-col items-center">
+                                                                <div :class="step.completed ? 'bg-green-500' : step.current ? 'bg-blue-500' : 'bg-gray-300'" class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                                                                    <i x-show="step.completed" class="fas fa-check"></i>
+                                                                    <span x-show="!step.completed" x-text="index + 1"></span>
+                                                                </div>
+                                                                <span class="text-xs text-gray-600 mt-1" x-text="step.name"></span>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-2">
+                                                    <img :src="workflow.currentApprover.avatar" :alt="workflow.currentApprover.name" class="w-6 h-6 rounded-full">
+                                                    <span class="text-sm text-gray-600">Awaiting: <span x-text="workflow.currentApprover.name"></span></span>
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    Due: <span x-text="workflow.dueDate"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="approval-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-cogs mr-2"></i>Create Workflow
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Workflow Name</label>
+                                    <input type="text" placeholder="e.g., Planning Report Review" class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Document Type</label>
+                                    <select class="w-full px-4 py-2 rounded-lg border border-gray-300">
+                                        <option>Planning Applications</option>
+                                        <option>Technical Reports</option>
+                                        <option>Legal Documents</option>
+                                        <option>Financial Reports</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Approval Steps</label>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="text" placeholder="Step name" class="flex-1 px-3 py-2 border border-gray-300 rounded">
+                                            <select class="px-3 py-2 border border-gray-300 rounded">
+                                                <option>Approver</option>
+                                                <option>Reviewer</option>
+                                                <option>Signoff</option>
+                                            </select>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button class="mt-2 text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-plus mr-1"></i>Add Step
+                                    </button>
+                                </div>
+                                <button class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                                    <i class="fas fa-save mr-2"></i>Create Workflow
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collaboration Tab -->
+                <div x-show="activeTab === 'collaboration'" class="fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="collaboration-card text-gray-800 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold mb-4">
+                                <i class="fas fa-users-cog mr-2"></i>Team Collaboration
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Invite Collaborators</label>
+                                    <div class="flex space-x-2">
+                                        <input type="email" placeholder="colleague@email.com" class="flex-1 px-4 py-2 rounded-lg border border-gray-300">
+                                        <select class="px-3 py-2 border border-gray-300 rounded">
+                                            <option>View</option>
+                                            <option>Edit</option>
+                                            <option>Admin</option>
+                                        </select>
+                                        <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Access Permissions</label>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" checked class="rounded border-gray-300 text-blue-600">
+                                            <span class="ml-2 text-sm">Allow document download</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" class="rounded border-gray-300 text-blue-600">
+                                            <span class="ml-2 text-sm">Allow external sharing</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" checked class="rounded border-gray-300 text-blue-600">
+                                            <span class="ml-2 text-sm">Track access and changes</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button class="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors">
+                                    <i class="fas fa-share-alt mr-2"></i>Create Shared Workspace
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h4 class="text-lg font-semibold mb-4">Active Collaborations</h4>
+                            <div class="space-y-4">
+                                <template x-for="collaboration in activeCollaborations" :key="collaboration.id">
+                                    <div class="border border-gray-200 rounded-lg p-4">
+                                        <div class="flex justify-between items-start mb-3">
+                                            <div>
+                                                <h5 class="font-semibold text-gray-900" x-text="collaboration.projectName"></h5>
+                                                <p class="text-sm text-gray-600" x-text="collaboration.description"></p>
+                                            </div>
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Active</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="flex -space-x-2">
+                                                    <template x-for="member in collaboration.members.slice(0, 4)" :key="member.id">
+                                                        <img :src="member.avatar" :alt="member.name" class="w-8 h-8 rounded-full border-2 border-white">
+                                                    </template>
+                                                    <div x-show="collaboration.members.length > 4" class="w-8 h-8 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium">
+                                                        +<span x-text="collaboration.members.length - 4"></span>
+                                                    </div>
+                                                </div>
+                                                <span class="ml-3 text-sm text-gray-600" x-text="collaboration.members.length + ' members'"></span>
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                Last activity: <span x-text="collaboration.lastActivity"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function documentManagement() {
+            return {
+                activeTab: 'library',
+                viewMode: 'grid',
+                searchQuery: '',
+                filterType: 'all',
+                sortBy: 'modified',
+                selectedDocument: null,
+                uploadFiles: [],
+                activeCollaborators: 8,
+                stats: {
+                    totalDocuments: 1247,
+                    approved: 892,
+                    pending: 156,
+                    versions: 2341,
+                    collaborators: 23,
+                    storageUsed: '2.4GB'
+                },
+                folderStructure: [
+                    {
+                        id: 1,
+                        name: 'Planning Applications',
+                        count: 245,
+                        expanded: true,
+                        children: [
+                            { id: 11, name: 'Residential', count: 156 },
+                            { id: 12, name: 'Commercial', count: 67 },
+                            { id: 13, name: 'Mixed Use', count: 22 }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'Technical Reports',
+                        count: 189,
+                        expanded: false,
+                        children: [
+                            { id: 21, name: 'Environmental', count: 89 },
+                            { id: 22, name: 'Transport', count: 56 },
+                            { id: 23, name: 'Heritage', count: 44 }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: 'Legal Documents',
+                        count: 134,
+                        expanded: false,
+                        children: [
+                            { id: 31, name: 'Contracts', count: 78 },
+                            { id: 32, name: 'Agreements', count: 56 }
+                        ]
+                    }
+                ],
+                documents: [
+                    {
+                        id: 1,
+                        name: 'Riverside Development - Planning Application',
+                        type: 'pdf',
+                        size: '2.4 MB',
+                        description: 'Complete planning application for 50-unit residential development',
+                        status: 'Approved',
+                        lastModified: '2 hours ago',
+                        version: '3.2',
+                        hasNewVersion: false,
+                        collaborators: [
+                            { id: 1, name: 'Sarah Johnson', avatar: '/api/placeholder/24/24' },
+                            { id: 2, name: 'Michael Brown', avatar: '/api/placeholder/24/24' },
+                            { id: 3, name: 'Emma Wilson', avatar: '/api/placeholder/24/24' }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'Transport Assessment Report',
+                        type: 'docx',
+                        size: '1.8 MB',
+                        description: 'Comprehensive transport impact assessment',
+                        status: 'Pending',
+                        lastModified: '1 day ago',
+                        version: '2.1',
+                        hasNewVersion: true,
+                        collaborators: [
+                            { id: 4, name: 'David Chen', avatar: '/api/placeholder/24/24' },
+                            { id: 5, name: 'Lisa Park', avatar: '/api/placeholder/24/24' }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: 'Site Plans and Elevations',
+                        type: 'dwg',
+                        size: '15.6 MB',
+                        description: 'Architectural drawings and site layout plans',
+                        status: 'Draft',
+                        lastModified: '3 days ago',
+                        version: '1.5',
+                        hasNewVersion: false,
+                        collaborators: [
+                            { id: 6, name: 'Tom Wilson', avatar: '/api/placeholder/24/24' },
+                            { id: 7, name: 'Amy Rodriguez', avatar: '/api/placeholder/24/24' },
+                            { id: 8, name: 'James Taylor', avatar: '/api/placeholder/24/24' },
+                            { id: 9, name: 'Kate Miller', avatar: '/api/placeholder/24/24' }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        name: 'Environmental Impact Study',
+                        type: 'pdf',
+                        size: '4.2 MB',
+                        description: 'Detailed environmental assessment and mitigation measures',
+                        status: 'Approved',
+                        lastModified: '1 week ago',
+                        version: '2.3',
+                        hasNewVersion: false,
+                        collaborators: [
+                            { id: 10, name: 'Rachel Green', avatar: '/api/placeholder/24/24' },
+                            { id: 11, name: 'Mark Johnson', avatar: '/api/placeholder/24/24' }
+                        ]
+                    }
+                ],
+                documentTemplates: [
+                    {
+                        id: 1,
+                        name: 'Planning Application Template',
+                        description: 'Standard template for UK planning applications',
+                        type: 'docx',
+                        downloads: 234,
+                        rating: 4.8
+                    },
+                    {
+                        id: 2,
+                        name: 'Design & Access Statement',
+                        description: 'Professional D&A statement template',
+                        type: 'docx',
+                        downloads: 189,
+                        rating: 4.6
+                    },
+                    {
+                        id: 3,
+                        name: 'Heritage Statement Template',
+                        description: 'Comprehensive heritage assessment template',
+                        type: 'docx',
+                        downloads: 156,
+                        rating: 4.9
+                    },
+                    {
+                        id: 4,
+                        name: 'Transport Assessment',
+                        description: 'Traffic impact assessment template',
+                        type: 'xlsx',
+                        downloads: 145,
+                        rating: 4.7
+                    }
+                ],
+                approvalWorkflows: [
+                    {
+                        id: 1,
+                        documentName: 'Green Valley Planning Report',
+                        workflow: 'Standard Review Process',
+                        status: 'Pending',
+                        currentApprover: { name: 'Sarah Johnson', avatar: '/api/placeholder/24/24' },
+                        dueDate: '15 Oct 2024',
+                        steps: [
+                            { name: 'Draft', completed: true, current: false },
+                            { name: 'Review', completed: false, current: true },
+                            { name: 'Approve', completed: false, current: false },
+                            { name: 'Publish', completed: false, current: false }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        documentName: 'City Centre Plaza Proposal',
+                        workflow: 'Legal Review Process',
+                        status: 'Approved',
+                        currentApprover: { name: 'Michael Brown', avatar: '/api/placeholder/24/24' },
+                        dueDate: '10 Oct 2024',
+                        steps: [
+                            { name: 'Draft', completed: true, current: false },
+                            { name: 'Legal', completed: true, current: false },
+                            { name: 'Final', completed: true, current: false },
+                            { name: 'Archive', completed: false, current: true }
+                        ]
+                    }
+                ],
+                activeCollaborations: [
+                    {
+                        id: 1,
+                        projectName: 'Riverside Development',
+                        description: 'Mixed-use residential development project',
+                        members: [
+                            { id: 1, name: 'Sarah', avatar: '/api/placeholder/32/32' },
+                            { id: 2, name: 'Michael', avatar: '/api/placeholder/32/32' },
+                            { id: 3, name: 'Emma', avatar: '/api/placeholder/32/32' },
+                            { id: 4, name: 'David', avatar: '/api/placeholder/32/32' },
+                            { id: 5, name: 'Lisa', avatar: '/api/placeholder/32/32' }
+                        ],
+                        lastActivity: '2 hours ago'
+                    },
+                    {
+                        id: 2,
+                        projectName: 'Green Valley Homes',
+                        description: 'Affordable housing development',
+                        members: [
+                            { id: 6, name: 'Tom', avatar: '/api/placeholder/32/32' },
+                            { id: 7, name: 'Amy', avatar: '/api/placeholder/32/32' },
+                            { id: 8, name: 'James', avatar: '/api/placeholder/32/32' }
+                        ],
+                        lastActivity: '1 day ago'
+                    }
+                ],
+                recentUploads: [
+                    {
+                        id: 1,
+                        name: 'Site Survey Report.pdf',
+                        type: 'pdf',
+                        status: 'Processing',
+                        uploadTime: '5 minutes ago'
+                    },
+                    {
+                        id: 2,
+                        name: 'Updated Floor Plans.dwg',
+                        type: 'dwg',
+                        status: 'Complete',
+                        uploadTime: '1 hour ago'
+                    },
+                    {
+                        id: 3,
+                        name: 'Budget Analysis.xlsx',
+                        type: 'xlsx',
+                        status: 'Complete',
+                        uploadTime: '3 hours ago'
+                    }
+                ],
+
+                get filteredDocuments() {
+                    let filtered = this.documents;
+                    
+                    if (this.searchQuery) {
+                        filtered = filtered.filter(doc => 
+                            doc.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                            doc.description.toLowerCase().includes(this.searchQuery.toLowerCase())
+                        );
+                    }
+                    
+                    if (this.filterType !== 'all') {
+                        filtered = filtered.filter(doc => doc.type === this.filterType);
+                    }
+                    
+                    return filtered;
+                },
+
+                selectDocument(document) {
+                    this.selectedDocument = document;
+                },
+
+                toggleFolder(folderId) {
+                    const folder = this.folderStructure.find(f => f.id === folderId);
+                    if (folder) {
+                        folder.expanded = !folder.expanded;
+                    }
+                },
+
+                getFileIcon(type) {
+                    const icons = {
+                        pdf: 'fas fa-file-pdf',
+                        docx: 'fas fa-file-word',
+                        xlsx: 'fas fa-file-excel',
+                        pptx: 'fas fa-file-powerpoint',
+                        dwg: 'fas fa-file-image',
+                        txt: 'fas fa-file-alt'
+                    };
+                    return icons[type] || 'fas fa-file';
+                },
+
+                getStatusClass(status) {
+                    const classes = {
+                        'Approved': 'status-approved',
+                        'Pending': 'status-pending',
+                        'Rejected': 'status-rejected',
+                        'Draft': 'status-draft',
+                        'Processing': 'status-pending',
+                        'Complete': 'status-approved'
+                    };
+                    return classes[status] || 'status-draft';
+                },
+
+                handleDrop(event) {
+                    event.preventDefault();
+                    const files = Array.from(event.dataTransfer.files);
+                    this.uploadFiles = [...this.uploadFiles, ...files];
+                },
+
+                handleFileSelect(event) {
+                    const files = Array.from(event.target.files);
+                    this.uploadFiles = [...this.uploadFiles, ...files];
+                },
+
+                removeFile(file) {
+                    this.uploadFiles = this.uploadFiles.filter(f => f !== file);
+                },
+
+                uploadFiles() {
+                    // Simulate file upload
+                    console.log('Uploading files:', this.uploadFiles);
+                    this.uploadFiles = [];
+                },
+
+                createDocument(type) {
+                    console.log('Creating new document:', type);
+                },
+
+                useTemplate(template) {
+                    console.log('Using template:', template);
+                },
+
+                previewTemplate(template) {
+                    console.log('Previewing template:', template);
+                },
+
+                createNewFolder() {
+                    console.log('Creating new folder');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

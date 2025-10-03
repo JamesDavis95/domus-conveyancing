@@ -3205,6 +3205,904 @@ async def get_automation_stats():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch automation stats: {str(e)}")
 
+# ================================
+# DOCUMENT MANAGEMENT SYSTEM
+# ================================
+
+class DocumentUpload(BaseModel):
+    filename: str
+    file_type: str
+    file_size: int
+    folder_id: Optional[str] = None
+    description: Optional[str] = None
+
+class DocumentShare(BaseModel):
+    document_id: str
+    user_emails: List[str]
+    permission_level: str = "view"  # view, edit, admin
+    message: Optional[str] = None
+
+class WorkflowCreate(BaseModel):
+    name: str
+    document_type: str
+    steps: List[dict]
+    auto_assign: bool = False
+
+class FolderCreate(BaseModel):
+    name: str
+    parent_id: Optional[str] = None
+    description: Optional[str] = None
+
+@app.get("/document-management")
+async def document_management(request: Request):
+    """Document Management main page"""
+    return templates.TemplateResponse("document_management.html", {"request": request})
+
+@app.get("/api/documents/library")
+async def get_document_library():
+    """Get document library with folder structure and files"""
+    try:
+        folder_structure = [
+            {
+                "id": "folder_001",
+                "name": "Planning Applications",
+                "count": 245,
+                "expanded": True,
+                "parent_id": None,
+                "created_date": "2024-01-15",
+                "modified_date": "2024-10-03",
+                "children": [
+                    {
+                        "id": "folder_011",
+                        "name": "Residential",
+                        "count": 156,
+                        "parent_id": "folder_001",
+                        "description": "Residential development applications"
+                    },
+                    {
+                        "id": "folder_012", 
+                        "name": "Commercial",
+                        "count": 67,
+                        "parent_id": "folder_001",
+                        "description": "Commercial development applications"
+                    },
+                    {
+                        "id": "folder_013",
+                        "name": "Mixed Use",
+                        "count": 22,
+                        "parent_id": "folder_001",
+                        "description": "Mixed-use development applications"
+                    }
+                ]
+            },
+            {
+                "id": "folder_002",
+                "name": "Technical Reports",
+                "count": 189,
+                "expanded": False,
+                "parent_id": None,
+                "created_date": "2024-01-20",
+                "modified_date": "2024-09-28",
+                "children": [
+                    {
+                        "id": "folder_021",
+                        "name": "Environmental",
+                        "count": 89,
+                        "parent_id": "folder_002",
+                        "description": "Environmental impact assessments"
+                    },
+                    {
+                        "id": "folder_022",
+                        "name": "Transport",
+                        "count": 56,
+                        "parent_id": "folder_002",
+                        "description": "Transport and traffic studies"
+                    },
+                    {
+                        "id": "folder_023",
+                        "name": "Heritage",
+                        "count": 44,
+                        "parent_id": "folder_002",
+                        "description": "Heritage and archaeological assessments"
+                    }
+                ]
+            },
+            {
+                "id": "folder_003",
+                "name": "Legal Documents",
+                "count": 134,
+                "expanded": False,
+                "parent_id": None,
+                "created_date": "2024-02-01",
+                "modified_date": "2024-09-25",
+                "children": [
+                    {
+                        "id": "folder_031",
+                        "name": "Contracts",
+                        "count": 78,
+                        "parent_id": "folder_003",
+                        "description": "Client contracts and agreements"
+                    },
+                    {
+                        "id": "folder_032",
+                        "name": "Legal Opinions",
+                        "count": 56,
+                        "parent_id": "folder_003",
+                        "description": "Legal advice and opinions"
+                    }
+                ]
+            },
+            {
+                "id": "folder_004",
+                "name": "Client Communications",
+                "count": 298,
+                "expanded": False,
+                "parent_id": None,
+                "created_date": "2024-01-10",
+                "modified_date": "2024-10-03",
+                "children": [
+                    {
+                        "id": "folder_041",
+                        "name": "Correspondence",
+                        "count": 156,
+                        "parent_id": "folder_004",
+                        "description": "Email and letter correspondence"
+                    },
+                    {
+                        "id": "folder_042",
+                        "name": "Meeting Notes",
+                        "count": 142,
+                        "parent_id": "folder_004",
+                        "description": "Meeting minutes and notes"
+                    }
+                ]
+            }
+        ]
+        
+        documents = [
+            {
+                "id": "doc_001",
+                "name": "Riverside Development - Planning Application",
+                "file_type": "pdf",
+                "file_size": "2.4 MB",
+                "file_size_bytes": 2516582,
+                "description": "Complete planning application for 50-unit residential development with supporting documents",
+                "status": "Approved",
+                "last_modified": "2024-10-03T14:30:00Z",
+                "created_date": "2024-09-15T09:00:00Z",
+                "version": "3.2",
+                "has_new_version": False,
+                "folder_id": "folder_011",
+                "download_url": "/api/documents/doc_001/download",
+                "preview_url": "/api/documents/doc_001/preview",
+                "collaborators": [
+                    {
+                        "id": "user_001",
+                        "name": "Sarah Johnson",
+                        "email": "sarah@domus.com",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Lead Planner",
+                        "last_accessed": "2024-10-03T14:30:00Z"
+                    },
+                    {
+                        "id": "user_002", 
+                        "name": "Michael Brown",
+                        "email": "michael@domus.com",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Senior Consultant",
+                        "last_accessed": "2024-10-03T12:15:00Z"
+                    },
+                    {
+                        "id": "user_003",
+                        "name": "Emma Wilson",
+                        "email": "emma@domus.com",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Associate Planner",
+                        "last_accessed": "2024-10-02T16:45:00Z"
+                    }
+                ],
+                "tags": ["residential", "planning", "approved"],
+                "access_permissions": {
+                    "can_download": True,
+                    "can_edit": True,
+                    "can_share": True,
+                    "can_delete": False
+                }
+            },
+            {
+                "id": "doc_002",
+                "name": "Transport Assessment Report - Green Valley",
+                "file_type": "docx",
+                "file_size": "1.8 MB", 
+                "file_size_bytes": 1887436,
+                "description": "Comprehensive transport impact assessment including junction capacity analysis and parking provision",
+                "status": "Pending Review",
+                "last_modified": "2024-10-02T11:20:00Z",
+                "created_date": "2024-09-28T14:00:00Z",
+                "version": "2.1",
+                "has_new_version": True,
+                "folder_id": "folder_022",
+                "download_url": "/api/documents/doc_002/download",
+                "preview_url": "/api/documents/doc_002/preview",
+                "collaborators": [
+                    {
+                        "id": "user_004",
+                        "name": "David Chen",
+                        "email": "david@transport.co.uk",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Transport Consultant",
+                        "last_accessed": "2024-10-02T11:20:00Z"
+                    },
+                    {
+                        "id": "user_005",
+                        "name": "Lisa Park",
+                        "email": "lisa@domus.com",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Project Manager",
+                        "last_accessed": "2024-10-01T15:30:00Z"
+                    }
+                ],
+                "tags": ["transport", "assessment", "pending"],
+                "access_permissions": {
+                    "can_download": True,
+                    "can_edit": True,
+                    "can_share": True,
+                    "can_delete": False
+                }
+            },
+            {
+                "id": "doc_003",
+                "name": "Architectural Plans - City Centre Plaza",
+                "file_type": "dwg",
+                "file_size": "15.6 MB",
+                "file_size_bytes": 16351436,
+                "description": "Complete architectural drawings including site plans, floor plans, elevations, and sections",
+                "status": "Draft",
+                "last_modified": "2024-09-30T16:45:00Z",
+                "created_date": "2024-09-20T10:00:00Z",
+                "version": "1.5",
+                "has_new_version": False,
+                "folder_id": "folder_012",
+                "download_url": "/api/documents/doc_003/download",
+                "preview_url": "/api/documents/doc_003/preview",
+                "collaborators": [
+                    {
+                        "id": "user_006",
+                        "name": "Tom Wilson",
+                        "email": "tom@architects.co.uk",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Architect",
+                        "last_accessed": "2024-09-30T16:45:00Z"
+                    },
+                    {
+                        "id": "user_007",
+                        "name": "Amy Rodriguez",
+                        "email": "amy@domus.com",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Design Coordinator",
+                        "last_accessed": "2024-09-30T14:20:00Z"
+                    }
+                ],
+                "tags": ["architecture", "plans", "draft"],
+                "access_permissions": {
+                    "can_download": True,
+                    "can_edit": True,
+                    "can_share": False,
+                    "can_delete": True
+                }
+            },
+            {
+                "id": "doc_004",
+                "name": "Environmental Impact Assessment",
+                "file_type": "pdf",
+                "file_size": "4.2 MB",
+                "file_size_bytes": 4404019,
+                "description": "Detailed environmental assessment covering ecology, air quality, noise, and contamination",
+                "status": "Approved",
+                "last_modified": "2024-09-25T13:10:00Z",
+                "created_date": "2024-08-15T09:30:00Z",
+                "version": "2.3",
+                "has_new_version": False,
+                "folder_id": "folder_021",
+                "download_url": "/api/documents/doc_004/download",
+                "preview_url": "/api/documents/doc_004/preview",
+                "collaborators": [
+                    {
+                        "id": "user_008",
+                        "name": "Rachel Green",
+                        "email": "rachel@environmental.co.uk",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Environmental Consultant",
+                        "last_accessed": "2024-09-25T13:10:00Z"
+                    },
+                    {
+                        "id": "user_009",
+                        "name": "Mark Johnson",
+                        "email": "mark@domus.com",
+                        "avatar": "/api/placeholder/32/32",
+                        "role": "Senior Associate",
+                        "last_accessed": "2024-09-24T11:45:00Z"
+                    }
+                ],
+                "tags": ["environmental", "assessment", "approved"],
+                "access_permissions": {
+                    "can_download": True,
+                    "can_edit": False,
+                    "can_share": True,
+                    "can_delete": False
+                }
+            }
+        ]
+        
+        return {
+            "success": True,
+            "folder_structure": folder_structure,
+            "documents": documents,
+            "statistics": {
+                "total_documents": len(documents),
+                "total_folders": sum(len(folder["children"]) for folder in folder_structure) + len(folder_structure),
+                "storage_used": "24.0 MB",
+                "storage_used_bytes": 25159473,
+                "storage_limit": "100 GB",
+                "storage_limit_bytes": 107374182400
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch document library: {str(e)}")
+
+@app.post("/api/documents/upload")
+async def upload_document(document: DocumentUpload):
+    """Upload a new document"""
+    try:
+        document_id = f"doc_{int(time.time())}"
+        
+        # Validate file type
+        allowed_types = ['pdf', 'docx', 'xlsx', 'pptx', 'dwg', 'txt', 'jpg', 'png']
+        if document.file_type not in allowed_types:
+            raise HTTPException(status_code=400, detail=f"File type {document.file_type} not allowed")
+        
+        # Check file size (50MB limit)
+        if document.file_size > 52428800:  # 50MB in bytes
+            raise HTTPException(status_code=400, detail="File size exceeds 50MB limit")
+        
+        # Generate file processing workflow
+        processing_steps = []
+        if document.file_type == 'pdf':
+            processing_steps.extend([
+                "Text extraction and indexing",
+                "Thumbnail generation",
+                "Metadata extraction"
+            ])
+        elif document.file_type in ['docx', 'xlsx', 'pptx']:
+            processing_steps.extend([
+                "Office document conversion",
+                "Content analysis", 
+                "Version tracking setup"
+            ])
+        elif document.file_type == 'dwg':
+            processing_steps.extend([
+                "CAD file validation",
+                "Drawing preview generation",
+                "Layer analysis"
+            ])
+        
+        return {
+            "success": True,
+            "document_id": document_id,
+            "upload_status": "Processing",
+            "filename": document.filename,
+            "file_type": document.file_type,
+            "file_size": document.file_size,
+            "folder_id": document.folder_id,
+            "description": document.description,
+            "processing_steps": processing_steps,
+            "estimated_completion": "2-5 minutes",
+            "upload_url": f"/api/documents/{document_id}/content",
+            "preview_available": "After processing",
+            "auto_actions": [
+                "Document indexed for search",
+                "Virus scan initiated",
+                "Backup copy created",
+                "Access permissions inherited from folder"
+            ],
+            "next_steps": [
+                "Complete file upload via upload_url",
+                "Add document tags and metadata",
+                "Configure sharing permissions",
+                "Set up approval workflow if required"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process upload: {str(e)}")
+
+@app.get("/api/documents/templates")
+async def get_document_templates():
+    """Get available document templates"""
+    try:
+        templates = [
+            {
+                "id": "template_001",
+                "name": "Planning Application Template",
+                "description": "Comprehensive template for UK planning applications including all required sections and guidance",
+                "category": "Planning Applications",
+                "file_type": "docx",
+                "file_size": "145 KB",
+                "downloads": 234,
+                "rating": 4.8,
+                "last_updated": "2024-09-15",
+                "created_by": "Domus Planning Team",
+                "preview_url": "/api/templates/template_001/preview",
+                "download_url": "/api/templates/template_001/download",
+                "variables": [
+                    "APPLICATION_SITE",
+                    "APPLICANT_NAME", 
+                    "PROPOSAL_DESCRIPTION",
+                    "LOCAL_AUTHORITY",
+                    "SUBMISSION_DATE"
+                ],
+                "sections": [
+                    "Application Form",
+                    "Design & Access Statement",
+                    "Planning Statement",
+                    "Supporting Documents Checklist"
+                ]
+            },
+            {
+                "id": "template_002",
+                "name": "Design & Access Statement Template",
+                "description": "Professional D&A statement template complying with latest planning requirements",
+                "category": "Planning Applications",
+                "file_type": "docx",
+                "file_size": "89 KB",
+                "downloads": 189,
+                "rating": 4.6,
+                "last_updated": "2024-08-22",
+                "created_by": "Urban Design Specialists",
+                "preview_url": "/api/templates/template_002/preview",
+                "download_url": "/api/templates/template_002/download",
+                "variables": [
+                    "SITE_CONTEXT",
+                    "DESIGN_PRINCIPLES",
+                    "ACCESS_STRATEGY",
+                    "SUSTAINABILITY_MEASURES"
+                ],
+                "sections": [
+                    "Site Analysis",
+                    "Design Evolution",
+                    "Access Arrangements",
+                    "Sustainability"
+                ]
+            },
+            {
+                "id": "template_003",
+                "name": "Heritage Statement Template",
+                "description": "Comprehensive heritage assessment template for conservation areas and listed buildings",
+                "category": "Technical Reports",
+                "file_type": "docx",
+                "file_size": "112 KB",
+                "downloads": 156,
+                "rating": 4.9,
+                "last_updated": "2024-09-01",
+                "created_by": "Heritage Consultants Ltd",
+                "preview_url": "/api/templates/template_003/preview",
+                "download_url": "/api/templates/template_003/download",
+                "variables": [
+                    "HERITAGE_ASSETS",
+                    "SIGNIFICANCE_ASSESSMENT",
+                    "IMPACT_EVALUATION",
+                    "MITIGATION_MEASURES"
+                ],
+                "sections": [
+                    "Heritage Baseline",
+                    "Significance Assessment",
+                    "Impact Analysis",
+                    "Mitigation Strategy"
+                ]
+            },
+            {
+                "id": "template_004",
+                "name": "Transport Assessment Template",
+                "description": "Traffic impact assessment template with calculation spreadsheets",
+                "category": "Technical Reports",
+                "file_type": "xlsx",
+                "file_size": "234 KB",
+                "downloads": 145,
+                "rating": 4.7,
+                "last_updated": "2024-09-10",
+                "created_by": "Transport Planning Associates",
+                "preview_url": "/api/templates/template_004/preview",
+                "download_url": "/api/templates/template_004/download",
+                "variables": [
+                    "DEVELOPMENT_TYPE",
+                    "TRIP_GENERATION",
+                    "CAPACITY_ANALYSIS",
+                    "MITIGATION_PROPOSALS"
+                ],
+                "sections": [
+                    "Baseline Conditions",
+                    "Trip Generation",
+                    "Impact Assessment",
+                    "Mitigation Measures"
+                ]
+            },
+            {
+                "id": "template_005",
+                "name": "Client Meeting Minutes Template",
+                "description": "Professional meeting minutes template for client consultations",
+                "category": "Communications",
+                "file_type": "docx",
+                "file_size": "45 KB",
+                "downloads": 298,
+                "rating": 4.5,
+                "last_updated": "2024-07-30",
+                "created_by": "Domus Admin Team",
+                "preview_url": "/api/templates/template_005/preview", 
+                "download_url": "/api/templates/template_005/download",
+                "variables": [
+                    "MEETING_DATE",
+                    "ATTENDEES",
+                    "PROJECT_NAME",
+                    "ACTION_ITEMS"
+                ],
+                "sections": [
+                    "Meeting Details",
+                    "Discussion Points",
+                    "Decisions Made",
+                    "Action Items"
+                ]
+            }
+        ]
+        
+        categories = list(set([template["category"] for template in templates]))
+        
+        return {
+            "success": True,
+            "templates": templates,
+            "categories": categories,
+            "statistics": {
+                "total_templates": len(templates),
+                "total_downloads": sum(template["downloads"] for template in templates),
+                "average_rating": round(sum(template["rating"] for template in templates) / len(templates), 1),
+                "most_popular": max(templates, key=lambda x: x["downloads"])["name"]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch templates: {str(e)}")
+
+@app.get("/api/documents/workflows")
+async def get_approval_workflows():
+    """Get active approval workflows"""
+    try:
+        workflows = [
+            {
+                "id": "workflow_001",
+                "document_id": "doc_002",
+                "document_name": "Green Valley Transport Assessment",
+                "workflow_name": "Technical Review Process",
+                "workflow_type": "Technical Review",
+                "status": "In Progress",
+                "created_date": "2024-10-01T09:00:00Z",
+                "due_date": "2024-10-15T17:00:00Z",
+                "priority": "High",
+                "current_step": 2,
+                "total_steps": 4,
+                "current_approver": {
+                    "id": "user_010",
+                    "name": "Sarah Johnson",
+                    "email": "sarah@domus.com",
+                    "avatar": "/api/placeholder/32/32",
+                    "role": "Senior Technical Reviewer"
+                },
+                "steps": [
+                    {
+                        "step_number": 1,
+                        "name": "Initial Draft",
+                        "description": "Document preparation and initial review",
+                        "assignee": "David Chen",
+                        "status": "Completed",
+                        "completed_date": "2024-10-01T14:30:00Z",
+                        "comments": "Initial draft completed with all required sections"
+                    },
+                    {
+                        "step_number": 2,
+                        "name": "Technical Review",
+                        "description": "Senior technical review and validation",
+                        "assignee": "Sarah Johnson",
+                        "status": "In Progress",
+                        "started_date": "2024-10-02T09:00:00Z",
+                        "comments": "Under review - some calculations need verification"
+                    },
+                    {
+                        "step_number": 3,
+                        "name": "Client Review",
+                        "description": "Client feedback and approval",
+                        "assignee": "Michael Brown",
+                        "status": "Pending",
+                        "comments": None
+                    },
+                    {
+                        "step_number": 4,
+                        "name": "Final Approval",
+                        "description": "Final sign-off and document publication",
+                        "assignee": "Emma Wilson",
+                        "status": "Pending",
+                        "comments": None
+                    }
+                ],
+                "notifications": {
+                    "email_reminders": True,
+                    "deadline_alerts": True,
+                    "status_updates": True
+                }
+            },
+            {
+                "id": "workflow_002",
+                "document_id": "doc_003",
+                "document_name": "City Centre Plaza Architectural Plans",
+                "workflow_name": "Design Review Process",
+                "workflow_type": "Design Review",
+                "status": "Completed",
+                "created_date": "2024-09-20T10:00:00Z",
+                "due_date": "2024-09-30T17:00:00Z",
+                "priority": "Medium",
+                "current_step": 4,
+                "total_steps": 4,
+                "current_approver": {
+                    "id": "user_011",
+                    "name": "Tom Wilson",
+                    "email": "tom@architects.co.uk",
+                    "avatar": "/api/placeholder/32/32",
+                    "role": "Lead Architect"
+                },
+                "steps": [
+                    {
+                        "step_number": 1,
+                        "name": "Concept Design",
+                        "description": "Initial design concept and layouts",
+                        "assignee": "Tom Wilson",
+                        "status": "Completed",
+                        "completed_date": "2024-09-22T16:00:00Z",
+                        "comments": "Concept approved with minor revisions"
+                    },
+                    {
+                        "step_number": 2,
+                        "name": "Planning Review",
+                        "description": "Planning compliance check",
+                        "assignee": "Amy Rodriguez",
+                        "status": "Completed",
+                        "completed_date": "2024-09-25T11:30:00Z",
+                        "comments": "Planning requirements satisfied"
+                    },
+                    {
+                        "step_number": 3,
+                        "name": "Technical Review",
+                        "description": "Technical feasibility and building regulations",
+                        "assignee": "James Taylor",
+                        "status": "Completed",
+                        "completed_date": "2024-09-28T15:45:00Z",
+                        "comments": "Technical aspects approved"
+                    },
+                    {
+                        "step_number": 4,
+                        "name": "Final Approval",
+                        "description": "Final design approval and documentation",
+                        "assignee": "Kate Miller",
+                        "status": "Completed",
+                        "completed_date": "2024-09-30T16:45:00Z",
+                        "comments": "Design approved for planning submission"
+                    }
+                ],
+                "notifications": {
+                    "email_reminders": True,
+                    "deadline_alerts": False,
+                    "status_updates": True
+                }
+            }
+        ]
+        
+        return {
+            "success": True,
+            "workflows": workflows,
+            "summary": {
+                "total_workflows": len(workflows),
+                "active_workflows": len([w for w in workflows if w["status"] == "In Progress"]),
+                "completed_workflows": len([w for w in workflows if w["status"] == "Completed"]),
+                "overdue_workflows": 0,
+                "average_completion_time": "8.5 days"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch workflows: {str(e)}")
+
+@app.post("/api/documents/share")
+async def share_document(share_request: DocumentShare):
+    """Share document with collaborators"""
+    try:
+        share_id = f"share_{int(time.time())}"
+        
+        # Validate permission level
+        valid_permissions = ["view", "edit", "admin"]
+        if share_request.permission_level not in valid_permissions:
+            raise HTTPException(status_code=400, detail="Invalid permission level")
+        
+        # Generate sharing notifications
+        notifications = []
+        for email in share_request.user_emails:
+            notifications.append({
+                "recipient": email,
+                "type": "document_shared",
+                "status": "sent",
+                "sent_time": datetime.now().isoformat()
+            })
+        
+        return {
+            "success": True,
+            "share_id": share_id,
+            "document_id": share_request.document_id,
+            "shared_with": share_request.user_emails,
+            "permission_level": share_request.permission_level,
+            "share_url": f"https://domus.com/documents/shared/{share_id}",
+            "expiry_date": (datetime.now() + timedelta(days=30)).isoformat(),
+            "notifications_sent": len(notifications),
+            "notifications": notifications,
+            "access_tracking": {
+                "track_downloads": True,
+                "track_views": True,
+                "track_edits": True,
+                "email_activity_digest": "Weekly"
+            },
+            "security_features": [
+                "Password protection available",
+                "Download restrictions configurable",
+                "Access expiry date set",
+                "Activity logging enabled"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to share document: {str(e)}")
+
+@app.post("/api/documents/workflows")
+async def create_workflow(workflow: WorkflowCreate):
+    """Create a new approval workflow"""
+    try:
+        workflow_id = f"workflow_{int(time.time())}"
+        
+        # Validate workflow steps
+        if not workflow.steps or len(workflow.steps) == 0:
+            raise HTTPException(status_code=400, detail="Workflow must have at least one step")
+        
+        # Process workflow steps
+        processed_steps = []
+        for i, step in enumerate(workflow.steps):
+            processed_steps.append({
+                "step_number": i + 1,
+                "name": step.get("name", f"Step {i + 1}"),
+                "description": step.get("description", ""),
+                "assignee": step.get("assignee", ""),
+                "role_required": step.get("role_required", "reviewer"),
+                "auto_approve": step.get("auto_approve", False),
+                "deadline_days": step.get("deadline_days", 3),
+                "status": "Pending"
+            })
+        
+        return {
+            "success": True,
+            "workflow_id": workflow_id,
+            "workflow": {
+                "name": workflow.name,
+                "document_type": workflow.document_type,
+                "auto_assign": workflow.auto_assign,
+                "total_steps": len(processed_steps),
+                "estimated_duration": f"{sum(step.get('deadline_days', 3) for step in workflow.steps)} days"
+            },
+            "steps": processed_steps,
+            "automation_features": [
+                "Automatic step progression on approval",
+                "Email notifications at each step",
+                "Deadline reminder system",
+                "Status tracking and reporting"
+            ] if workflow.auto_assign else [
+                "Manual step progression",
+                "Email notifications at each step", 
+                "Deadline reminder system",
+                "Status tracking and reporting"
+            ],
+            "next_steps": [
+                "Assign workflow to specific documents",
+                "Configure notification preferences",
+                "Set up approval criteria for each step",
+                "Test workflow with sample document"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create workflow: {str(e)}")
+
+@app.post("/api/documents/folders")
+async def create_folder(folder: FolderCreate):
+    """Create a new folder"""
+    try:
+        folder_id = f"folder_{int(time.time())}"
+        
+        return {
+            "success": True,
+            "folder_id": folder_id,
+            "folder": {
+                "name": folder.name,
+                "parent_id": folder.parent_id,
+                "description": folder.description,
+                "created_date": datetime.now().isoformat(),
+                "permissions": {
+                    "can_upload": True,
+                    "can_create_subfolders": True,
+                    "can_share": True,
+                    "can_delete": True
+                }
+            },
+            "auto_actions": [
+                "Folder indexed for search",
+                "Permissions inherited from parent",
+                "Backup location configured",
+                "Activity tracking enabled"
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create folder: {str(e)}")
+
+@app.get("/api/documents/analytics")
+async def get_document_analytics():
+    """Get document usage and collaboration analytics"""
+    try:
+        analytics = {
+            "usage_statistics": {
+                "total_documents": 1247,
+                "documents_created_this_month": 89,
+                "documents_accessed_today": 156,
+                "most_accessed_document": "Riverside Development - Planning Application",
+                "storage_growth_rate": "12% monthly",
+                "average_document_size": "3.2 MB"
+            },
+            "collaboration_metrics": {
+                "active_collaborators": 23,
+                "documents_shared_this_week": 34,
+                "average_collaborators_per_document": 2.8,
+                "most_collaborative_project": "Green Valley Development",
+                "external_shares": 12,
+                "internal_shares": 67
+            },
+            "workflow_performance": {
+                "active_workflows": 8,
+                "completed_workflows_this_month": 23,
+                "average_approval_time": "4.2 days",
+                "workflow_efficiency": "87%",
+                "bottleneck_step": "Technical Review",
+                "fastest_workflow": "Document Upload Approval"
+            },
+            "document_types": [
+                {"type": "PDF", "count": 456, "percentage": 36.6},
+                {"type": "Word", "count": 334, "percentage": 26.8},
+                {"type": "Excel", "count": 189, "percentage": 15.2},
+                {"type": "CAD", "count": 156, "percentage": 12.5},
+                {"type": "PowerPoint", "count": 89, "percentage": 7.1},
+                {"type": "Other", "count": 23, "percentage": 1.8}
+            ],
+            "access_patterns": {
+                "peak_usage_hours": "9-11 AM, 2-4 PM",
+                "busiest_day": "Tuesday",
+                "download_to_view_ratio": "1:4.3",
+                "mobile_access_percentage": 23.4,
+                "external_access_percentage": 8.7
+            }
+        }
+        
+        return {
+            "success": True,
+            "analytics": analytics,
+            "generated_at": datetime.now().isoformat(),
+            "reporting_period": "Last 30 days"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch analytics: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     print("\nStarting Domus Professional Platform...")
