@@ -586,6 +586,29 @@
                 route: '/analytics'
             });
             
+            // Task Management and Workflow (DEV, CON, ADM)
+            if (['developer', 'consultant', 'admin'].includes(role)) {
+                sections.push({
+                    title: 'Workflow',
+                    icon: '📋',
+                    items: [
+                        { title: 'Task Management', route: '/tasks' },
+                        { title: 'Reporting Dashboard', route: '/reporting' },
+                        { title: 'Integration Hub', route: '/integration-ecosystem' },
+                        { title: 'Mobile Optimization', route: '/mobile-optimization' }
+                    ]
+                });
+            }
+            
+            // Security & Compliance (admin and senior roles)
+            if (['admin', 'developer'].includes(role)) {
+                sections.push({
+                    title: 'Security & Compliance',
+                    icon: '🔒',
+                    route: '/security-compliance'
+                });
+            }
+            
             // Settings (all roles)
             const settingsItems = [
                 { title: 'Profile', route: '/settings' },
@@ -746,6 +769,11 @@
                 '/offsets-marketplace': getOffsetsMarketplaceContent(),
                 '/communications-hub': getCommunicationsHubContent(),
                 '/documents': getDocumentsContent(),
+                '/tasks': getTasksContent(),
+                '/reporting': getReportingContent(),
+                '/integration-ecosystem': getIntegrationEcosystemContent(),
+                '/mobile-optimization': getMobileOptimizationContent(),
+                '/security-compliance': getSecurityComplianceContent(),
                 '/marketplace/supply': getSupplyContent(),
                 '/marketplace/demand': getDemandContent(),
                 '/contracts': getContractsContent(),
@@ -1304,6 +1332,31 @@
                     </div>
                 </div>
             `;
+        }
+        
+        function getTasksContent() {
+            window.location.href = '/tasks';
+            return '<div>Loading Task Management...</div>';
+        }
+        
+        function getReportingContent() {
+            window.location.href = '/reporting';
+            return '<div>Loading Reporting Dashboard...</div>';
+        }
+        
+        function getIntegrationEcosystemContent() {
+            window.location.href = '/integration-ecosystem';
+            return '<div>Loading Integration Ecosystem...</div>';
+        }
+        
+        function getMobileOptimizationContent() {
+            window.location.href = '/mobile-optimization';
+            return '<div>Loading Mobile Optimization...</div>';
+        }
+        
+        function getSecurityComplianceContent() {
+            window.location.href = '/security-compliance';
+            return '<div>Loading Security & Compliance...</div>';
         }
         
         function getNotFoundContent() {
