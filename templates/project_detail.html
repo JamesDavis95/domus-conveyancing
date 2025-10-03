@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Details - Domus Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation and layout will be injected by JavaScript -->
+    <div id="app-container"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="loading-state" class="text-center py-12">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+            <p class="text-gray-600">Loading project...</p>
+        </div>
+        
+        <div id="project-content" class="hidden">
+            <!-- Project Header -->
+            <div class="page-header">
+                <div class="flex items-center gap-4 mb-4">
+                    <button onclick="window.location.href='/projects'" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-4 mb-2">
+                            <h1 id="project-name" class="text-2xl font-semibold text-gray-900"></h1>
+                            <span id="project-status" class="status-badge"></span>
+                        </div>
+                        <p id="project-address" class="text-gray-600"></p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="edit-btn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-edit mr-2"></i>Edit
+                        </button>
+                        <button id="actions-btn" class="btn-primary">
+                            <i class="fas fa-cog mr-2"></i>Actions
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Project Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="stat-card">
+                        <div class="flex items-center">
+                            <i class="fas fa-brain text-purple-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-600">AI Score</p>
+                                <p id="ai-score" class="text-lg font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center">
+                            <i class="fas fa-clock text-blue-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-600">Timeline</p>
+                                <p id="timeline" class="text-lg font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt text-green-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-600">Documents</p>
+                                <p id="document-count" class="text-lg font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar text-orange-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-600">Created</p>
+                                <p id="created-date" class="text-lg font-semibold"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="flex space-x-8">
+                    <button class="tab-button active" data-tab="overview">Overview</button>
+                    <button class="tab-button" data-tab="map">Site Map</button>
+                    <button class="tab-button" data-tab="analysis">AI Analysis</button>
+                    <button class="tab-button" data-tab="documents">Documents</button>
+                    <button class="tab-button" data-tab="timeline">Timeline</button>
+                </nav>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Overview Tab -->
+                <div id="tab-overview" class="tab-pane active">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Project Details -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="card">
+                                <h2 class="text-lg font-semibold text-gray-900 mb-4">Project Details</h2>
+                                <div class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Project Type</label>
+                                            <p id="project-type" class="text-gray-900"></p>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Local Authority</label>
+                                            <p id="local-authority" class="text-gray-900"></p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Description</label>
+                                        <p id="project-description" class="text-gray-900 mt-1"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <h2 class="text-lg font-semibold text-gray-900 mb-4">Development Specifications</h2>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Site Area</label>
+                                        <p id="site-area" class="text-gray-900 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Units</label>
+                                        <p id="units-proposed" class="text-gray-900 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Max Floors</label>
+                                        <p id="floors" class="text-gray-900 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-medium text-gray-700">Parking</label>
+                                        <p id="parking-spaces" class="text-gray-900 font-semibold"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
+                                <div id="recent-activity" class="space-y-3">
+                                    <!-- Activity items will be loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sidebar -->
+                        <div class="space-y-6">
+                            <!-- Quick Actions -->
+                            <div class="card">
+                                <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+                                        <i class="fas fa-brain mr-2 text-purple-500"></i>Run AI Analysis
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+                                        <i class="fas fa-file-plus mr-2 text-blue-500"></i>Generate Documents
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+                                        <i class="fas fa-upload mr-2 text-green-500"></i>Upload Documents
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
+                                        <i class="fas fa-share mr-2 text-orange-500"></i>Share Project
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Planning Constraints -->
+                            <div class="card">
+                                <h2 class="text-lg font-semibold text-gray-900 mb-4">Planning Constraints</h2>
+                                <div id="constraints-list" class="space-y-2">
+                                    <!-- Constraints will be loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Site Map Tab -->
+                <div id="tab-map" class="tab-pane">
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-900">Site Map & Constraints</h2>
+                            <div class="flex gap-2">
+                                <button id="toggle-constraints" class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Toggle Constraints
+                                </button>
+                                <button id="satellite-view" class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Satellite
+                                </button>
+                            </div>
+                        </div>
+                        <div id="project-map" class="h-96 rounded-md border border-gray-300"></div>
+                        <div class="mt-4">
+                            <h3 class="font-medium text-gray-900 mb-2">Map Legend</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                                    <span>Conservation Areas</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                                    <span>Green Belt</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                                    <span>Flood Risk</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-purple-500 rounded mr-2"></div>
+                                    <span>TPO Trees</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Analysis Tab -->
+                <div id="tab-analysis" class="tab-pane">
+                    <div class="space-y-6">
+                        <div class="card">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">AI Planning Analysis</h2>
+                                <button id="refresh-analysis" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                                </button>
+                            </div>
+                            <div id="ai-analysis-content">
+                                <!-- AI analysis will be loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Documents Tab -->
+                <div id="tab-documents" class="tab-pane">
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-900">Project Documents</h2>
+                            <div class="flex gap-2">
+                                <button id="upload-docs" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-upload mr-2"></i>Upload
+                                </button>
+                                <button id="generate-docs" class="btn-primary">
+                                    <i class="fas fa-file-plus mr-2"></i>Generate
+                                </button>
+                            </div>
+                        </div>
+                        <div id="documents-list">
+                            <!-- Documents will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Timeline Tab -->
+                <div id="tab-timeline" class="tab-pane">
+                    <div class="card">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Project Timeline</h2>
+                        <div id="project-timeline">
+                            <!-- Timeline will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        let projectId;
+        let projectData;
+        let projectMap;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAppShell('projects');
+            
+            // Get project ID from URL
+            projectId = window.location.pathname.split('/').pop();
+            
+            loadProject();
+            setupTabHandlers();
+        });
+        
+        function setupTabHandlers() {
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.dataset.tab;
+                    showTab(tabId);
+                });
+            });
+        }
+        
+        function showTab(tabId) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            
+            // Load tab-specific content
+            if (tabId === 'map' && !projectMap) {
+                initializeProjectMap();
+            } else if (tabId === 'analysis') {
+                loadAIAnalysis();
+            } else if (tabId === 'documents') {
+                loadDocuments();
+            } else if (tabId === 'timeline') {
+                loadTimeline();
+            }
+        }
+        
+        async function loadProject() {
+            try {
+                const response = await fetch(`/api/projects/${projectId}`);
+                if (!response.ok) {
+                    throw new Error('Project not found');
+                }
+                
+                projectData = await response.json();
+                
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('project-content').classList.remove('hidden');
+                
+                populateProjectData();
+                loadRecentActivity();
+                loadConstraints();
+                
+            } catch (error) {
+                console.error('Error loading project:', error);
+                document.getElementById('loading-state').innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Project not found</h3>
+                        <p class="text-gray-600 mb-6">The project you're looking for doesn't exist or you don't have access to it.</p>
+                        <button onclick="window.location.href='/projects'" class="btn-primary">Back to Projects</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function populateProjectData() {
+            document.getElementById('project-name').textContent = projectData.name;
+            document.getElementById('project-address').textContent = projectData.address;
+            document.getElementById('project-status').textContent = formatStatus(projectData.status);
+            document.getElementById('project-status').className = `status-badge status-${projectData.status}`;
+            
+            document.getElementById('ai-score').textContent = projectData.ai_score ? `${projectData.ai_score}%` : 'Pending';
+            document.getElementById('timeline').textContent = projectData.estimated_timeline || 'TBD';
+            document.getElementById('document-count').textContent = projectData.document_count || '0';
+            document.getElementById('created-date').textContent = formatDate(projectData.created_at);
+            
+            document.getElementById('project-type').textContent = formatProjectType(projectData.type);
+            document.getElementById('local-authority').textContent = projectData.local_authority || 'TBD';
+            document.getElementById('project-description').textContent = projectData.description || 'No description provided';
+            
+            document.getElementById('site-area').textContent = projectData.site_area ? `${projectData.site_area} ha` : 'TBD';
+            document.getElementById('units-proposed').textContent = projectData.units_proposed || 'TBD';
+            document.getElementById('floors').textContent = projectData.floors || 'TBD';
+            document.getElementById('parking-spaces').textContent = projectData.parking_spaces || 'TBD';
+        }
+        
+        function initializeProjectMap() {
+            if (projectMap) return;
+            
+            const lat = projectData.latitude || 54.5;
+            const lng = projectData.longitude || -2.0;
+            
+            projectMap = L.map('project-map').setView([lat, lng], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(projectMap);
+            
+            // Add site marker
+            L.marker([lat, lng])
+                .addTo(projectMap)
+                .bindPopup(projectData.name);
+                
+            // TODO: Add constraint overlays
+        }
+        
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch(`/api/projects/${projectId}/activity`);
+                const activity = await response.json();
+                
+                const container = document.getElementById('recent-activity');
+                container.innerHTML = activity.map(item => `
+                    <div class="flex items-start gap-3 py-2">
+                        <i class="fas fa-${item.icon} text-sm text-gray-500 mt-1"></i>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-900">${item.description}</p>
+                            <p class="text-xs text-gray-500">${formatDate(item.timestamp)}</p>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading activity:', error);
+            }
+        }
+        
+        async function loadConstraints() {
+            if (!projectData.latitude || !projectData.longitude) return;
+            
+            try {
+                const response = await fetch(`/api/planning/constraints?lat=${projectData.latitude}&lng=${projectData.longitude}`);
+                const constraints = await response.json();
+                
+                const container = document.getElementById('constraints-list');
+                container.innerHTML = constraints.map(constraint => `
+                    <div class="flex items-center justify-between py-2 px-3 rounded-md ${constraint.severity === 'high' ? 'bg-red-50 text-red-700' : constraint.severity === 'medium' ? 'bg-yellow-50 text-yellow-700' : 'bg-green-50 text-green-700'}">
+                        <div class="flex items-center">
+                            <i class="fas fa-${constraint.icon} mr-2"></i>
+                            <span class="text-sm font-medium">${constraint.name}</span>
+                        </div>
+                        <span class="text-xs">${constraint.distance}</span>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading constraints:', error);
+            }
+        }
+        
+        async function loadAIAnalysis() {
+            const container = document.getElementById('ai-analysis-content');
+            container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-blue-500 mb-2"></i><p>Loading analysis...</p></div>';
+            
+            try {
+                const response = await fetch(`/api/projects/${projectId}/ai-analysis`);
+                const analysis = await response.json();
+                
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-medium">Approval Probability</h3>
+                            <span class="text-2xl font-bold ${analysis.score >= 70 ? 'text-green-600' : analysis.score >= 50 ? 'text-yellow-600' : 'text-red-600'}">${analysis.score}%</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-green-50 p-4 rounded-md">
+                                <h4 class="font-medium text-green-800 mb-2">Positive Factors</h4>
+                                <ul class="text-sm text-green-700 space-y-1">
+                                    ${analysis.positive_factors.map(factor => `<li>• ${factor}</li>`).join('')}
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-red-50 p-4 rounded-md">
+                                <h4 class="font-medium text-red-800 mb-2">Risk Factors</h4>
+                                <ul class="text-sm text-red-700 space-y-1">
+                                    ${analysis.risk_factors.map(factor => `<li>• ${factor}</li>`).join('')}
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-blue-50 p-4 rounded-md">
+                                <h4 class="font-medium text-blue-800 mb-2">Recommendations</h4>
+                                <ul class="text-sm text-blue-700 space-y-1">
+                                    ${analysis.recommendations.map(rec => `<li>• ${rec}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-md">
+                            <h4 class="font-medium text-gray-800 mb-2">Policy Context</h4>
+                            <p class="text-sm text-gray-700">${analysis.policy_context}</p>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading AI analysis:', error);
+                container.innerHTML = '<div class="text-center py-8 text-red-500">Error loading analysis</div>';
+            }
+        }
+        
+        async function loadDocuments() {
+            const container = document.getElementById('documents-list');
+            container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-blue-500 mb-2"></i><p>Loading documents...</p></div>';
+            
+            try {
+                const response = await fetch(`/api/projects/${projectId}/documents`);
+                const documents = await response.json();
+                
+                if (documents.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-file-alt text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-600">No documents uploaded yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        ${documents.map(doc => `
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md hover:bg-gray-50">
+                                <div class="flex items-center">
+                                    <i class="fas fa-${getFileIcon(doc.type)} mr-3 text-blue-500"></i>
+                                    <div>
+                                        <p class="font-medium text-gray-900">${doc.name}</p>
+                                        <p class="text-sm text-gray-500">${doc.size} • ${formatDate(doc.uploaded_at)}</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="text-blue-600 hover:text-blue-800" onclick="downloadDocument('${doc.id}')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="text-gray-600 hover:text-gray-800" onclick="viewDocument('${doc.id}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                container.innerHTML = '<div class="text-center py-8 text-red-500">Error loading documents</div>';
+            }
+        }
+        
+        async function loadTimeline() {
+            const container = document.getElementById('project-timeline');
+            container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-blue-500 mb-2"></i><p>Loading timeline...</p></div>';
+            
+            try {
+                const response = await fetch(`/api/projects/${projectId}/timeline`);
+                const timeline = await response.json();
+                
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        ${timeline.map((event, index) => `
+                            <div class="flex items-start gap-4">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-3 h-3 rounded-full ${event.completed ? 'bg-green-500' : index === 0 ? 'bg-blue-500' : 'bg-gray-300'}"></div>
+                                    ${index < timeline.length - 1 ? '<div class="w-0.5 h-8 bg-gray-300 mt-2"></div>' : ''}
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900">${event.title}</h4>
+                                    <p class="text-sm text-gray-600">${event.description}</p>
+                                    ${event.date ? `<p class="text-xs text-gray-500 mt-1">${formatDate(event.date)}</p>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading timeline:', error);
+                container.innerHTML = '<div class="text-center py-8 text-red-500">Error loading timeline</div>';
+            }
+        }
+        
+        // Utility functions
+        function formatStatus(status) {
+            const statusMap = {
+                'planning': 'Planning',
+                'submitted': 'Submitted',
+                'under_review': 'Under Review',
+                'approved': 'Approved',
+                'rejected': 'Rejected',
+                'completed': 'Completed'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function formatProjectType(type) {
+            const typeMap = {
+                'residential': 'Residential',
+                'commercial': 'Commercial',
+                'industrial': 'Industrial',
+                'mixed_use': 'Mixed Use'
+            };
+            return typeMap[type] || type;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+        
+        function getFileIcon(type) {
+            const iconMap = {
+                'pdf': 'file-pdf',
+                'doc': 'file-word',
+                'docx': 'file-word',
+                'xls': 'file-excel',
+                'xlsx': 'file-excel',
+                'dwg': 'file-image',
+                'jpg': 'file-image',
+                'png': 'file-image',
+                'default': 'file-alt'
+            };
+            return iconMap[type] || iconMap['default'];
+        }
+    </script>
+</body>
+</html>

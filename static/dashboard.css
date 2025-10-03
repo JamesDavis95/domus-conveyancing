@@ -333,3 +333,533 @@
         padding: 16px;
     }
 }
+
+/* =============================================================================
+   PROJECT MODULE STYLES
+   ============================================================================= */
+
+/* Status badges for projects and other statuses */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-planning {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-submitted {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.status-under_review {
+    background-color: #ede9fe;
+    color: #7c3aed;
+}
+
+.status-approved {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-rejected {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.status-completed {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.status-draft {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Project cards */
+.project-card {
+    transition: all 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Tab navigation */
+.tab-button {
+    padding: 0.5rem 0.25rem;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-decoration: none;
+}
+
+.tab-button:hover {
+    color: #374151;
+    border-bottom-color: #d1d5db;
+}
+
+.tab-button.active {
+    border-bottom-color: #3b82f6;
+    color: #2563eb;
+}
+
+.tab-content {
+    margin-top: 1rem;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Stat cards for project overview */
+.stat-card {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Map container */
+#map, #project-map {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+}
+
+/* Form improvements */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-section h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+
+/* Loading states */
+.loading-spinner {
+    animation: spin 1s linear infinite;
+    border-radius: 50%;
+    height: 2rem;
+    width: 2rem;
+    border: 2px solid #e5e7eb;
+    border-bottom-color: #3b82f6;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Constraint indicators */
+.constraint-high {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.constraint-medium {
+    background-color: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fed7aa;
+}
+
+.constraint-low {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+/* PROJECT-SPECIFIC STYLES */
+/* ======================= */
+
+/* Project cards and listings */
+.project-card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    transition: box-shadow 0.2s ease;
+}
+
+.project-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-planning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-submitted {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-approved {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-rejected {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-draft {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+/* AI Score Badge */
+.ai-score-badge {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-align: center;
+    min-width: 80px;
+}
+
+/* Icon buttons */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-icon:hover {
+    background-color: #f3f4f6;
+}
+
+/* Form styles for project creation */
+.form-section {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 24px;
+}
+
+.form-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+.form-grid {
+    display: grid;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.form-grid.cols-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-field.span-2 {
+    grid-column: span 2;
+}
+
+.form-field.span-3 {
+    grid-column: span 3;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.form-input, .form-select, .form-textarea {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input:read-only {
+    background-color: #f9fafb;
+    color: #6b7280;
+}
+
+/* Map container */
+#map {
+    height: 256px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Project detail layout */
+.project-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 24px;
+}
+
+.project-content {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    padding: 24px;
+}
+
+@media (max-width: 1024px) {
+    .project-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.project-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.project-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.project-section {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 24px;
+}
+
+.project-section h2, .project-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+/* Timeline styles */
+.timeline-item {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 16px;
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 24px;
+    bottom: -16px;
+    width: 1px;
+    background: #e5e7eb;
+}
+
+.timeline-dot {
+    width: 8px;
+    height: 8px;
+    background: #3b82f6;
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.timeline-content h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 2px;
+}
+
+.timeline-content .date {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.timeline-content .description {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Document list styles */
+.document-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.document-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.document-icon {
+    color: #dc2626;
+    font-size: 18px;
+}
+
+.document-details h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 2px;
+}
+
+.document-details .meta {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.document-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.document-actions button {
+    padding: 4px 8px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.document-actions button:hover {
+    background-color: #f3f4f6;
+}
+
+/* Quick actions */
+.quick-action {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-bottom: 8px;
+}
+
+.quick-action:hover {
+    background-color: #f9fafb;
+}
+
+.quick-action i {
+    margin-right: 12px;
+    width: 16px;
+    text-align: center;
+}
+
+/* Progress bars */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #3b82f6;
+    transition: width 0.3s ease;
+}
+
+/* Stats grid */
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+}

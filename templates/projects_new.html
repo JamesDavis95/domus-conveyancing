@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Project - Domus</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <div class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="/projects" class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <h1 class="text-2xl font-bold text-gray-900">New Project</h1>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button type="button" id="save-draft" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Save Draft
+                        </button>
+                        <button type="submit" form="project-form" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            Create Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="max-w-4xl mx-auto p-6">
+                    <form id="project-form" class="space-y-8">
+                        <!-- Basic Information -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Project Information</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
+                                    <input type="text" id="name" name="name" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           placeholder="e.g., Residential Development - Oak Street">
+                                </div>
+                                <div>
+                                    <label for="type" class="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
+                                    <select id="type" name="type" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select type...</option>
+                                        <option value="residential">Residential</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="mixed">Mixed Use</option>
+                                        <option value="industrial">Industrial</option>
+                                        <option value="infrastructure">Infrastructure</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                    <textarea id="description" name="description" rows="3" 
+                                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                              placeholder="Brief description of the project..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Location</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                                    <input type="text" id="address" name="address" required 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           placeholder="Enter full address...">
+                                    <button type="button" id="geocode-btn" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>Find on Map
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label for="postcode" class="block text-sm font-medium text-gray-700 mb-2">Postcode</label>
+                                        <input type="text" id="postcode" name="postcode" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label for="council" class="block text-sm font-medium text-gray-700 mb-2">Local Authority</label>
+                                        <input type="text" id="council" name="council" readonly
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                                    </div>
+                                    <div>
+                                        <label for="region" class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                                        <input type="text" id="region" name="region" readonly
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                                    </div>
+                                </div>
+                                
+                                <!-- Map -->
+                                <div class="mt-4">
+                                    <div id="map" class="h-64 w-full rounded-lg border"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Details -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Project Details</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label for="units" class="block text-sm font-medium text-gray-700 mb-2">Number of Units</label>
+                                    <input type="number" id="units" name="units" min="1"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="area" class="block text-sm font-medium text-gray-700 mb-2">Site Area (sqm)</label>
+                                    <input type="number" id="area" name="area" min="1"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="value" class="block text-sm font-medium text-gray-700 mb-2">Estimated Value (£)</label>
+                                    <input type="number" id="value" name="value" min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Planning Status -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Planning Status</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="planning_status" class="block text-sm font-medium text-gray-700 mb-2">Current Status</label>
+                                    <select id="planning_status" name="planning_status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option value="planning">Pre-Planning</option>
+                                        <option value="submitted">Application Submitted</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="application_ref" class="block text-sm font-medium text-gray-700 mb-2">Application Reference</label>
+                                        <input type="text" id="application_ref" name="application_ref"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                               placeholder="e.g., 23/01234/FUL">
+                                    </div>
+                                    <div>
+                                        <label for="target_date" class="block text-sm font-medium text-gray-700 mb-2">Target Decision Date</label>
+                                        <input type="date" id="target_date" name="target_date"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Load sidebar
+        fetch('/api/sidebar')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+            });
+
+        // Initialize map
+        let map = L.map('map').setView([51.5074, -0.1278], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        let marker = null;
+
+        // Geocoding functionality
+        document.getElementById('geocode-btn').addEventListener('click', geocodeAddress);
+        document.getElementById('address').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                geocodeAddress();
+            }
+        });
+
+        async function geocodeAddress() {
+            const address = document.getElementById('address').value;
+            if (!address) return;
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gb&limit=1`);
+                const data = await response.json();
+                
+                if (data.length > 0) {
+                    const result = data[0];
+                    const lat = parseFloat(result.lat);
+                    const lon = parseFloat(result.lon);
+                    
+                    map.setView([lat, lon], 16);
+                    
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+                    marker = L.marker([lat, lon]).addTo(map);
+                    
+                    // Extract location details
+                    const parts = result.display_name.split(', ');
+                    if (parts.length > 2) {
+                        document.getElementById('council').value = parts[parts.length - 3] || '';
+                        document.getElementById('region').value = parts[parts.length - 2] || '';
+                    }
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+            }
+        }
+
+        // Form submission
+        document.getElementById('project-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    window.location.href = `/projects/${result.id}`;
+                } else {
+                    alert('Error creating project');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error creating project');
+            }
+        });
+
+        // Save draft functionality
+        document.getElementById('save-draft').addEventListener('click', function() {
+            const formData = new FormData(document.getElementById('project-form'));
+            const data = Object.fromEntries(formData);
+            localStorage.setItem('project-draft', JSON.stringify(data));
+            alert('Draft saved');
+        });
+
+        // Load draft on page load
+        window.addEventListener('load', function() {
+            const draft = localStorage.getItem('project-draft');
+            if (draft) {
+                const data = JSON.parse(draft);
+                Object.keys(data).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = data[key];
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

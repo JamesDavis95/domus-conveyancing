@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Domus</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <div class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
+                        <div class="text-sm text-gray-500">{{ projects|length }} total</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <input type="text" id="search" placeholder="Search projects..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <select id="filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Status</option>
+                            <option value="planning">Planning</option>
+                            <option value="submitted">Submitted</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <a href="/projects/new" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>New Project
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-auto p-6">
+                <div class="grid gap-6">
+                    {% if projects %}
+                        {% for project in projects %}
+                        <div class="project-card bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+                            <div class="p-6">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3 mb-2">
+                                            <h3 class="text-lg font-semibold text-gray-900">
+                                                <a href="/projects/{{ project.id }}" class="hover:text-blue-600">
+                                                    {{ project.name }}
+                                                </a>
+                                            </h3>
+                                            <span class="status-badge status-{{ project.status }}">
+                                                {{ project.status|title }}
+                                            </span>
+                                        </div>
+                                        <p class="text-gray-600 mb-3">{{ project.description[:100] }}...</p>
+                                        <div class="flex items-center text-sm text-gray-500 space-x-4">
+                                            <span><i class="fas fa-map-marker-alt mr-1"></i>{{ project.address }}</span>
+                                            <span><i class="fas fa-calendar mr-1"></i>{{ project.created_at.strftime('%d %b %Y') }}</span>
+                                            <span><i class="fas fa-user mr-1"></i>{{ project.owner_name }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-end space-y-2 ml-6">
+                                        <div class="ai-score-badge">
+                                            <span class="text-xs text-gray-500">AI Score</span>
+                                            <div class="text-lg font-bold text-{{ 'green' if project.ai_score >= 70 else 'yellow' if project.ai_score >= 40 else 'red' }}-600">
+                                                {{ project.ai_score }}%
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <a href="/projects/{{ project.id }}" class="btn-icon text-blue-600 hover:bg-blue-50">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button class="btn-icon text-gray-600 hover:bg-gray-50" onclick="openProjectMenu({{ project.id }})">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress bar -->
+                                <div class="mt-4 pt-4 border-t">
+                                    <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                                        <span>Progress</span>
+                                        <span>{{ project.progress }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ project.progress }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-folder-open text-gray-300 text-6xl mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
+                            <p class="text-gray-500 mb-6">Get started by creating your first project</p>
+                            <a href="/projects/new" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Create Project
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load sidebar
+        fetch('/api/sidebar')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+            });
+
+        // Search and filter functionality
+        document.getElementById('search').addEventListener('input', filterProjects);
+        document.getElementById('filter').addEventListener('change', filterProjects);
+
+        function filterProjects() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const filter = document.getElementById('filter').value;
+            const cards = document.querySelectorAll('.project-card');
+
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                const status = card.querySelector('.status-badge').textContent.toLowerCase().trim();
+                
+                const matchesSearch = !search || text.includes(search);
+                const matchesFilter = !filter || status === filter;
+                
+                card.style.display = matchesSearch && matchesFilter ? 'block' : 'none';
+            });
+        }
+
+        function openProjectMenu(projectId) {
+            // Implementation for project context menu
+            console.log('Open menu for project:', projectId);
+        }
+    </script>
+</body>
+</html>

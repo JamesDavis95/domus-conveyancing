@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} - Domus</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <div class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="/projects" class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
+                            <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                <span class="status-badge status-{{ project.status }}">{{ project.status|title }}</span>
+                                <span>•</span>
+                                <span>Created {{ project.created_at.strftime('%d %b %Y') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="ai-score-badge">
+                            <span class="text-xs text-gray-500">AI Score</span>
+                            <div class="text-lg font-bold text-{{ 'green' if project.ai_score >= 70 else 'yellow' if project.ai_score >= 40 else 'red' }}-600">
+                                {{ project.ai_score }}%
+                            </div>
+                        </div>
+                        <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            <i class="fas fa-edit mr-2"></i>Edit
+                        </button>
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-brain mr-2"></i>Analyze with AI
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+                    <!-- Main content -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Project Overview -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Project Overview</h2>
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Type</label>
+                                    <p class="text-gray-900">{{ project.type|title }}</p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Units</label>
+                                    <p class="text-gray-900">{{ project.units }}</p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Site Area</label>
+                                    <p class="text-gray-900">{{ project.area }} sqm</p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Estimated Value</label>
+                                    <p class="text-gray-900">£{{ "{:,.0f}".format(project.value) }}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-500">Description</label>
+                                <p class="text-gray-900 mt-1">{{ project.description }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Location & Map -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Location</h2>
+                            <div class="mb-4">
+                                <p class="text-gray-900 font-medium">{{ project.address }}</p>
+                                <p class="text-gray-600">{{ project.postcode }} • {{ project.council }}</p>
+                            </div>
+                            <div id="map" class="h-64 w-full rounded-lg border"></div>
+                        </div>
+
+                        <!-- Planning Analysis -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">Planning Analysis</h2>
+                                <button class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-sync-alt mr-1"></i>Refresh Analysis
+                                </button>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h3 class="font-medium text-gray-900 mb-2">Key Constraints</h3>
+                                    <ul class="space-y-1 text-sm">
+                                        {% for constraint in project.constraints %}
+                                        <li class="flex items-center text-gray-700">
+                                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                                            {{ constraint }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h3 class="font-medium text-gray-900 mb-2">Approval Probability</h3>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex-1 bg-gray-200 rounded-full h-3">
+                                            <div class="bg-{{ 'green' if project.ai_score >= 70 else 'yellow' if project.ai_score >= 40 else 'red' }}-500 h-3 rounded-full" 
+                                                 style="width: {{ project.ai_score }}%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium">{{ project.ai_score }}%</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">{{ project.ai_reasoning }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Documents -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">Documents</h2>
+                                <button class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                                    <i class="fas fa-upload mr-1"></i>Upload
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                {% for doc in project.documents %}
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-file-pdf text-red-500"></i>
+                                        <div>
+                                            <p class="font-medium text-gray-900">{{ doc.name }}</p>
+                                            <p class="text-sm text-gray-500">{{ doc.size }} • {{ doc.uploaded_at.strftime('%d %b %Y') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="text-gray-600 hover:text-gray-800">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Timeline -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Timeline</h3>
+                            <div class="space-y-4">
+                                {% for event in project.timeline %}
+                                <div class="flex space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">{{ event.title }}</p>
+                                        <p class="text-xs text-gray-500">{{ event.date.strftime('%d %b %Y') }}</p>
+                                        {% if event.description %}
+                                        <p class="text-sm text-gray-600 mt-1">{{ event.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border">
+                                    <i class="fas fa-brain mr-2 text-blue-600"></i>Run Planning AI Analysis
+                                </button>
+                                <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border">
+                                    <i class="fas fa-file-alt mr-2 text-green-600"></i>Generate Documents
+                                </button>
+                                <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border">
+                                    <i class="fas fa-share mr-2 text-purple-600"></i>Share with Authority
+                                </button>
+                                <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg border">
+                                    <i class="fas fa-chart-line mr-2 text-orange-600"></i>View Analytics
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Project Stats -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Project Stats</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-600">Progress</span>
+                                    <span class="text-sm font-medium">{{ project.progress }}%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ project.progress }}%"></div>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Days Active</span>
+                                    <span class="font-medium">{{ (now() - project.created_at).days }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Documents</span>
+                                    <span class="font-medium">{{ project.documents|length }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">AI Analyses</span>
+                                    <span class="font-medium">{{ project.ai_analyses|length }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Load sidebar
+        fetch('/api/sidebar')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+            });
+
+        // Initialize map
+        {% if project.latitude and project.longitude %}
+        let map = L.map('map').setView([{{ project.latitude }}, {{ project.longitude }}], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([{{ project.latitude }}, {{ project.longitude }}]).addTo(map)
+            .bindPopup('{{ project.address }}');
+        {% else %}
+        let map = L.map('map').setView([51.5074, -0.1278], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        {% endif %}
+    </script>
+</body>
+</html>

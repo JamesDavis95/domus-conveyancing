@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Project - Domus Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation and layout will be injected by JavaScript -->
+    <div id="app-container"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <div class="flex items-center gap-4">
+                <button onclick="window.location.href='/projects'" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">Create New Project</h1>
+                    <p class="text-gray-600 mt-1">Set up a new planning project for analysis and submission</p>
+                </div>
+            </div>
+        </div>
+        
+        <form id="project-form" class="max-w-4xl">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left Column - Project Details -->
+                <div class="space-y-6">
+                    <!-- Basic Information -->
+                    <div class="card">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Project Information</h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                                <input type="text" id="name" name="name" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="e.g., Residential Development - Oak Street">
+                            </div>
+                            
+                            <div>
+                                <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Project Type</label>
+                                <select id="type" name="type" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select project type</option>
+                                    <option value="residential">Residential Development</option>
+                                    <option value="commercial">Commercial Development</option>
+                                    <option value="industrial">Industrial Development</option>
+                                    <option value="mixed_use">Mixed Use Development</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea id="description" name="description" rows="3"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                          placeholder="Brief description of the proposed development..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Information -->
+                    <div class="card">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Location</h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Site Address</label>
+                                <input type="text" id="address" name="address" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Enter the full site address">
+                                <button type="button" id="geocode-btn" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>Find on map
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="postcode" class="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
+                                    <input type="text" id="postcode" name="postcode"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="e.g., SW1A 1AA">
+                                </div>
+                                
+                                <div>
+                                    <label for="local_authority" class="block text-sm font-medium text-gray-700 mb-1">Local Authority</label>
+                                    <select id="local_authority" name="local_authority" required
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Auto-detect from address</option>
+                                        <!-- Options will be populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Development Details -->
+                    <div class="card">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Development Details</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="site_area" class="block text-sm font-medium text-gray-700 mb-1">Site Area (hectares)</label>
+                                    <input type="number" id="site_area" name="site_area" step="0.01" min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="0.00">
+                                </div>
+                                
+                                <div>
+                                    <label for="units_proposed" class="block text-sm font-medium text-gray-700 mb-1">Units Proposed</label>
+                                    <input type="number" id="units_proposed" name="units_proposed" min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="0">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="floors" class="block text-sm font-medium text-gray-700 mb-1">Max Floors</label>
+                                    <input type="number" id="floors" name="floors" min="1"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="1">
+                                </div>
+                                
+                                <div>
+                                    <label for="parking_spaces" class="block text-sm font-medium text-gray-700 mb-1">Parking Spaces</label>
+                                    <input type="number" id="parking_spaces" name="parking_spaces" min="0"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Map and Analysis -->
+                <div class="space-y-6">
+                    <!-- Map -->
+                    <div class="card">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Site Location</h2>
+                        <div id="map" class="h-64 rounded-md border border-gray-300"></div>
+                        <p class="text-sm text-gray-600 mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Click on the map to set the exact site location, or use "Find on map" above.
+                        </p>
+                    </div>
+                    
+                    <!-- Planning Constraints Preview -->
+                    <div class="card">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Planning Constraints</h2>
+                        <div id="constraints-preview" class="space-y-2">
+                            <div class="text-center text-gray-500 py-8">
+                                <i class="fas fa-map text-4xl mb-2"></i>
+                                <p>Set a location to view planning constraints</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Analysis Preview -->
+                    <div class="card">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">AI Analysis Preview</h2>
+                        <div id="ai-preview" class="text-center text-gray-500 py-8">
+                            <i class="fas fa-brain text-4xl mb-2"></i>
+                            <p>Complete the form to get AI analysis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                <button type="button" onclick="window.location.href='/projects'" 
+                        class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                
+                <div class="flex gap-4">
+                    <button type="button" id="save-draft-btn" 
+                            class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-save mr-2"></i>Save as Draft
+                    </button>
+                    <button type="submit" id="create-btn" class="btn-primary">
+                        <i class="fas fa-plus mr-2"></i>Create Project
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        let map;
+        let siteMarker;
+        let selectedLocation = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAppShell('projects');
+            initializeMap();
+            setupFormHandlers();
+        });
+        
+        function initializeMap() {
+            // Initialize map centered on UK
+            map = L.map('map').setView([54.5, -2.0], 6);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Click handler for map
+            map.on('click', function(e) {
+                setLocationMarker(e.latlng.lat, e.latlng.lng);
+            });
+        }
+        
+        function setLocationMarker(lat, lng) {
+            if (siteMarker) {
+                map.removeLayer(siteMarker);
+            }
+            
+            siteMarker = L.marker([lat, lng]).addTo(map);
+            selectedLocation = { lat, lng };
+            
+            // Update constraints and AI analysis
+            loadConstraints(lat, lng);
+            updateAIPreview();
+        }
+        
+        function setupFormHandlers() {
+            // Geocoding
+            document.getElementById('geocode-btn').addEventListener('click', geocodeAddress);
+            
+            // Form submission
+            document.getElementById('project-form').addEventListener('submit', createProject);
+            document.getElementById('save-draft-btn').addEventListener('click', saveDraft);
+            
+            // Real-time updates
+            ['name', 'type', 'units_proposed', 'site_area'].forEach(fieldId => {
+                document.getElementById(fieldId).addEventListener('input', updateAIPreview);
+            });
+        }
+        
+        async function geocodeAddress() {
+            const address = document.getElementById('address').value;
+            if (!address) {
+                alert('Please enter an address first');
+                return;
+            }
+            
+            try {
+                // Using Nominatim for geocoding (free service)
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gb&limit=1`);
+                const results = await response.json();
+                
+                if (results.length > 0) {
+                    const result = results[0];
+                    const lat = parseFloat(result.lat);
+                    const lng = parseFloat(result.lon);
+                    
+                    map.setView([lat, lng], 16);
+                    setLocationMarker(lat, lng);
+                    
+                    // Auto-fill postcode if found
+                    if (result.display_name.includes(address)) {
+                        const postcodeMatch = result.display_name.match(/[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}/i);
+                        if (postcodeMatch) {
+                            document.getElementById('postcode').value = postcodeMatch[0];
+                        }
+                    }
+                } else {
+                    alert('Address not found. Please check the address and try again.');
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                alert('Error finding address. Please try again.');
+            }
+        }
+        
+        async function loadConstraints(lat, lng) {
+            const constraintsDiv = document.getElementById('constraints-preview');
+            constraintsDiv.innerHTML = '<div class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading constraints...</div>';
+            
+            try {
+                const response = await fetch(`/api/planning/constraints?lat=${lat}&lng=${lng}`);
+                const constraints = await response.json();
+                
+                constraintsDiv.innerHTML = constraints.map(constraint => `
+                    <div class="flex items-center justify-between py-2 px-3 rounded-md ${constraint.severity === 'high' ? 'bg-red-50 text-red-700' : constraint.severity === 'medium' ? 'bg-yellow-50 text-yellow-700' : 'bg-green-50 text-green-700'}">
+                        <div class="flex items-center">
+                            <i class="fas fa-${constraint.icon} mr-2"></i>
+                            <span class="text-sm font-medium">${constraint.name}</span>
+                        </div>
+                        <span class="text-xs">${constraint.distance}</span>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading constraints:', error);
+                constraintsDiv.innerHTML = '<div class="text-center text-red-500 py-4">Error loading constraints</div>';
+            }
+        }
+        
+        async function updateAIPreview() {
+            if (!selectedLocation) return;
+            
+            const formData = new FormData(document.getElementById('project-form'));
+            const projectData = Object.fromEntries(formData.entries());
+            projectData.latitude = selectedLocation.lat;
+            projectData.longitude = selectedLocation.lng;
+            
+            // Only update if we have minimum required data
+            if (!projectData.name || !projectData.type) return;
+            
+            const aiDiv = document.getElementById('ai-preview');
+            aiDiv.innerHTML = '<div class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...</div>';
+            
+            try {
+                const response = await fetch('/api/planning/ai-analysis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(projectData)
+                });
+                const analysis = await response.json();
+                
+                aiDiv.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium">Approval Probability</span>
+                            <span class="text-lg font-bold ${analysis.score >= 70 ? 'text-green-600' : analysis.score >= 50 ? 'text-yellow-600' : 'text-red-600'}">${analysis.score}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: ${analysis.score}%"></div>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <strong>Key factors:</strong> ${analysis.factors.join(', ')}
+                        </div>
+                        ${analysis.recommendations ? `
+                        <div class="text-sm text-blue-600">
+                            <strong>Recommendations:</strong> ${analysis.recommendations}
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error getting AI analysis:', error);
+                aiDiv.innerHTML = '<div class="text-center text-red-500 py-4">Error getting analysis</div>';
+            }
+        }
+        
+        async function createProject(e) {
+            e.preventDefault();
+            
+            if (!selectedLocation) {
+                alert('Please set a location on the map');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            const projectData = Object.fromEntries(formData.entries());
+            projectData.latitude = selectedLocation.lat;
+            projectData.longitude = selectedLocation.lng;
+            projectData.status = 'planning';
+            
+            try {
+                document.getElementById('create-btn').disabled = true;
+                document.getElementById('create-btn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+                
+                const response = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(projectData)
+                });
+                
+                if (response.ok) {
+                    const project = await response.json();
+                    window.location.href = `/projects/${project.id}`;
+                } else {
+                    const error = await response.json();
+                    alert(`Error creating project: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('Error creating project. Please try again.');
+            } finally {
+                document.getElementById('create-btn').disabled = false;
+                document.getElementById('create-btn').innerHTML = '<i class="fas fa-plus mr-2"></i>Create Project';
+            }
+        }
+        
+        async function saveDraft(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(document.getElementById('project-form'));
+            const projectData = Object.fromEntries(formData.entries());
+            if (selectedLocation) {
+                projectData.latitude = selectedLocation.lat;
+                projectData.longitude = selectedLocation.lng;
+            }
+            projectData.status = 'draft';
+            
+            try {
+                document.getElementById('save-draft-btn').disabled = true;
+                document.getElementById('save-draft-btn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+                
+                const response = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(projectData)
+                });
+                
+                if (response.ok) {
+                    alert('Draft saved successfully');
+                } else {
+                    const error = await response.json();
+                    alert(`Error saving draft: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error('Error saving draft:', error);
+                alert('Error saving draft. Please try again.');
+            } finally {
+                document.getElementById('save-draft-btn').disabled = false;
+                document.getElementById('save-draft-btn').innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
+            }
+        }
+    </script>
+</body>
+</html>
