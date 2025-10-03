@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Docs Generator - Domus</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top bar -->
+            <div class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-file-alt text-green-600 text-xl"></i>
+                            <h1 class="text-2xl font-bold text-gray-900">Auto-Docs Generator</h1>
+                        </div>
+                        <div class="text-sm text-gray-500">Professional planning document generation</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Credits:</span> 42/50
+                        </div>
+                        <button id="view-history" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                            <i class="fas fa-history mr-2"></i>Generation History
+                        </button>
+                        <button id="create-bundle" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-folder mr-2"></i>Create Bundle
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-full">
+                    <!-- Left Panel - Document Configuration -->
+                    <div class="space-y-6">
+                        <!-- Document Type Selection -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Document Type</h2>
+                            <div class="grid grid-cols-1 gap-3">
+                                <label class="document-type-card" data-type="planning_statement">
+                                    <input type="radio" name="document_type" value="planning_statement" class="sr-only">
+                                    <div class="p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-file-contract text-blue-600 text-xl"></i>
+                                            <div>
+                                                <div class="font-medium text-gray-900">Planning Statement</div>
+                                                <div class="text-sm text-gray-500">Comprehensive planning justification document</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="document-type-card" data-type="design_access_statement">
+                                    <input type="radio" name="document_type" value="design_access_statement" class="sr-only">
+                                    <div class="p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-drafting-compass text-purple-600 text-xl"></i>
+                                            <div>
+                                                <div class="font-medium text-gray-900">Design & Access Statement</div>
+                                                <div class="text-sm text-gray-500">Design principles and accessibility assessment</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="document-type-card" data-type="heritage_statement">
+                                    <input type="radio" name="document_type" value="heritage_statement" class="sr-only">
+                                    <div class="p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-landmark text-amber-600 text-xl"></i>
+                                            <div>
+                                                <div class="font-medium text-gray-900">Heritage Statement</div>
+                                                <div class="text-sm text-gray-500">Impact assessment for historic assets</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="document-type-card" data-type="flood_risk_assessment">
+                                    <input type="radio" name="document_type" value="flood_risk_assessment" class="sr-only">
+                                    <div class="p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-water text-blue-500 text-xl"></i>
+                                            <div>
+                                                <div class="font-medium text-gray-900">Flood Risk Assessment</div>
+                                                <div class="text-sm text-gray-500">Flood risk analysis and mitigation</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="document-type-card" data-type="transport_statement">
+                                    <input type="radio" name="document_type" value="transport_statement" class="sr-only">
+                                    <div class="p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-road text-gray-600 text-xl"></i>
+                                            <div>
+                                                <div class="font-medium text-gray-900">Transport Statement</div>
+                                                <div class="text-sm text-gray-500">Traffic impact and accessibility analysis</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="document-type-card" data-type="biodiversity_report">
+                                    <input type="radio" name="document_type" value="biodiversity_report" class="sr-only">
+                                    <div class="p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-leaf text-green-500 text-xl"></i>
+                                            <div>
+                                                <div class="font-medium text-gray-900">Biodiversity Net Gain Report</div>
+                                                <div class="text-sm text-gray-500">Ecological impact and enhancement plan</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Project Selection -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Source Project</h2>
+                            <div class="space-y-3">
+                                <select id="project-select" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                    <option value="">Select a project...</option>
+                                    <option value="1">Riverside Development - 123 River Street</option>
+                                    <option value="2">Green Valley Homes - 456 Valley Road</option>
+                                    <option value="3">City Centre Plaza - 789 High Street</option>
+                                </select>
+                                <div class="text-sm text-gray-600">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Document will be populated with project data and AI analysis
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generation Options -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Generation Options</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Output Format</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <label class="flex items-center space-x-2">
+                                            <input type="radio" name="output_format" value="docx" checked class="text-green-600 focus:ring-green-500">
+                                            <span class="text-sm">DOCX (Word)</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="radio" name="output_format" value="pdf" class="text-green-600 focus:ring-green-500">
+                                            <span class="text-sm">PDF</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Generation Mode</label>
+                                    <select id="generation-mode" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                                        <option value="comprehensive">Comprehensive (Full Detail)</option>
+                                        <option value="standard">Standard (Balanced)</option>
+                                        <option value="summary">Summary (Concise)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" id="include-maps" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        <span class="text-sm">Include location maps</span>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" id="include-photos" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        <span class="text-sm">Include site photographs</span>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" id="include-analysis" checked class="rounded border-gray-300 text-green-600 focus:ring-green-500">
+                                        <span class="text-sm">Include AI analysis results</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Instructions -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h2 class="text-lg font-semibold text-gray-900 mb-4">Custom Instructions</h2>
+                            <textarea id="custom-instructions" rows="4" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 resize-none"
+                                      placeholder="Add specific requirements, emphasis points, or custom content..."></textarea>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <button id="generate-btn" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                                <i class="fas fa-magic mr-2"></i>Generate Document
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel - Preview & Results -->
+                    <div class="space-y-6">
+                        <!-- Document Preview -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6 h-full">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">Document Preview</h2>
+                                <div class="flex space-x-2">
+                                    <button id="preview-btn" class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                                        <i class="fas fa-eye mr-1"></i>Preview
+                                    </button>
+                                    <button id="download-btn" class="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700" disabled>
+                                        <i class="fas fa-download mr-1"></i>Download
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Generation State -->
+                            <div id="generation-idle" class="text-center py-12">
+                                <i class="fas fa-file-alt text-gray-300 text-6xl mb-4"></i>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Ready to Generate</h3>
+                                <p class="text-gray-500">Select document type and project to begin</p>
+                            </div>
+
+                            <div id="generation-loading" class="hidden text-center py-12">
+                                <div class="loading-spinner mx-auto mb-4"></div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Generating Document...</h3>
+                                <p class="text-gray-500" id="generation-status">Initializing AI analysis...</p>
+                                <div class="mt-4 w-full bg-gray-200 rounded-full h-2">
+                                    <div id="generation-progress" class="bg-green-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div id="generation-complete" class="hidden">
+                                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                    <!-- Document header -->
+                                    <div class="bg-gray-50 px-4 py-3 border-b">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <h3 id="doc-title" class="font-medium text-gray-900">Planning Statement</h3>
+                                                <p id="doc-subtitle" class="text-sm text-gray-500">Riverside Development</p>
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                <span id="doc-pages">12 pages</span> • <span id="doc-size">2.4 MB</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Document content preview -->
+                                    <div class="p-4 max-h-96 overflow-y-auto">
+                                        <div id="doc-preview" class="prose prose-sm max-w-none">
+                                            <!-- Content will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Document actions -->
+                                <div class="mt-4 flex space-x-3">
+                                    <button class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">
+                                        <i class="fas fa-download mr-2"></i>Download DOCX
+                                    </button>
+                                    <button class="flex-1 border border-gray-300 py-2 px-4 rounded-lg hover:bg-gray-50">
+                                        <i class="fas fa-share mr-2"></i>Share
+                                    </button>
+                                    <button class="flex-1 border border-gray-300 py-2 px-4 rounded-lg hover:bg-gray-50">
+                                        <i class="fas fa-edit mr-2"></i>Edit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generation History Modal -->
+    <div id="history-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-96 overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">Generation History</h3>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-80">
+                    <div id="history-list" class="space-y-4">
+                        <!-- History items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load sidebar
+        fetch('/api/sidebar')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+            });
+
+        // Document type selection
+        document.querySelectorAll('.document-type-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected state from all cards
+                document.querySelectorAll('.document-type-card').forEach(c => {
+                    c.classList.remove('selected');
+                    c.querySelector('div').classList.remove('border-green-500', 'bg-green-50');
+                });
+                
+                // Add selected state to clicked card
+                this.classList.add('selected');
+                this.querySelector('div').classList.add('border-green-500', 'bg-green-50');
+                
+                // Check the radio button
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        // Generate document
+        document.getElementById('generate-btn').addEventListener('click', generateDocument);
+
+        async function generateDocument() {
+            const documentType = document.querySelector('input[name="document_type"]:checked')?.value;
+            const projectId = document.getElementById('project-select').value;
+            const outputFormat = document.querySelector('input[name="output_format"]:checked')?.value;
+            const generationMode = document.getElementById('generation-mode').value;
+            const customInstructions = document.getElementById('custom-instructions').value;
+
+            if (!documentType) {
+                alert('Please select a document type');
+                return;
+            }
+
+            if (!projectId) {
+                alert('Please select a project');
+                return;
+            }
+
+            // Show loading state
+            showGenerationLoading();
+
+            try {
+                const response = await fetch('/api/auto-docs/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        document_type: documentType,
+                        project_id: parseInt(projectId),
+                        output_format: outputFormat,
+                        generation_mode: generationMode,
+                        options: {
+                            include_maps: document.getElementById('include-maps').checked,
+                            include_photos: document.getElementById('include-photos').checked,
+                            include_analysis: document.getElementById('include-analysis').checked
+                        },
+                        custom_instructions: customInstructions
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Generation failed');
+                }
+
+                const result = await response.json();
+                showGenerationComplete(result);
+
+            } catch (error) {
+                console.error('Generation error:', error);
+                alert('Document generation failed. Please try again.');
+                showGenerationIdle();
+            }
+        }
+
+        function showGenerationLoading() {
+            document.getElementById('generation-idle').classList.add('hidden');
+            document.getElementById('generation-complete').classList.add('hidden');
+            document.getElementById('generation-loading').classList.remove('hidden');
+
+            // Simulate progress
+            let progress = 0;
+            const progressBar = document.getElementById('generation-progress');
+            const statusText = document.getElementById('generation-status');
+            
+            const statuses = [
+                'Analyzing project data...',
+                'Generating content structure...',
+                'Applying AI enhancements...',
+                'Formatting document...',
+                'Finalizing output...'
+            ];
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                }
+                
+                progressBar.style.width = progress + '%';
+                
+                const statusIndex = Math.floor((progress / 100) * statuses.length);
+                if (statusIndex < statuses.length) {
+                    statusText.textContent = statuses[statusIndex];
+                }
+            }, 800);
+        }
+
+        function showGenerationComplete(result) {
+            document.getElementById('generation-loading').classList.add('hidden');
+            document.getElementById('generation-complete').classList.remove('hidden');
+
+            // Populate document details
+            document.getElementById('doc-title').textContent = result.title;
+            document.getElementById('doc-subtitle').textContent = result.project_name;
+            document.getElementById('doc-pages').textContent = result.pages + ' pages';
+            document.getElementById('doc-size').textContent = result.file_size;
+
+            // Show preview content
+            const preview = document.getElementById('doc-preview');
+            preview.innerHTML = `
+                <h4 class="font-semibold mb-2">Executive Summary</h4>
+                <p class="mb-4">${result.preview_content}</p>
+                <h4 class="font-semibold mb-2">Key Sections</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    ${result.sections.map(section => `<li>${section}</li>`).join('')}
+                </ul>
+            `;
+
+            // Enable download button
+            document.getElementById('download-btn').disabled = false;
+        }
+
+        function showGenerationIdle() {
+            document.getElementById('generation-loading').classList.add('hidden');
+            document.getElementById('generation-complete').classList.add('hidden');
+            document.getElementById('generation-idle').classList.remove('hidden');
+        }
+
+        // History modal
+        document.getElementById('view-history').addEventListener('click', function() {
+            document.getElementById('history-modal').classList.remove('hidden');
+            loadGenerationHistory();
+        });
+
+        document.getElementById('close-modal').addEventListener('click', function() {
+            document.getElementById('history-modal').classList.add('hidden');
+        });
+
+        async function loadGenerationHistory() {
+            try {
+                const response = await fetch('/api/auto-docs/history');
+                const history = await response.json();
+                
+                const historyList = document.getElementById('history-list');
+                historyList.innerHTML = history.map(item => `
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-file-alt text-gray-400"></i>
+                            <div>
+                                <div class="font-medium text-gray-900">${item.title}</div>
+                                <div class="text-sm text-gray-500">${item.project_name} • ${item.created_at}</div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">View</button>
+                            <button class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700">Download</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load history:', error);
+            }
+        }
+
+        // Initialize with first document type selected
+        document.querySelector('.document-type-card').click();
+    </script>
+</body>
+</html>
