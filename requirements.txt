@@ -29,6 +29,11 @@ boto3==1.35.49
 redis==5.0.8
 sentry-sdk==2.14.0
 
+# Database drivers and migration
+psycopg[binary]==3.2.1
+aiofiles==24.1.0
+alembic==1.13.3
+
 # Configuration
 python-dotenv==1.1.1
 pyyaml==6.0.3
