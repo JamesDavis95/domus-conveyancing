@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Listings - Domus Marketplace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .listing-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .listing-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            font-size: 0.8em;
+            padding: 0.25rem 0.5rem;
+        }
+        .payout-setup {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 12px;
+            border: 2px dashed #1976d2;
+        }
+        .payout-connected {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+            border-radius: 12px;
+            border: 2px solid #4caf50;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-building"></i> Domus Planning
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                <a class="nav-link" href="/marketplace/demand"><i class="fas fa-search"></i> Browse Demand</a>
+                <a class="nav-link active" href="/marketplace/supply"><i class="fas fa-leaf"></i> My Supply</a>
+                <a class="nav-link" href="/contracts"><i class="fas fa-file-contract"></i> Contracts</a>
+                <a class="nav-link" href="/api/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="fas fa-leaf"></i> Biodiversity Credit Supply</h2>
+                <p class="text-muted">Manage your biodiversity credit listings and payout settings</p>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div id="alerts"></div>
+
+        <!-- Payout Setup Section -->
+        <div class="row mb-4">
+            <div class="col">
+                <div id="payout-setup-card" class="payout-setup p-4">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Checking payout status...</span>
+                        </div>
+                        <h5>Loading payout settings...</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supply Listings -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Your Supply Listings</h5>
+                <button class="btn btn-primary" onclick="createNewListing()">
+                    <i class="fas fa-plus"></i> Create New Listing
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="supply-listings">
+                    <!-- Sample listing for demonstration -->
+                    <div class="listing-card border rounded p-3 mb-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h6 class="mb-1">Oakwood Farm BNG Credits</h6>
+                                <small class="text-muted">Woodland Creation</small>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>125.5 ha</strong>
+                                <small class="d-block text-muted">Available</small>
+                            </div>
+                            <div class="col-md-2">
+                                <strong>£2,500/ha</strong>
+                                <small class="d-block text-muted">Unit Price</small>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge status-badge bg-success">Active</span>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Created: 15 Oct 2025</small>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-edit"></i> Edit</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-eye"></i> View</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-pause"></i> Pause</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash"></i> Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty state when no listings -->
+                    <div id="empty-listings" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-seedling feature-icon text-muted"></i>
+                        <h4 class="text-muted">No Supply Listings Yet</h4>
+                        <p class="text-muted">Create your first biodiversity credit listing to start earning from your land.</p>
+                        <button class="btn btn-primary" onclick="createNewListing()">
+                            <i class="fas fa-plus"></i> Create Your First Listing
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Contracts -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-contract"></i> Recent Contracts</h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-contracts">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading contracts...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Listing Modal -->
+    <div class="modal fade" id="createListingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Supply Listing</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createListingForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Listing Title</label>
+                                    <input type="text" class="form-control" name="title" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Habitat Type</label>
+                                    <select class="form-select" name="habitat_type" required>
+                                        <option value="">Select habitat type</option>
+                                        <option value="woodland">Woodland Creation</option>
+                                        <option value="grassland">Grassland Enhancement</option>
+                                        <option value="wetland">Wetland Creation</option>
+                                        <option value="heathland">Heathland Restoration</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Available Hectares</label>
+                                    <input type="number" class="form-control" name="hectares" step="0.1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Price per Hectare (£)</label>
+                                    <input type="number" class="form-control" name="unit_price" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" name="location" placeholder="e.g., Near Oxford, Oxfordshire" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="Describe your biodiversity credits, site conditions, and any relevant details..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitListing()">Create Listing</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let payoutStatus = null;
+
+        // Load payout status
+        async function loadPayoutStatus() {
+            try {
+                const response = await fetch('/api/payouts/status');
+                const data = await response.json();
+                payoutStatus = data;
+
+                const setupCard = document.getElementById('payout-setup-card');
+                
+                if (data.connected && data.status.payouts_enabled) {
+                    // Fully connected and verified
+                    setupCard.className = 'payout-connected p-4';
+                    setupCard.innerHTML = `
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle text-success me-3" style="font-size: 2rem;"></i>
+                                    <div>
+                                        <h5 class="mb-1 text-success">Payouts Connected</h5>
+                                        <p class="mb-0 text-muted">Your account is verified and ready to receive payments.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-outline-primary" onclick="openStripePortal()">
+                                    <i class="fas fa-external-link-alt"></i> Manage Payouts
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else if (data.connected && !data.status.payouts_enabled) {
+                    // Connected but needs verification
+                    setupCard.className = 'payout-setup p-4';
+                    setupCard.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle text-warning feature-icon"></i>
+                            <h5>Account Verification Required</h5>
+                            <p class="text-muted mb-3">Complete your account verification to receive payments.</p>
+                            <div class="mb-3">
+                                <small class="text-muted">Pending requirements: ${data.status.requirements.join(', ')}</small>
+                            </div>
+                            <button class="btn btn-warning" onclick="continueOnboarding()">
+                                <i class="fas fa-arrow-right"></i> Continue Setup
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // Not connected
+                    setupCard.className = 'payout-setup p-4';
+                    setupCard.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-credit-card feature-icon text-primary"></i>
+                            <h5>Set Up Payouts</h5>
+                            <p class="text-muted mb-3">Connect your bank account to receive payments from biodiversity credit sales. Domus charges a 7% service fee on all transactions.</p>
+                            <div class="row justify-content-center mb-3">
+                                <div class="col-md-8">
+                                    <div class="row text-start">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-check text-success"></i> Secure bank integration<br>
+                                                <i class="fas fa-check text-success"></i> Fast payment processing<br>
+                                                <i class="fas fa-check text-success"></i> Automatic transaction reports
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-check text-success"></i> 7% transparent fee<br>
+                                                <i class="fas fa-check text-success"></i> No hidden charges<br>
+                                                <i class="fas fa-check text-success"></i> Monthly payout summaries
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-lg" onclick="setupPayouts()">
+                                <i class="fas fa-arrow-right"></i> Set Up Payouts
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading payout status:', error);
+                const setupCard = document.getElementById('payout-setup-card');
+                setupCard.innerHTML = `
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-exclamation-triangle"></i> Failed to load payout status
+                    </div>
+                `;
+            }
+        }
+
+        // Set up payouts
+        async function setupPayouts() {
+            try {
+                showLoading('Setting up your payout account...');
+                
+                const response = await fetch('/api/payouts/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Redirect to Stripe Connect onboarding
+                    window.location.href = data.onboarding_url;
+                } else {
+                    throw new Error(data.detail || 'Failed to set up payouts');
+                }
+            } catch (error) {
+                console.error('Error setting up payouts:', error);
+                showAlert('error', 'Failed to set up payouts: ' + error.message);
+            }
+        }
+
+        // Continue onboarding for incomplete accounts
+        async function continueOnboarding() {
+            if (payoutStatus && payoutStatus.account_id) {
+                // Create new account link for existing account
+                try {
+                    showLoading('Continuing account setup...');
+                    const response = await fetch('/api/payouts/connect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ account_id: payoutStatus.account_id })
+                    });
+                    
+                    const data = await response.json();
+                    if (response.ok) {
+                        window.location.href = data.onboarding_url;
+                    } else {
+                        throw new Error(data.detail);
+                    }
+                } catch (error) {
+                    showAlert('error', 'Failed to continue setup: ' + error.message);
+                }
+            }
+        }
+
+        // Create new listing
+        function createNewListing() {
+            const modal = new bootstrap.Modal(document.getElementById('createListingModal'));
+            modal.show();
+        }
+
+        // Submit listing
+        async function submitListing() {
+            const form = document.getElementById('createListingForm');
+            const formData = new FormData(form);
+            
+            try {
+                showLoading('Creating listing...');
+                
+                const response = await fetch('/api/marketplace/supply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+                
+                if (response.ok) {
+                    showAlert('success', 'Listing created successfully!');
+                    bootstrap.Modal.getInstance(document.getElementById('createListingModal')).hide();
+                    form.reset();
+                    // Reload listings
+                    loadSupplyListings();
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to create listing');
+                }
+            } catch (error) {
+                console.error('Error creating listing:', error);
+                showAlert('error', 'Failed to create listing: ' + error.message);
+            }
+        }
+
+        // Load supply listings
+        async function loadSupplyListings() {
+            // Implementation for loading actual listings
+            console.log('Loading supply listings...');
+        }
+
+        // Load recent contracts
+        async function loadRecentContracts() {
+            const contractsDiv = document.getElementById('recent-contracts');
+            try {
+                // Mock implementation - replace with real API call
+                setTimeout(() => {
+                    contractsDiv.innerHTML = `
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-file-contract" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <h6>No Recent Contracts</h6>
+                            <p>Your contracts will appear here once buyers start purchasing your credits.</p>
+                        </div>
+                    `;
+                }, 1000);
+            } catch (error) {
+                contractsDiv.innerHTML = '<div class="alert alert-danger">Failed to load contracts</div>';
+            }
+        }
+
+        // Utility functions
+        function showAlert(type, message) {
+            const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.getElementById('alerts').innerHTML = alertHtml;
+            
+            setTimeout(() => {
+                const alert = document.querySelector('.alert');
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+
+        function showLoading(message) {
+            const alertHtml = `
+                <div class="alert alert-info" role="alert">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        ${message}
+                    </div>
+                </div>
+            `;
+            document.getElementById('alerts').innerHTML = alertHtml;
+        }
+
+        // Check for URL parameters (setup completion)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('setup') === 'complete') {
+            showAlert('success', 'Payout setup completed successfully! You can now receive payments from credit sales.');
+        } else if (urlParams.get('setup') === 'refresh') {
+            showAlert('info', 'Please complete the remaining verification steps to enable payouts.');
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPayoutStatus();
+            loadSupplyListings();
+            loadRecentContracts();
+        });
+    </script>
+</body>
+</html>

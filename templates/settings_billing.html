@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing & Subscriptions - Domus Planning</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .plan-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .plan-card.current {
+            border: 2px solid #007bff;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+        }
+        .usage-bar {
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .usage-progress {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .quota-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .invoice-row {
+            transition: background-color 0.2s ease;
+        }
+        .invoice-row:hover {
+            background-color: #f8f9fa;
+        }
+        .status-badge {
+            font-size: 0.8em;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-building"></i> Domus Planning
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                <a class="nav-link" href="/settings"><i class="fas fa-cog"></i> Settings</a>
+                <a class="nav-link" href="/api/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2><i class="fas fa-credit-card"></i> Billing & Subscriptions</h2>
+                <p class="text-muted">Manage your plan, view usage, and access billing information</p>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div id="alerts"></div>
+
+        <!-- Current Plan & Usage -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Current Usage</h5>
+                        <span id="current-plan-badge" class="badge bg-primary">Loading...</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="usage-display">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading usage data...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tools"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button id="billing-portal-btn" class="btn btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i> Billing Portal
+                            </button>
+                            <button id="download-invoice-btn" class="btn btn-outline-secondary">
+                                <i class="fas fa-download"></i> Download Latest Invoice
+                            </button>
+                            <button onclick="location.reload()" class="btn btn-outline-info">
+                                <i class="fas fa-sync"></i> Refresh Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Upgrade Options -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-rocket"></i> Available Plans</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Demo Plan -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card plan-card h-100" data-plan="DEMO">
+                            <div class="card-body text-center">
+                                <h5>Demo</h5>
+                                <h3 class="text-primary">Free</h3>
+                                <p class="text-muted">Perfect for trying out the platform</p>
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="fas fa-check text-success"></i> 1 Project</li>
+                                    <li><i class="fas fa-check text-success"></i> 5 Documents/month</li>
+                                    <li><i class="fas fa-check text-success"></i> 2 Viability runs</li>
+                                    <li><i class="fas fa-check text-success"></i> 2 BNG calculations</li>
+                                    <li><i class="fas fa-check text-success"></i> Basic support</li>
+                                </ul>
+                                <button class="btn btn-outline-secondary" disabled>Current Plan</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pro Plan -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card plan-card h-100" data-plan="PRO">
+                            <div class="card-body text-center">
+                                <h5>Professional</h5>
+                                <h3 class="text-primary">£299<span class="fs-6 text-muted">/month</span></h3>
+                                <p class="text-muted">For growing planning consultancies</p>
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="fas fa-check text-success"></i> 10 Projects</li>
+                                    <li><i class="fas fa-check text-success"></i> 50 Documents/month</li>
+                                    <li><i class="fas fa-check text-success"></i> 20 Viability runs</li>
+                                    <li><i class="fas fa-check text-success"></i> 15 Transport assessments</li>
+                                    <li><i class="fas fa-check text-success"></i> Priority support</li>
+                                    <li><i class="fas fa-check text-success"></i> API access</li>
+                                </ul>
+                                <button class="btn btn-primary upgrade-btn" data-plan="PRO">Upgrade to Pro</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Enterprise Plan -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card plan-card h-100" data-plan="ENTERPRISE">
+                            <div class="card-body text-center">
+                                <h5>Enterprise</h5>
+                                <h3 class="text-primary">£999<span class="fs-6 text-muted">/month</span></h3>
+                                <p class="text-muted">For large planning organizations</p>
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="fas fa-check text-success"></i> 100 Projects</li>
+                                    <li><i class="fas fa-check text-success"></i> 500 Documents/month</li>
+                                    <li><i class="fas fa-check text-success"></i> Unlimited assessments</li>
+                                    <li><i class="fas fa-check text-success"></i> White-label options</li>
+                                    <li><i class="fas fa-check text-success"></i> Dedicated support</li>
+                                    <li><i class="fas fa-check text-success"></i> Custom integrations</li>
+                                </ul>
+                                <button class="btn btn-primary upgrade-btn" data-plan="ENTERPRISE">Upgrade to Enterprise</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Invoices -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Recent Invoices</h5>
+            </div>
+            <div class="card-body">
+                <div id="invoices-display">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading invoices...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load usage data
+        async function loadUsageData() {
+            try {
+                const response = await fetch('/api/billing/usage');
+                const data = await response.json();
+                
+                // Update plan badge
+                document.getElementById('current-plan-badge').textContent = data.plan;
+                
+                // Update current plan card
+                const planCards = document.querySelectorAll('.plan-card');
+                planCards.forEach(card => {
+                    card.classList.remove('current');
+                    const planBtn = card.querySelector('button');
+                    if (card.dataset.plan === data.plan) {
+                        card.classList.add('current');
+                        planBtn.textContent = 'Current Plan';
+                        planBtn.disabled = true;
+                        planBtn.className = 'btn btn-success';
+                    }
+                });
+                
+                // Display usage quotas
+                const usageHtml = Object.keys(data.usage).map(key => {
+                    const used = data.usage[key];
+                    const limit = data.quotas[key.replace('_used', '').replace('_', '_')] || 
+                                 data.quotas[key.replace('_used', '') + '_per_month'] || 
+                                 data.quotas[key.replace('_used', '')];
+                    const percentage = limit > 0 ? (used / limit) * 100 : 0;
+                    const progressColor = percentage > 90 ? 'danger' : percentage > 70 ? 'warning' : 'success';
+                    
+                    return `
+                        <div class="quota-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-medium">${key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                                <span class="text-muted">${used}/${limit}</span>
+                            </div>
+                            <div class="usage-bar bg-light">
+                                <div class="usage-progress bg-${progressColor}" style="width: ${Math.min(percentage, 100)}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('usage-display').innerHTML = usageHtml;
+                
+            } catch (error) {
+                console.error('Error loading usage data:', error);
+                document.getElementById('usage-display').innerHTML = '<div class="alert alert-danger">Failed to load usage data</div>';
+            }
+        }
+        
+        // Load invoices
+        async function loadInvoices() {
+            try {
+                const response = await fetch('/api/billing/invoices');
+                const data = await response.json();
+                
+                if (data.invoices.length === 0) {
+                    document.getElementById('invoices-display').innerHTML = '<p class="text-muted text-center">No invoices found</p>';
+                    return;
+                }
+                
+                const invoicesHtml = data.invoices.map(invoice => `
+                    <div class="invoice-row border-bottom py-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <strong>#${invoice.id.slice(-8)}</strong>
+                            </div>
+                            <div class="col-md-2">
+                                £${invoice.amount.toFixed(2)} ${invoice.currency.toUpperCase()}
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge status-badge bg-${invoice.status === 'paid' ? 'success' : 'warning'}">
+                                    ${invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                                </span>
+                            </div>
+                            <div class="col-md-3">
+                                ${new Date(invoice.created * 1000).toLocaleDateString()}
+                            </div>
+                            <div class="col-md-2">
+                                <a href="${invoice.pdf_url}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-download"></i> PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('invoices-display').innerHTML = invoicesHtml;
+                
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+                document.getElementById('invoices-display').innerHTML = '<div class="alert alert-danger">Failed to load invoices</div>';
+            }
+        }
+        
+        // Handle plan upgrades
+        document.querySelectorAll('.upgrade-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const plan = e.target.dataset.plan;
+                const originalText = e.target.textContent;
+                
+                e.target.textContent = 'Processing...';
+                e.target.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/billing/create-checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ plan })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        window.location.href = data.checkout_url;
+                    } else {
+                        throw new Error(data.detail || 'Failed to create checkout session');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error creating checkout:', error);
+                    showAlert('error', 'Failed to initiate upgrade: ' + error.message);
+                    e.target.textContent = originalText;
+                    e.target.disabled = false;
+                }
+            });
+        });
+        
+        // Handle billing portal
+        document.getElementById('billing-portal-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/billing/portal');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    window.open(data.portal_url, '_blank');
+                } else {
+                    throw new Error(data.detail || 'Failed to access billing portal');
+                }
+                
+            } catch (error) {
+                console.error('Error accessing billing portal:', error);
+                showAlert('error', 'Failed to access billing portal: ' + error.message);
+            }
+        });
+        
+        // Utility function to show alerts
+        function showAlert(type, message) {
+            const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.getElementById('alerts').innerHTML = alertHtml;
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = document.querySelector('.alert');
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+        
+        // Check for success/error messages from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            showAlert('success', 'Payment successful! Your plan has been upgraded.');
+        } else if (urlParams.get('cancelled') === 'true') {
+            showAlert('error', 'Payment was cancelled. Your plan remains unchanged.');
+        }
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUsageData();
+            loadInvoices();
+        });
+    </script>
+</body>
+</html>

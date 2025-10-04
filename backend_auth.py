@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import jwt
 import bcrypt
-from models import User, Organization, Usage, get_db
+from models import Users, Organization, Usage, get_db
 
 # Security configuration
 SECRET_KEY = "your-secret-key-change-in-production"  # TODO: Move to environment variable
@@ -98,7 +98,7 @@ async def get_current_user(
         )
     
     # Get user from database
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

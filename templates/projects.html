@@ -4,50 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projects - Domus</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="/static/dashboard.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
-    <div class="flex h-screen">
+<body class="bg-light">
+    <div class="d-flex h-100">
         <!-- Include sidebar -->
         <div id="sidebar-container"></div>
         
         <!-- Main content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-fill d-flex flex-column overflow-hidden">
             <!-- Top bar -->
-            <div class="bg-white shadow-sm border-b">
-                <div class="flex items-center justify-between px-6 py-4">
-                    <div class="flex items-center space-x-4">
-                        <h1 class="text-2xl font-bold text-gray-900">Projects</h1>
-                        <div class="text-sm text-gray-500">{{ projects|length }} total</div>
+            <div class="bg-white shadow-sm border-bottom">
+                <div class="d-flex align-items-center justify-content-between px-4 py-3">
+                    <div class="d-flex align-items-center">
+                        <h1 class="h3 mb-0 me-3">Projects</h1>
+                        <span id="project-count" class="badge bg-secondary">{{ projects|length }} total</span>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <div class="relative">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative">
                             <input type="text" id="search" placeholder="Search projects..." 
-                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                   class="form-control ps-5" style="width: 250px;">
+                            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                         </div>
-                        <select id="filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <select id="filter" class="form-select" style="width: auto;">
                             <option value="">All Status</option>
                             <option value="planning">Planning</option>
                             <option value="submitted">Submitted</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                         </select>
-                        <a href="/projects/new" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                            <i class="fas fa-plus mr-2"></i>New Project
+                        <a href="/projects/new" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>New Project
                         </a>
                     </div>
                 </div>
             </div>
             
             <!-- Content -->
-            <div class="flex-1 overflow-auto p-6">
-                <div class="grid gap-6">
+            <div class="flex-fill overflow-auto p-4">
+                <!-- Loading state container -->
+                <div id="projects-loading" class="d-none">
+                    <!-- Will be populated by empty states manager -->
+                </div>
+                
+                <!-- Error state container -->
+                <div id="projects-error" class="d-none">
+                    <!-- Will be populated by error handler -->
+                </div>
+                
+                <!-- Projects container -->
+                <div id="projects-container">
                     {% if projects %}
-                        {% for project in projects %}
-                        <div class="project-card bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+                        <div class="row g-4" id="projects-grid">
+                            {% for project in projects %}
                             <div class="p-6">
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1">

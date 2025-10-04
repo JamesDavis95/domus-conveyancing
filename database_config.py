@@ -32,6 +32,9 @@ def get_database():
     finally:
         db.close()
 
+# Alias for compatibility
+get_db = get_database
+
 def init_database():
     """Initialize database tables"""
     try:

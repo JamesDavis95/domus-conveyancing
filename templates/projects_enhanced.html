@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Domus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/dashboard.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="d-flex h-100">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main content -->
+        <div class="flex-fill d-flex flex-column overflow-hidden">
+            <!-- Top bar -->
+            <div class="bg-white shadow-sm border-bottom">
+                <div class="d-flex align-items-center justify-content-between px-4 py-3">
+                    <div class="d-flex align-items-center">
+                        <h1 class="h3 mb-0 me-3">Projects</h1>
+                        <span id="project-count" class="badge bg-secondary">{{ projects|length }} total</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative">
+                            <input type="text" id="search" placeholder="Search projects..." 
+                                   class="form-control ps-5" style="width: 250px;">
+                            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        </div>
+                        <select id="filter" class="form-select" style="width: auto;">
+                            <option value="">All Status</option>
+                            <option value="planning">Planning</option>
+                            <option value="submitted">Submitted</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <a href="/projects/new" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>New Project
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-fill overflow-auto p-4">
+                <!-- Loading state container -->
+                <div id="projects-loading" class="d-none">
+                    <!-- Will be populated by empty states manager -->
+                </div>
+                
+                <!-- Error state container -->
+                <div id="projects-error" class="d-none">
+                    <!-- Will be populated by error handler -->
+                </div>
+                
+                <!-- Projects container -->
+                <div id="projects-container">
+                    {% if projects %}
+                        <div class="row g-4" id="projects-grid">
+                            {% for project in projects %}
+                            <div class="col-lg-6 col-xl-4" data-project-id="{{ project.id }}">
+                                <div class="card project-card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="card-title mb-1">{{ project.title or project.name }}</h5>
+                                            <small class="text-muted">{{ project.address }}</small>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="/projects/{{ project.id }}"><i class="fas fa-eye me-2"></i>View</a></li>
+                                                <li><a class="dropdown-item" href="/projects/{{ project.id }}/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteProject({{ project.id }})"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="badge status-badge bg-primary">{{ project.status|title }}</span>
+                                            <small class="text-muted">{{ project.updated_at.strftime('%d %b %Y') if project.updated_at else project.created_at.strftime('%d %b %Y') }}</small>
+                                        </div>
+                                        
+                                        {% if project.progress is defined %}
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="small text-muted">Progress</span>
+                                                <span class="small fw-medium">{{ project.progress }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" role="progressbar" style="width: {{ project.progress }}%"></div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <p class="card-text text-muted small">{{ project.description[:100] if project.description else 'No description available' }}{% if project.description and project.description|length > 100 %}...{% endif %}</p>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="small text-muted">
+                                                <i class="fas fa-file-pdf me-1"></i>{{ project.document_count or 0 }} docs
+                                                {% if project.ai_score is defined %}
+                                                <span class="ms-2"><i class="fas fa-brain me-1"></i>{{ project.ai_score }}%</span>
+                                                {% endif %}
+                                            </div>
+                                            <a href="/projects/{{ project.id }}" class="btn btn-primary btn-sm">
+                                                View Project <i class="fas fa-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div id="empty-projects"></div>
+                    {% endif %}
+                    
+                    <!-- No results found state -->
+                    <div id="no-results" class="d-none"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/empty-states.js"></script>
+    <script src="/static/js/error-handler.js"></script>
+    <script>
+        // Application state
+        let allProjects = [];
+        let filteredProjects = [];
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        async function initializeApp() {
+            try {
+                // Show loading state
+                EmptyStates.showLoading('projects-container', {
+                    type: 'card',
+                    count: 3,
+                    showMessage: false
+                });
+
+                // Load sidebar
+                await loadSidebar();
+                
+                // Initialize empty states if no projects
+                {% if not projects %}
+                initializeEmptyState();
+                {% else %}
+                initializeProjectsView();
+                {% endif %}
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                EmptyStates.showError('projects-container', error, 'Projects Page');
+            }
+        }
+
+        async function loadSidebar() {
+            try {
+                const response = await ErrorHandler.safeFetch('/api/sidebar');
+                const html = await response.text();
+                document.getElementById('sidebar-container').innerHTML = html;
+            } catch (error) {
+                console.warn('Could not load sidebar:', error);
+                // Don't fail the entire page for sidebar issues
+            }
+        }
+
+        function initializeEmptyState() {
+            EmptyStates.hideLoading('projects-container');
+            EmptyStates.showEmptyState('empty-projects', {
+                icon: 'fas fa-building',
+                title: 'No projects yet',
+                description: 'Start your first planning project and unlock powerful AI-driven insights.',
+                actionText: 'Create Project',
+                actionCallback: () => window.location.href = '/projects/new'
+            });
+        }
+
+        function initializeProjectsView() {
+            EmptyStates.hideLoading('projects-container');
+            
+            // Collect project data for filtering
+            allProjects = Array.from(document.querySelectorAll('.project-card')).map(card => {
+                const container = card.closest('[data-project-id]');
+                return {
+                    element: container,
+                    text: card.textContent.toLowerCase(),
+                    status: card.querySelector('.status-badge')?.textContent?.toLowerCase()?.trim() || '',
+                    title: card.querySelector('.card-title')?.textContent || ''
+                };
+            });
+            filteredProjects = [...allProjects];
+        }
+
+        function setupEventListeners() {
+            // Search and filter
+            const searchInput = document.getElementById('search');
+            const filterSelect = document.getElementById('filter');
+            
+            searchInput?.addEventListener('input', debounce(handleSearch, 300));
+            filterSelect?.addEventListener('change', handleFilter);
+            
+            // Project actions
+            window.deleteProject = handleDeleteProject;
+        }
+
+        function handleSearch() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            applyFilters(searchTerm, document.getElementById('filter').value);
+        }
+
+        function handleFilter() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const filterValue = document.getElementById('filter').value;
+            applyFilters(searchTerm, filterValue);
+        }
+
+        function applyFilters(searchTerm = '', statusFilter = '') {
+            let hasResults = false;
+            
+            allProjects.forEach(project => {
+                const matchesSearch = !searchTerm || project.text.includes(searchTerm);
+                const matchesFilter = !statusFilter || project.status === statusFilter;
+                const shouldShow = matchesSearch && matchesFilter;
+                
+                project.element.style.display = shouldShow ? 'block' : 'none';
+                if (shouldShow) hasResults = true;
+            });
+            
+            // Show/hide no results state
+            const noResultsEl = document.getElementById('no-results');
+            if (!hasResults && (searchTerm || statusFilter)) {
+                EmptyStates.showEmptyState('no-results', {
+                    icon: 'fas fa-search',
+                    title: 'No results found',
+                    description: searchTerm 
+                        ? `No projects match "${searchTerm}${statusFilter ? ' with status ' + statusFilter : ''}"`
+                        : `No projects with status "${statusFilter}"`,
+                    compact: true
+                });
+                noResultsEl.classList.remove('d-none');
+                document.getElementById('projects-grid')?.classList.add('d-none');
+            } else {
+                noResultsEl.classList.add('d-none');
+                document.getElementById('projects-grid')?.classList.remove('d-none');
+            }
+            
+            // Update count
+            const visibleCount = allProjects.filter(p => p.element.style.display !== 'none').length;
+            document.getElementById('project-count').textContent = `${visibleCount} of ${allProjects.length}`;
+        }
+
+        async function handleDeleteProject(projectId) {
+            if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const response = await ErrorHandler.safeFetch(`/api/projects/${projectId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Remove project from DOM
+                    const projectElement = document.querySelector(`[data-project-id="${projectId}"]`);
+                    if (projectElement) {
+                        projectElement.remove();
+                        
+                        // Update project arrays
+                        allProjects = allProjects.filter(p => p.element !== projectElement);
+                        filteredProjects = filteredProjects.filter(p => p.element !== projectElement);
+                        
+                        // Update count
+                        document.getElementById('project-count').textContent = `${allProjects.length} total`;
+                        
+                        // Show empty state if no projects left
+                        if (allProjects.length === 0) {
+                            initializeEmptyState();
+                        }
+                    }
+                    
+                    ErrorHandler.showNotification({
+                        type: 'success',
+                        title: 'Project Deleted',
+                        message: 'The project has been successfully deleted.',
+                        autoHide: 3000
+                    });
+                } else {
+                    throw new Error('Failed to delete project');
+                }
+            } catch (error) {
+                ErrorHandler.showNotification({
+                    type: 'error',
+                    title: 'Delete Failed',
+                    message: 'Could not delete the project. Please try again.',
+                    autoHide: 5000
+                });
+            }
+        }
+
+        // Utility functions
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

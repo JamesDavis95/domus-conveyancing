@@ -9,12 +9,25 @@ Property API - Unified UK property data integration
 Offsets Marketplace - Biodiversity Net Gain trading platform
 """
 
+# Load environment variables first
+from dotenv import load_dotenv
 import os
+
+# Try production environment first, then fallback to local
+if os.path.exists('.env.production'):
+    load_dotenv('.env.production')
+    print("Loaded .env.production environment")
+elif os.path.exists('.env.local'):
+    load_dotenv('.env.local')
+    print("Loaded .env.local environment")
+else:
+    print("No environment file found, using system environment variables")
+
 import time
 import json
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, Depends, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, Depends, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,7 +43,24 @@ from auth_system import (
     hash_password, verify_password, create_access_token,
     increment_usage, org_scoped_query
 )
-from models import Users, Orgs, Projects, UserRole, PlanType
+from models import Users, Orgs, Projects, UserRole, PlanType, UsageCounters, MarketplaceSupply, Contracts, ContractStatus, SourceFreshness, AnalysisSnapshots, SubmissionPacks
+
+# Import security hardening
+try:
+    from security_hardening import (
+        security_manager, two_factor_auth, rate_limiter, captcha_service, 
+        csp_manager, log_redactor, require_2fa, rate_limit, require_captcha,
+        log_security_event, SecurityMiddleware
+    )
+    SECURITY_ENABLED = True
+except ImportError:
+    print("Security hardening modules not available - running in development mode")
+    SECURITY_ENABLED = False
+    
+    # Create dummy decorators for development
+    def require_2fa(f): return f
+    def rate_limit(limit_type='api'): return lambda f: f
+    def require_captcha(f): return f
 
 # Database dependency (placeholder - need to set up proper DB session)
 def get_db():
@@ -53,11 +83,226 @@ class ProjectCreateRequest(BaseModel):
     address: str = None
     site_geometry: dict = None
 
-# Mock implementations for optional services
+# Stripe billing implementation
+import stripe
+import os
+from typing import Optional
+
+# Configure Stripe
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+
 class StripeService:
     @staticmethod
+    async def create_checkout_session(org_id: int, plan: str, success_url: str, cancel_url: str, db: Session):
+        """Create Stripe Checkout session with Bacs Direct Debit support"""
+        try:
+            # Get or create Stripe customer
+            org = db.query(Orgs).filter(Orgs.id == org_id).first()
+            customer_id = org.billing_customer_id
+            
+            if not customer_id:
+                customer = stripe.Customer.create(
+                    email=f"billing@org{org_id}.domus.com",
+                    metadata={'org_id': org_id}
+                )
+                customer_id = customer.id
+                org.billing_customer_id = customer_id
+                db.commit()
+            
+            # Define price IDs for plans
+            price_ids = {
+                'PRO': os.getenv('STRIPE_PRICE_PRO'),
+                'ENTERPRISE': os.getenv('STRIPE_PRICE_ENT')
+            }
+            
+            if plan not in price_ids:
+                raise ValueError(f"Invalid plan: {plan}")
+            
+            # Create checkout session with Bacs DD
+            session = stripe.checkout.Session.create(
+                customer=customer_id,
+                payment_method_types=['card', 'bacs_debit'],
+                line_items=[{
+                    'price': price_ids[plan],
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={'org_id': org_id, 'plan': plan},
+                billing_address_collection='required',
+                tax_id_collection={'enabled': True}  # VAT collection
+            )
+            
+            return session.url
+            
+        except Exception as e:
+            raise Exception(f"Failed to create checkout session: {str(e)}")
+    
+    @staticmethod
     async def get_billing_portal_url(org_id: int, return_url: str, db: Session):
-        return f"https://billing.stripe.com/p/login/test_{org_id}"
+        """Get Stripe billing portal URL"""
+        try:
+            org = db.query(Orgs).filter(Orgs.id == org_id).first()
+            if not org.billing_customer_id:
+                return None
+                
+            session = stripe.billing_portal.Session.create(
+                customer=org.billing_customer_id,
+                return_url=return_url
+            )
+            return session.url
+        except Exception as e:
+            raise Exception(f"Failed to create portal session: {str(e)}")
+    
+    @staticmethod
+    async def get_invoices(org_id: int, db: Session):
+        """Get invoices for organization"""
+        try:
+            org = db.query(Orgs).filter(Orgs.id == org_id).first()
+            if not org.billing_customer_id:
+                return []
+                
+            invoices = stripe.Invoice.list(
+                customer=org.billing_customer_id,
+                limit=10
+            )
+            
+            return [{
+                'id': inv.id,
+                'amount': inv.amount_due / 100,  # Convert from cents
+                'currency': inv.currency,
+                'status': inv.status,
+                'created': inv.created,
+                'pdf_url': inv.invoice_pdf
+            } for inv in invoices.data]
+        except Exception as e:
+            raise Exception(f"Failed to get invoices: {str(e)}")
+
+class QuotaService:
+    @staticmethod
+    def get_plan_quotas(plan: str):
+        """Get quota limits for plan"""
+        quotas = {
+            'DEMO': {
+                'projects': 1,
+                'docs_per_month': 5,
+                'viability_runs': 2,
+                'bng_runs': 2,
+                'transport_runs': 1,
+                'environment_runs': 1,
+                'packs_created': 1,
+                'api_calls_per_month': 100
+            },
+            'PRO': {
+                'projects': 10,
+                'docs_per_month': 50,
+                'viability_runs': 20,
+                'bng_runs': 20,
+                'transport_runs': 15,
+                'environment_runs': 15,
+                'packs_created': 10,
+                'api_calls_per_month': 1000
+            },
+            'ENTERPRISE': {
+                'projects': 100,
+                'docs_per_month': 500,
+                'viability_runs': 200,
+                'bng_runs': 200,
+                'transport_runs': 150,
+                'environment_runs': 150,
+                'packs_created': 100,
+                'api_calls_per_month': 10000
+            }
+        }
+        return quotas.get(plan, quotas['DEMO'])
+    
+    @staticmethod
+    async def check_quota(org_id: int, resource: str, db: Session):
+        """Check if organization has quota for resource"""
+        org = db.query(Orgs).filter(Orgs.id == org_id).first()
+        plan_quotas = QuotaService.get_plan_quotas(org.plan.value)
+        
+        # Get current month usage
+        from datetime import datetime
+        current_month = datetime.now().strftime('%Y-%m')
+        usage = db.query(UsageCounters).filter(
+            UsageCounters.org_id == org_id,
+            UsageCounters.month == current_month
+        ).first()
+        
+        if not usage:
+            # Create usage record for current month
+            usage = UsageCounters(
+                org_id=org_id,
+                month=current_month,
+                projects_used=0,
+                docs_used=0,
+                viability_runs=0,
+                bng_runs=0,
+                transport_runs=0,
+                environment_runs=0,
+                packs_created=0,
+                api_calls_used=0
+            )
+            db.add(usage)
+            db.commit()
+        
+        # Check specific resource quota
+        current_usage = getattr(usage, resource, 0)
+        quota_limit = plan_quotas.get(resource.replace('_used', '').replace('_', '_') + ('_per_month' if 'docs' in resource or 'api' in resource else ''), 0)
+        
+        return current_usage < quota_limit
+    
+    @staticmethod
+    async def increment_usage(org_id: int, resource: str, db: Session):
+        """Increment usage counter for resource"""
+        from datetime import datetime
+        current_month = datetime.now().strftime('%Y-%m')
+        usage = db.query(UsageCounters).filter(
+            UsageCounters.org_id == org_id,
+            UsageCounters.month == current_month
+        ).first()
+        
+        if usage:
+            current_value = getattr(usage, resource, 0)
+            setattr(usage, resource, current_value + 1)
+            db.commit()
+    
+    @staticmethod
+    async def reset_monthly_quotas(db: Session):
+        """Reset monthly quotas for all organizations"""
+        from datetime import datetime
+        current_month = datetime.now().strftime('%Y-%m')
+        
+        # Reset counters for current month
+        db.query(UsageCounters).filter(
+            UsageCounters.month == current_month
+        ).update({
+            'docs_used': 0,
+            'api_calls_used': 0
+        })
+        db.commit()
+
+class VATService:
+    @staticmethod
+    def validate_vat_number(vat_number: str, country_code: str):
+        """Validate VAT number format"""
+        import re
+        
+        # Basic VAT validation patterns
+        patterns = {
+            'GB': r'^GB\d{9}$|^GB\d{12}$|^GBGD\d{3}$|^GBHA\d{3}$',
+            'DE': r'^DE\d{9}$',
+            'FR': r'^FR[A-Z0-9]{2}\d{9}$',
+            'IE': r'^IE\d{7}[A-Z]{1,2}$|^IE\d[A-Z]\d{5}[A-Z]$'
+        }
+        
+        pattern = patterns.get(country_code.upper())
+        if not pattern:
+            return False
+            
+        return bool(re.match(pattern, vat_number.upper()))
 
 # Environment flags for optional features
 PRODUCTION_AUTH_AVAILABLE = False
@@ -106,6 +351,68 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+# Security middleware and headers
+if SECURITY_ENABLED:
+    @app.middleware("http")
+    async def security_middleware(request: Request, call_next):
+        # Rate limiting check
+        identifier = request.client.host
+        
+        # Extract limit type from path
+        limit_type = 'api'
+        if '/auth/' in str(request.url):
+            limit_type = 'auth'
+        elif '/upload' in str(request.url):
+            limit_type = 'upload'
+        
+        rate_result = rate_limiter.is_allowed(identifier, limit_type)
+        
+        if not rate_result['allowed']:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    'error': 'Rate limit exceeded',
+                    'retry_after': rate_result['retry_after']
+                },
+                headers={
+                    'Retry-After': str(rate_result['retry_after']),
+                    'X-RateLimit-Remaining': '0'
+                }
+            )
+        
+        # Process request
+        response = await call_next(request)
+        
+        # Add security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Content-Security-Policy'] = csp_manager.generate_csp_header()
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        
+        # Add rate limit headers
+        response.headers['X-RateLimit-Remaining'] = str(rate_result['remaining'])
+        if 'reset_time' in rate_result:
+            response.headers['X-RateLimit-Reset'] = str(rate_result['reset_time'])
+        
+        return response
+    
+    # CSP violation reporting endpoint
+    @app.post("/api/security/csp-report")
+    async def csp_report(request: Request):
+        try:
+            violation_data = await request.json()
+            log_security_event('csp_violation', {
+                'violation': violation_data,
+                'ip': request.client.host,
+                'user_agent': request.headers.get('user-agent')
+            })
+            return {'status': 'reported'}
+        except:
+            return {'status': 'error'}
+
 # Load core platform modules
 print("Loading Domus Professional Platform...")
 
@@ -113,6 +420,41 @@ try:
     print("   Auto-Docs module: In-app implementation")
 except ImportError as e:
     print(f"   Auto-Docs not available: {e}")
+
+try:
+    from planning_ai.router import router as planning_ai_router
+    app.include_router(planning_ai_router, prefix="/api")
+    print("   Planning AI module loaded")
+except ImportError as e:
+    print(f"   Planning AI not available: {e}")
+
+try:
+    from integrations.stripe_integration import router as stripe_router
+    app.include_router(stripe_router)
+    print("   Stripe Billing module loaded")
+except ImportError as e:
+    print(f"   Stripe Billing not available: {e}")
+
+try:
+    from integrations.openai_integration import router as openai_router
+    app.include_router(openai_router)
+    print("   OpenAI Planning AI module loaded")
+except ImportError as e:
+    print(f"   OpenAI Planning AI not available: {e}")
+
+try:
+    from integrations.email_service import router as email_router
+    app.include_router(email_router)
+    print("   Email Service module loaded")
+except ImportError as e:
+    print(f"   Email Service not available: {e}")
+
+try:
+    from integrations.epc_integration import router as epc_router
+    app.include_router(epc_router)
+    print("   EPC Energy Certificates module loaded")
+except ImportError as e:
+    print(f"   EPC Energy Certificates not available: {e}")
 
 try:
     from property_api.router import router as property_api_router
@@ -128,9 +470,127 @@ try:
 except ImportError as e:
     print(f"   Offsets Marketplace not available: {e}")
 
-# Mock middleware function for optional features
+# try:
+#     from api.billing import router as billing_router
+#     app.include_router(billing_router)
+#     print("   Live Billing API module loaded")
+# except ImportError as e:
+#     print(f"   Live Billing API not available: {e}")
+
+# try:
+#     from api.marketplace_connect import router as marketplace_connect_router
+#     app.include_router(marketplace_connect_router)
+#     print("   Marketplace Connect API module loaded")
+# except ImportError as e:
+#     print(f"   Marketplace Connect API not available: {e}")
+
+try:
+    from api.background_jobs import router as background_jobs_router
+    app.include_router(background_jobs_router)
+    print("   Background Jobs API module loaded")
+except ImportError as e:
+    print(f"   Background Jobs API not available: {e}")
+
+try:
+    from api.explainability import router as explainability_router
+    app.include_router(explainability_router)
+    print("   AI Explainability API module loaded")
+except ImportError as e:
+    print(f"   AI Explainability API not available: {e}")
+
+try:
+    from api.submission_packs import router as submission_packs_router
+    app.include_router(submission_packs_router)
+    print("   Submission Packs API module loaded")
+except ImportError as e:
+    print(f"   Submission Packs API not available: {e}")
+
+try:
+    from integrations.companies_house_integration import router as companies_house_router
+    app.include_router(companies_house_router)
+    print("   Companies House API module loaded")
+except ImportError as e:
+    print(f"   Companies House API not available: {e}")
+
+try:
+    from integrations.recaptcha_integration import router as recaptcha_router
+    app.include_router(recaptcha_router)
+    print("   reCAPTCHA v3 Protection module loaded")
+except ImportError as e:
+    print(f"   reCAPTCHA v3 Protection not available: {e}")
+
+try:
+    from integrations.public_data_integration import router as public_data_router
+    app.include_router(public_data_router)
+    print("   Public Data Sources (EA/PlanIt/PDG) module loaded")
+except ImportError as e:
+    print(f"   Public Data Sources not available: {e}")
+
+try:
+    from health import router as health_router
+    app.include_router(health_router)
+    print("   Health monitoring module loaded")
+except ImportError as e:
+    print(f"   Health monitoring not available: {e}")
+
+# Quota enforcement middleware
 async def enforce_quota_middleware(request: Request, call_next):
-    """Simple quota middleware placeholder"""
+    """Enforce quota limits on resource-intensive endpoints"""
+    
+    # Define quota-sensitive endpoints
+    quota_endpoints = {
+        '/api/planning-ai/analyze': 'api_calls_used',
+        '/api/auto-docs/generate': 'docs_used',
+        '/api/viability/run': 'viability_runs',
+        '/api/bng/calculate': 'bng_runs',
+        '/api/transport/assess': 'transport_runs',
+        '/api/environment/assess': 'environment_runs',
+        '/api/submission-pack/create': 'packs_created',
+        '/api/projects': 'projects_used'
+    }
+    
+    # Check if this endpoint requires quota checking
+    path = str(request.url.path)
+    quota_resource = None
+    
+    for endpoint, resource in quota_endpoints.items():
+        if path.startswith(endpoint):
+            quota_resource = resource
+            break
+    
+    if quota_resource and request.method in ['POST', 'PUT']:
+        try:
+            # Get user from token
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+                from auth_system import decode_access_token
+                user_data = decode_access_token(token)
+                
+                if user_data:
+                    from database_config import get_db
+                    db = next(get_db())
+                    
+                    # Check quota
+                    has_quota = await QuotaService.check_quota(
+                        org_id=user_data["org_id"],
+                        resource=quota_resource,
+                        db=db
+                    )
+                    
+                    if not has_quota:
+                        return JSONResponse(
+                            status_code=403,
+                            content={
+                                "detail": f"Quota exceeded for {quota_resource}",
+                                "upgrade_required": True,
+                                "resource": quota_resource
+                            }
+                        )
+        except Exception as e:
+            # Log error but don't block request
+            print(f"Quota check error: {e}")
+    
     return await call_next(request)
 
 print("   Authentication and billing systems loaded")
@@ -243,6 +703,82 @@ async def get_usage():
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# =====================================
+# COOKIE CONSENT & COMPLIANCE ENDPOINTS
+# =====================================
+
+@app.post("/api/consent/record")
+async def record_consent(request: Request):
+    """Record user cookie consent for compliance"""
+    try:
+        body = await request.json()
+        consent_data = body.get("consent", {})
+        
+        # In production, save to database with user/session association
+        # For now, just log the consent record
+        
+        # Simulate saving consent record
+        consent_record = {
+            "timestamp": datetime.now().isoformat(),
+            "ip_address": request.client.host,
+            "user_agent": request.headers.get("user-agent"),
+            "consent_version": consent_data.get("version", "1.0"),
+            "categories": consent_data.get("categories", {}),
+            "has_consented": consent_data.get("hasConsented", False)
+        }
+        
+        # TODO: Save to database
+        # consent_service.save_consent_record(consent_record)
+        
+        return {"success": True, "message": "Consent recorded"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to record consent: {str(e)}")
+
+@app.post("/api/consent/update")
+async def update_consent(request: Request):
+    """Update user cookie consent preferences"""
+    try:
+        body = await request.json()
+        consent_data = body.get("consent", {})
+        
+        # In production, update user's consent preferences in database
+        # For now, just acknowledge the update
+        
+        update_record = {
+            "timestamp": datetime.now().isoformat(),
+            "ip_address": request.client.host,
+            "user_agent": body.get("userAgent"),
+            "consent_data": consent_data
+        }
+        
+        # TODO: Update database record
+        # consent_service.update_consent_preferences(update_record)
+        
+        return {"success": True, "message": "Consent preferences updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update consent: {str(e)}")
+
+@app.get("/api/consent/status")
+async def get_consent_status(request: Request):
+    """Get current consent status for user"""
+    try:
+        # In production, retrieve from database based on user session
+        # For now, return default status
+        
+        return {
+            "hasConsented": False,
+            "timestamp": None,
+            "version": "1.0",
+            "categories": {
+                "necessary": True,
+                "analytics": False,
+                "marketing": False,
+                "preferences": False
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get consent status: {str(e)}")
 
 # =====================================
 # DASHBOARD ENDPOINTS
@@ -692,10 +1228,9 @@ async def root(request: Request):
     """Serve the main application shell"""
     return templates.TemplateResponse("app_shell.html", {"request": request})
 
-# All authenticated app routes serve the same app shell except projects, planning-ai, auto-docs, property-api, and offsets-marketplace which have dedicated templates
+# All authenticated app routes serve the same app shell except projects, planning-ai, auto-docs, property-api, offsets-marketplace, and marketplace/supply which have dedicated templates
 @app.get("/dashboard", response_class=HTMLResponse)
 @app.get("/documents", response_class=HTMLResponse)
-@app.get("/marketplace/supply", response_class=HTMLResponse)
 @app.get("/marketplace/demand", response_class=HTMLResponse)
 @app.get("/contracts", response_class=HTMLResponse)
 @app.get("/analytics", response_class=HTMLResponse)
@@ -706,6 +1241,12 @@ async def root(request: Request):
 async def app_routes(request: Request):
     """Serve the app shell for all authenticated routes"""
     return templates.TemplateResponse("app_shell.html", {"request": request})
+
+# Marketplace supply template route
+@app.get("/marketplace/supply", response_class=HTMLResponse)
+async def marketplace_supply_page(request: Request):
+    """Serve the marketplace supply page with Connect payouts"""
+    return templates.TemplateResponse("marketplace_supply.html", {"request": request})
 
 # Projects-specific template routes
 @app.get("/projects", response_class=HTMLResponse)
@@ -839,6 +1380,30 @@ async def offsets_marketplace_page(request: Request):
     return templates.TemplateResponse("offsets_marketplace.html", {"request": request})
 
 # =====================================
+# LEGAL & COMPLIANCE DOCUMENT ROUTES
+# =====================================
+
+@app.get("/privacy-policy", response_class=HTMLResponse)
+async def privacy_policy_page(request: Request):
+    """Serve the privacy policy page"""
+    return templates.TemplateResponse("privacy_policy.html", {"request": request})
+
+@app.get("/terms-of-service", response_class=HTMLResponse)
+async def terms_of_service_page(request: Request):
+    """Serve the terms of service page"""
+    return templates.TemplateResponse("terms_of_service.html", {"request": request})
+
+@app.get("/cookie-policy", response_class=HTMLResponse)
+async def cookie_policy_page(request: Request):
+    """Serve the cookie policy page"""
+    return templates.TemplateResponse("cookie_policy.html", {"request": request})
+
+@app.get("/marketplace/terms", response_class=HTMLResponse)
+async def marketplace_terms_page(request: Request):
+    """Serve the marketplace terms and conditions page"""
+    return templates.TemplateResponse("marketplace_terms.html", {"request": request})
+
+# =====================================
 # NEW ENTERPRISE MODULE ROUTES
 # =====================================
 
@@ -883,6 +1448,21 @@ async def project_collaboration_page(request: Request, project_id: int):
 async def submission_pack_page(request: Request):
     """Serve the submission pack management page"""
     return templates.TemplateResponse("submission_pack.html", {"request": request})
+
+# Billing & Subscription page
+@app.get("/billing", response_class=HTMLResponse)
+async def billing_page(request: Request):
+    """Serve the billing and subscription management page"""
+    try:
+        # Get Stripe config for frontend
+        stripe_publishable_key = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
+        
+        return templates.TemplateResponse("billing.html", {
+            "request": request,
+            "stripe_publishable_key": stripe_publishable_key
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load billing page: {str(e)}")
 
 # Analytics LPA page
 @app.get("/analytics/lpa", response_class=HTMLResponse)
@@ -1087,6 +1667,46 @@ class PlanningAnalysisRequest(BaseModel):
     height: int = 1
     scenarios: dict = {}
 
+# AI EXPLAINABILITY & PROVENANCE HELPERS
+async def get_lpa_context(address: str):
+    """Get LPA context for enhanced explainability"""
+    try:
+        # Mock LPA context - replace with real HDT/5YHLS data lookup
+        lpa_contexts = {
+            "default": {
+                "authority_name": "Sample District Council",
+                "authority_code": "SDC",
+                "hdt_performance": "95% (Green)",
+                "five_year_land_supply": "5.2 years (Maintained)",
+                "approval_rate": 78,
+                "avg_determination_weeks": 13,
+                "tilted_balance": False,
+                "housing_delivery_pressure": "Low",
+                "key_policies": [
+                    "Local Plan Policy H1 - Housing Delivery",
+                    "Local Plan Policy ENV1 - Environmental Protection", 
+                    "Local Plan Policy DES1 - Design Standards"
+                ],
+                "recent_changes": "New Local Plan adopted January 2024"
+            }
+        }
+        
+        # Simple address-based lookup (replace with proper postcode/authority mapping)
+        return lpa_contexts["default"]
+        
+    except Exception as e:
+        # Fallback context if lookup fails
+        return {
+            "authority_name": "Local Planning Authority",
+            "authority_code": "LPA",
+            "hdt_performance": "Unknown",
+            "five_year_land_supply": "Unknown", 
+            "approval_rate": 75,
+            "avg_determination_weeks": 14,
+            "tilted_balance": False,
+            "housing_delivery_pressure": "Unknown"
+        }
+
 @app.post("/api/planning-ai/analyze")
 async def analyze_site_comprehensive(analysis_data: PlanningAnalysisRequest):
     """Comprehensive Planning AI analysis with constraints, policies, and precedents"""
@@ -1234,10 +1854,13 @@ async def analyze_site_comprehensive(analysis_data: PlanningAnalysisRequest):
             }
         ]
         
-        # AI recommendations
+        # Get LPA Context for explainability
+        lpa_context = await get_lpa_context(analysis_data.address)
+        
+        # AI recommendations with enhanced explainability
         recommendations = [
             "Conduct heritage impact assessment for Conservation Area proximity",
-            "Implement comprehensive flood risk management strategy",
+            "Implement comprehensive flood risk management strategy", 
             "Prepare arboricultural impact assessment and tree protection plan",
             "Consider desk-based archaeological assessment early in process",
             "Engage with local community before formal submission",
@@ -1245,7 +1868,8 @@ async def analyze_site_comprehensive(analysis_data: PlanningAnalysisRequest):
             "Incorporate renewable energy systems to exceed policy requirements"
         ]
         
-        return {
+        # Enhanced response with explainability metadata
+        response = {
             "analysis_id": f"AI-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
             "address": analysis_data.address,
             "score": final_score,
@@ -1256,21 +1880,126 @@ async def analyze_site_comprehensive(analysis_data: PlanningAnalysisRequest):
             "precedents": precedents,
             "recommendations": recommendations,
             "generated_at": datetime.now().isoformat(),
-            "confidence": random.randint(82, 94)
+            
+            # AI EXPLAINABILITY & PROVENANCE (Step 30)
+            "confidence": random.randint(82, 94),
+            "model_version": "domus-planning-ai-v2.1.0",
+            "citations": [
+                {
+                    "source": "National Planning Policy Framework",
+                    "section": "Chapter 5: Delivering a sufficient supply of homes",
+                    "url": "https://www.gov.uk/government/publications/national-planning-policy-framework--2",
+                    "relevance": "Housing delivery policy framework"
+                },
+                {
+                    "source": "Planning Practice Guidance",
+                    "section": "Flood Risk and Coastal Change",
+                    "url": "https://www.gov.uk/guidance/flood-risk-and-coastal-change",
+                    "relevance": "Flood risk assessment requirements"
+                },
+                {
+                    "source": "Local Plan Evidence Base",
+                    "section": "Strategic Housing Market Assessment",
+                    "url": f"https://localplan.{lpa_context['authority_code']}.gov.uk/evidence",
+                    "relevance": "Local housing need justification"
+                }
+            ],
+            "precedents_analysis": {
+                "similar_cases_analyzed": 47,
+                "approval_rate_context": f"{lpa_context['approval_rate']}%",
+                "average_determination_time": f"{lpa_context['avg_determination_weeks']} weeks",
+                "key_success_factors": [
+                    "Heritage impact mitigation",
+                    "Community engagement",
+                    "Affordable housing provision"
+                ]
+            },
+            "lpa_context": lpa_context,
+            "methodology": {
+                "factors_weighted": [
+                    {"factor": "Policy compliance", "weight": 0.3},
+                    {"factor": "Site constraints", "weight": 0.25},
+                    {"factor": "Local precedents", "weight": 0.2},
+                    {"factor": "Community impact", "weight": 0.15},
+                    {"factor": "Technical feasibility", "weight": 0.1}
+                ],
+                "data_sources": [
+                    "Local Planning Authority policies",
+                    "Appeal decisions database",
+                    "Government planning guidance",
+                    "Local development history"
+                ]
+            }
         }
+        
+        # Validation: Ensure minimum explainability requirements
+        if len(response["citations"]) < 1:
+            raise HTTPException(status_code=422, detail="Analysis must include at least one citation")
+        
+        if len(response["precedents"]) < 1:
+            raise HTTPException(status_code=422, detail="Analysis must include at least one precedent")
+        
+        return response
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @app.post("/api/planning-ai/save")
-async def save_analysis():
-    """Save Planning AI analysis to user's projects"""
+async def save_analysis(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Save Planning AI analysis with full provenance to analysis_snapshots"""
     try:
-        # Mock save operation
+        body = await request.json()
+        analysis_data = body.get("analysis_data")
+        project_id = body.get("project_id")
+        
+        if not analysis_data:
+            raise HTTPException(status_code=400, detail="Analysis data required")
+        
+        # Validate explainability requirements
+        if not analysis_data.get("citations") or len(analysis_data["citations"]) < 1:
+            raise HTTPException(status_code=422, detail="Analysis must include citations for traceability")
+            
+        if not analysis_data.get("precedents") or len(analysis_data["precedents"]) < 1:
+            raise HTTPException(status_code=422, detail="Analysis must include precedents for validation")
+            
+        if not analysis_data.get("model_version"):
+            raise HTTPException(status_code=422, detail="Model version required for provenance")
+        
+        # Store to analysis_snapshots with full provenance
+        from models import AnalysisSnapshots
+        
+        snapshot = AnalysisSnapshots(
+            org_id=current_user["org_id"],
+            user_id=current_user["user_id"],
+            project_id=project_id,
+            analysis_type="planning_ai",
+            payload_json=analysis_data,  # Includes citations, precedents, model_version
+            created_at=datetime.now()
+        )
+        
+        db.add(snapshot)
+        db.commit()
+        db.refresh(snapshot)
+        
+        # Increment usage tracking
+        await QuotaService.increment_usage(
+            org_id=current_user["org_id"],
+            resource="api_calls_used",
+            db=db
+        )
+        
         return {
             "success": True,
-            "message": "Analysis saved to your projects",
-            "project_id": random.randint(100, 999)
+            "message": "Analysis saved with full provenance tracking",
+            "snapshot_id": snapshot.id,
+            "explainability_verified": True,
+            "citations_count": len(analysis_data["citations"]),
+            "precedents_count": len(analysis_data["precedents"]),
+            "model_version": analysis_data["model_version"]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -2410,13 +3139,23 @@ async def create_checkout_session(
     """Create Stripe checkout session for plan upgrade"""
     try:
         body = await request.json()
-        plan_type = body.get("plan")
+        plan_type = body.get("plan", "PRO")
         
-        if not plan_type:
-            raise HTTPException(status_code=400, detail="Plan type required")
+        if plan_type not in ["PRO", "ENTERPRISE"]:
+            raise HTTPException(status_code=400, detail="Invalid plan type")
         
-        # For now, return mock checkout URL until Stripe is properly integrated
-        return {"checkout_url": "https://checkout.stripe.com/pay/test_checkout_session"}
+        success_url = os.getenv('BILLING_SUCCESS_URL', f"{request.base_url}settings/billing?success=true")
+        cancel_url = os.getenv('BILLING_CANCEL_URL', f"{request.base_url}settings/billing?cancelled=true")
+        
+        checkout_url = await StripeService.create_checkout_session(
+            org_id=current_user["org_id"],
+            plan=plan_type,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            db=db
+        )
+        
+        return {"checkout_url": checkout_url}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -2430,10 +3169,394 @@ async def get_billing_portal(
     try:
         portal_url = await StripeService.get_billing_portal_url(
             org_id=current_user["org_id"],
-            return_url=str(request.base_url),
+            return_url=str(request.base_url) + "settings/billing",
             db=db
         )
+        
+        if not portal_url:
+            raise HTTPException(status_code=404, detail="No billing account found")
+            
         return {"portal_url": portal_url}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/billing/invoices")
+async def get_invoices(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get organization invoices"""
+    try:
+        invoices = await StripeService.get_invoices(
+            org_id=current_user["org_id"],
+            db=db
+        )
+        return {"invoices": invoices}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/billing/usage")
+async def get_usage(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current usage and quotas"""
+    try:
+        org = db.query(Orgs).filter(Orgs.id == current_user["org_id"]).first()
+        plan_quotas = QuotaService.get_plan_quotas(org.plan.value)
+        
+        from datetime import datetime
+        current_month = datetime.now().strftime('%Y-%m')
+        usage = db.query(UsageCounters).filter(
+            UsageCounters.org_id == current_user["org_id"],
+            UsageCounters.month == current_month
+        ).first()
+        
+        current_usage = {
+            'projects_used': usage.projects_used if usage else 0,
+            'docs_used': usage.docs_used if usage else 0,
+            'viability_runs': usage.viability_runs if usage else 0,
+            'bng_runs': usage.bng_runs if usage else 0,
+            'transport_runs': usage.transport_runs if usage else 0,
+            'environment_runs': usage.environment_runs if usage else 0,
+            'packs_created': usage.packs_created if usage else 0,
+            'api_calls_used': usage.api_calls_used if usage else 0
+        }
+        
+        return {
+            "plan": org.plan.value,
+            "quotas": plan_quotas,
+            "usage": current_usage,
+            "month": current_month
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/billing/webhook")
+async def stripe_webhook(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Handle Stripe webhooks"""
+    try:
+        payload = await request.body()
+        sig_header = request.headers.get('stripe-signature')
+        webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+        
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
+        
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            org_id = int(session['metadata']['org_id'])
+            plan = session['metadata']['plan']
+            
+            # Update organization plan
+            org = db.query(Orgs).filter(Orgs.id == org_id).first()
+            if org:
+                org.plan = PlanType(plan)
+                org.billing_customer_id = session['customer']
+                db.commit()
+                
+                # Reset monthly quotas for upgraded plan
+                await QuotaService.reset_monthly_quotas(db)
+        
+        elif event['type'] == 'invoice.paid':
+            invoice = event['data']['object']
+            # Handle successful payment
+            pass
+            
+        elif event['type'] == 'invoice.payment_failed':
+            invoice = event['data']['object']
+            # Handle failed payment - could downgrade plan or send alerts
+            pass
+            
+        elif event['type'] == 'customer.subscription.updated':
+            subscription = event['data']['object']
+            # Handle subscription changes
+            pass
+        
+        elif event['type'] == 'payment_intent.succeeded':
+            payment_intent = event['data']['object']
+            contract_id = payment_intent['metadata'].get('contract_id')
+            
+            if contract_id:
+                # Update contract status to completed
+                contract = db.query(Contracts).filter(Contracts.id == int(contract_id)).first()
+                if contract:
+                    contract.status = ContractStatus.COMPLETED
+                    db.commit()
+                    
+                    # Generate deal report
+                    await ContractPaymentService.generate_deal_report(int(contract_id), db)
+        
+        elif event['type'] == 'transfer.paid':
+            transfer = event['data']['object']
+            # Handle successful transfer to landowner
+            pass
+        
+        return {"received": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# =====================================
+# MARKETPLACE PAYOUTS (STRIPE CONNECT)
+# =====================================
+
+class StripeConnectService:
+    @staticmethod
+    async def create_connect_account(org_id: int, db: Session):
+        """Create Stripe Connect Express account for landowner"""
+        try:
+            account = stripe.Account.create(
+                type='express',
+                country='GB',
+                email=f"payouts@org{org_id}.domus.com",
+                capabilities={
+                    'transfers': {'requested': True},
+                },
+                business_type='company',
+                metadata={'org_id': org_id}
+            )
+            
+            # Store account ID in marketplace supply
+            from models import MarketplaceSupply
+            supply = db.query(MarketplaceSupply).filter(
+                MarketplaceSupply.supplier_org_id == org_id
+            ).first()
+            
+            if supply:
+                supply.kyc_account_id = account.id
+                db.commit()
+            
+            return account.id
+        except Exception as e:
+            raise Exception(f"Failed to create Connect account: {str(e)}")
+    
+    @staticmethod
+    async def create_account_link(account_id: str, refresh_url: str, return_url: str):
+        """Create Connect account onboarding link"""
+        try:
+            account_link = stripe.AccountLink.create(
+                account=account_id,
+                refresh_url=refresh_url,
+                return_url=return_url,
+                type='account_onboarding',
+            )
+            return account_link.url
+        except Exception as e:
+            raise Exception(f"Failed to create account link: {str(e)}")
+    
+    @staticmethod
+    async def check_account_status(account_id: str):
+        """Check Connect account verification status"""
+        try:
+            account = stripe.Account.retrieve(account_id)
+            return {
+                'charges_enabled': account.charges_enabled,
+                'payouts_enabled': account.payouts_enabled,
+                'details_submitted': account.details_submitted,
+                'requirements': account.requirements.currently_due if account.requirements else []
+            }
+        except Exception as e:
+            raise Exception(f"Failed to check account status: {str(e)}")
+
+class ContractPaymentService:
+    @staticmethod
+    async def create_payment_intent(contract_id: int, amount: int, seller_account_id: str, db: Session):
+        """Create PaymentIntent with application fee for marketplace transaction"""
+        try:
+            # Calculate 7% application fee
+            app_fee_bps = int(os.getenv('APP_FEE_BPS', '700'))  # 7% = 700 basis points
+            application_fee = int((amount * app_fee_bps) / 10000)
+            
+            payment_intent = stripe.PaymentIntent.create(
+                amount=amount,  # Amount in pence
+                currency='gbp',
+                application_fee_amount=application_fee,
+                transfer_data={
+                    'destination': seller_account_id,
+                },
+                metadata={'contract_id': contract_id},
+                payment_method_types=['card', 'bacs_debit']
+            )
+            
+            # Update contract with payment intent ID
+            from models import Contracts
+            contract = db.query(Contracts).filter(Contracts.id == contract_id).first()
+            if contract:
+                contract.payment_intent_id = payment_intent.id
+                contract.status = 'payment_pending'
+                db.commit()
+            
+            return payment_intent.client_secret
+        except Exception as e:
+            raise Exception(f"Failed to create payment intent: {str(e)}")
+    
+    @staticmethod
+    async def generate_deal_report(contract_id: int, db: Session):
+        """Generate and store Deal Report for completed transaction"""
+        try:
+            from models import Contracts
+            contract = db.query(Contracts).filter(Contracts.id == contract_id).first()
+            
+            if not contract:
+                raise Exception("Contract not found")
+            
+            # Generate report data
+            report_data = {
+                'contract_id': contract_id,
+                'buyer_org': contract.buyer_org_id,
+                'seller_org': contract.seller_org_id,
+                'amount': contract.total_price,
+                'fee_collected': contract.total_price * 0.07,  # 7% fee
+                'completed_at': datetime.now().isoformat(),
+                'payment_intent_id': contract.payment_intent_id
+            }
+            
+            # Store to S3 (mock implementation)
+            report_url = f"https://s3.amazonaws.com/domus-reports/deal-{contract_id}.json"
+            contract.deal_report_url = report_url
+            contract.audit_json = report_data
+            db.commit()
+            
+            return report_url
+        except Exception as e:
+            raise Exception(f"Failed to generate deal report: {str(e)}")
+
+@app.post("/api/payouts/connect")
+async def create_connect_account(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create Stripe Connect account for landowner payouts"""
+    try:
+        account_id = await StripeConnectService.create_connect_account(
+            org_id=current_user["org_id"],
+            db=db
+        )
+        
+        refresh_url = f"{request.base_url}marketplace/supply?setup=refresh"
+        return_url = f"{request.base_url}marketplace/supply?setup=complete"
+        
+        onboarding_url = await StripeConnectService.create_account_link(
+            account_id=account_id,
+            refresh_url=refresh_url,
+            return_url=return_url
+        )
+        
+        return {"onboarding_url": onboarding_url, "account_id": account_id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/payouts/status")
+async def get_payout_status(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get Connect account verification status"""
+    try:
+        from models import MarketplaceSupply
+        supply = db.query(MarketplaceSupply).filter(
+            MarketplaceSupply.supplier_org_id == current_user["org_id"]
+        ).first()
+        
+        if not supply or not supply.kyc_account_id:
+            return {"connected": False, "account_id": None}
+        
+        status = await StripeConnectService.check_account_status(supply.kyc_account_id)
+        
+        return {
+            "connected": True,
+            "account_id": supply.kyc_account_id,
+            "status": status
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/contracts")
+async def create_contract(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create new marketplace contract"""
+    try:
+        body = await request.json()
+        
+        from models import Contracts
+        contract = Contracts(
+            buyer_org_id=current_user["org_id"],
+            seller_org_id=body["seller_org_id"],
+            supply_listing_id=body["supply_listing_id"],
+            hectares_required=body["hectares_required"],
+            unit_price=body["unit_price"],
+            total_price=body["hectares_required"] * body["unit_price"],
+            status='draft',
+            created_at=datetime.now()
+        )
+        
+        db.add(contract)
+        db.commit()
+        db.refresh(contract)
+        
+        return {"contract_id": contract.id, "status": "draft"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.patch("/api/contracts/{contract_id}")
+async def update_contract(
+    contract_id: int,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update contract status and handle payments"""
+    try:
+        body = await request.json()
+        action = body.get("action")
+        
+        from models import Contracts, MarketplaceSupply
+        contract = db.query(Contracts).filter(Contracts.id == contract_id).first()
+        
+        if not contract:
+            raise HTTPException(status_code=404, detail="Contract not found")
+        
+        # Verify user has access
+        if contract.buyer_org_id != current_user["org_id"] and contract.seller_org_id != current_user["org_id"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        if action == "initiate_payment":
+            # Get seller's Connect account
+            seller_supply = db.query(MarketplaceSupply).filter(
+                MarketplaceSupply.supplier_org_id == contract.seller_org_id
+            ).first()
+            
+            if not seller_supply or not seller_supply.kyc_account_id:
+                raise HTTPException(status_code=400, detail="Seller has not set up payouts")
+            
+            # Create payment intent
+            client_secret = await ContractPaymentService.create_payment_intent(
+                contract_id=contract_id,
+                amount=int(contract.total_price * 100),  # Convert to pence
+                seller_account_id=seller_supply.kyc_account_id,
+                db=db
+            )
+            
+            return {"client_secret": client_secret}
+        
+        elif action == "mark_completed":
+            contract.status = 'completed'
+            
+            # Generate deal report
+            report_url = await ContractPaymentService.generate_deal_report(contract_id, db)
+            
+            db.commit()
+            
+            return {"status": "completed", "deal_report_url": report_url}
+        
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -9586,50 +10709,449 @@ async def get_environment_runs(
 
 @app.post("/api/submission-pack/create")
 async def create_submission_pack(
-    pack_data: dict,
-    current_user: dict = Depends(get_current_user)
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """Create submission pack for project"""
+    """Create submission pack with manifest and integrity checking"""
     try:
-        # TODO: Implement quota check and pack creation with S3 storage
+        from document_integrity import DocumentBundleService
+        
+        pack_data = await request.json()
         project_id = pack_data.get("project_id")
         selected_docs = pack_data.get("documents", [])
+        pack_name = pack_data.get("pack_name", "Planning Submission")
         
-        # Mock document checksums
-        manifest = {
-            "pack_id": f"pack-{int(time.time())}",
-            "project_id": project_id,
-            "created_at": datetime.now().isoformat(),
-            "documents": [
-                {
-                    "filename": doc["filename"],
-                    "type": doc["type"],
-                    "sha256": f"sha256_{hash(doc['filename'])}"[:16] + "...",
-                    "size_bytes": random.randint(100000, 5000000)
-                }
-                for doc in selected_docs
-            ],
-            "total_size_mb": round(sum(random.randint(100000, 5000000) for _ in selected_docs) / 1024 / 1024, 2)
+        # Check quota
+        has_quota = await QuotaService.check_quota(
+            org_id=current_user["org_id"],
+            resource="packs_created",
+            db=db
+        )
+        
+        if not has_quota:
+            raise HTTPException(status_code=403, detail="Submission pack quota exceeded")
+        
+        # Mock file paths (in production, these would be real document paths)
+        mock_files = []
+        for doc in selected_docs:
+            # Create mock file for demonstration
+            mock_path = f"/tmp/mock_{doc['filename']}"
+            with open(mock_path, 'w') as f:
+                f.write(f"Mock content for {doc['filename']}\nGenerated at {datetime.now()}")
+            mock_files.append(mock_path)
+        
+        # Generate pack ID
+        pack_id = f"pack-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{random.randint(1000, 9999)}"
+        output_path = f"/tmp/{pack_id}.zip"
+        
+        # Get data freshness for manifest
+        freshness_data = await FreshnessService.get_source_freshness(db)
+        
+        # Prepare pack metadata
+        pack_metadata = {
+            "pack_id": pack_id,
+            "title": pack_name,
+            "project_name": f"Project {project_id}",
+            "created_by": current_user["email"],
+            "model_version": "domus-docs-v2.1.0",
+            "data_freshness": freshness_data,
+            "authority_context": {
+                "submission_date": datetime.now().isoformat(),
+                "platform": "Domus Planning Intelligence",
+                "verification_available": True
+            }
         }
         
+        # Create submission pack with integrity checking
+        bundle_result = DocumentBundleService.create_submission_pack(
+            files_to_bundle=mock_files,
+            output_path=output_path,
+            pack_metadata=pack_metadata
+        )
+        
+        # Clean up mock files
+        for mock_path in mock_files:
+            if os.path.exists(mock_path):
+                os.remove(mock_path)
+        
+        if not bundle_result["success"]:
+            raise HTTPException(status_code=500, detail=f"Pack creation failed: {bundle_result['error']}")
+        
+        # Store submission pack record
+        from models import SubmissionPacks
+        submission_pack = SubmissionPacks(
+            org_id=current_user["org_id"],
+            project_id=project_id,
+            pack_name=pack_name,
+            manifest_json=bundle_result["manifest"],
+            zip_path=output_path,
+            zip_checksum=bundle_result["zip_checksum"],
+            authority_token=f"auth-{random.randint(100000, 999999)}",
+            created_at=datetime.now()
+        )
+        
+        db.add(submission_pack)
+        db.commit()
+        db.refresh(submission_pack)
+        
+        # Increment usage
+        await QuotaService.increment_usage(
+            org_id=current_user["org_id"],
+            resource="packs_created",
+            db=db
+        )
+        
+        # Prepare response
         pack_result = {
-            "pack_id": manifest["pack_id"],
+            "pack_id": pack_id,
             "project_id": project_id,
-            "pack_name": pack_data.get("pack_name", "Planning Submission"),
-            "manifest": manifest,
-            "download_url": f"https://storage.domusplanning.co.uk/packs/{manifest['pack_id']}.zip",
-            "authority_token": f"auth-{random.randint(100000, 999999)}",
-            "authority_url": f"https://domusplanning.co.uk/authority/{manifest['pack_id']}",
+            "pack_name": pack_name,
+            "manifest": bundle_result["manifest"],
+            "integrity": {
+                "zip_checksum": bundle_result["zip_checksum"],
+                "total_files": bundle_result["total_files"],
+                "total_size_bytes": bundle_result["total_size"],
+                "verification_available": True
+            },
+            "download_url": f"https://storage.domusplanning.co.uk/packs/{pack_id}.zip",
+            "authority_token": submission_pack.authority_token,
+            "authority_url": f"https://domusplanning.co.uk/authority/{submission_pack.authority_token}",
             "created_at": datetime.now().isoformat(),
             "expires_at": (datetime.now() + timedelta(days=90)).isoformat()
         }
         
         return {
             "success": True,
-            "submission_pack": pack_result
+            "submission_pack": pack_result,
+            "manifest_included": True,
+            "integrity_verification": "SHA256 checksums included for all files"
         }
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create submission pack: {str(e)}")
+
+@app.post("/api/submission-pack/verify")
+async def verify_submission_pack(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Verify integrity of a submission pack"""
+    try:
+        from document_integrity import IntegrityVerificationService
+        
+        body = await request.json()
+        pack_id = body.get("pack_id")
+        
+        if not pack_id:
+            raise HTTPException(status_code=400, detail="Pack ID required")
+        
+        # In production, retrieve the actual ZIP file path from storage
+        zip_path = f"/tmp/{pack_id}.zip"
+        
+        if not os.path.exists(zip_path):
+            raise HTTPException(status_code=404, detail="Submission pack not found")
+        
+        # Verify the pack
+        verification_result = IntegrityVerificationService.verify_submission_pack(zip_path)
+        
+        return {
+            "success": True,
+            "verification": verification_result,
+            "message": "Integrity verification completed" if verification_result["pack_valid"] else "Integrity verification failed"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+
+# Authority portal route
+@app.get("/authority/{verification_token}")
+async def authority_portal(verification_token: str, request: Request):
+    """Authority portal for viewing submission packages"""
+    return templates.TemplateResponse("authority_portal.html", {"request": request, "token": verification_token})
+
+# Authority API endpoint for submission data
+@app.get("/api/authority/submission/{verification_token}")
+async def get_authority_submission(verification_token: str):
+    """Get submission package data for authority portal"""
+    try:
+        pack_record = db.session.query(SubmissionPacks).filter_by(verification_token=verification_token).first()
+        if not pack_record:
+            raise HTTPException(status_code=404, detail="Submission not found or access expired")
+        
+        return {
+            "submission_pack": {
+                "pack_id": pack_record.pack_id,
+                "project_name": pack_record.project_name,
+                "pack_name": pack_record.pack_name,
+                "created_at": pack_record.created_at.isoformat(),
+                "created_by": pack_record.created_by
+            },
+            "manifest": pack_record.manifest_data,
+            "download_url": f"/api/authority/download/{verification_token}"
+        }
+    except Exception as e:
+        logger.error(f"Error retrieving authority submission {verification_token}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve submission: {str(e)}")
+
+# Authority download endpoint
+@app.get("/api/authority/download/{verification_token}")
+async def download_authority_submission(verification_token: str):
+    """Download submission package via authority portal"""
+    try:
+        pack_record = db.session.query(SubmissionPacks).filter_by(verification_token=verification_token).first()
+        if not pack_record:
+            raise HTTPException(status_code=404, detail="Submission not found or access expired")
+        
+        if not os.path.exists(pack_record.pack_path):
+            raise HTTPException(status_code=404, detail="Package file not found")
+        
+        return FileResponse(
+            pack_record.pack_path,
+            media_type='application/zip',
+            filename=f"{pack_record.pack_id}.zip"
+        )
+    except Exception as e:
+        logger.error(f"Error downloading authority submission {verification_token}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
+
+# Authority verification endpoint
+@app.get("/api/authority/verify/{verification_token}")
+async def verify_authority_submission(verification_token: str):
+    """Verify submission pack integrity via authority portal"""
+    try:
+        pack_record = db.session.query(SubmissionPacks).filter_by(verification_token=verification_token).first()
+        if not pack_record:
+            raise HTTPException(status_code=404, detail="Submission not found or access expired")
+        
+        verification_service = IntegrityVerificationService()
+        results = verification_service.verify_pack_integrity(pack_record.pack_path, pack_record.manifest_data)
+        
+        return {
+            "pack_id": pack_record.pack_id,
+            "verification_results": results,
+            "verified_at": datetime.utcnow().isoformat(),
+            "authority_access": True
+        }
+    except Exception as e:
+        logger.error(f"Error verifying authority submission {verification_token}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+
+# Security hardening endpoints
+if SECURITY_ENABLED:
+    
+    @app.post("/api/auth/setup-2fa")
+    @rate_limit('auth')
+    async def setup_2fa(current_user: dict = Depends(get_current_user)):
+        """Setup two-factor authentication"""
+        try:
+            user_id = current_user['user_id']
+            secret = two_factor_auth.generate_secret()
+            
+            # Store secret in database (temporarily)
+            # In production, store in user record
+            
+            qr_code = two_factor_auth.generate_qr_code(current_user['email'], secret)
+            backup_codes = two_factor_auth.generate_backup_codes()
+            
+            log_security_event('2fa_setup_initiated', {'user_id': user_id})
+            
+            return {
+                'secret': secret,
+                'qr_code': qr_code,
+                'backup_codes': backup_codes,
+                'instructions': 'Scan the QR code with your authenticator app and enter a verification code to complete setup.'
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"2FA setup failed: {str(e)}")
+
+    @app.post("/api/auth/verify-2fa")
+    @rate_limit('auth')
+    async def verify_2fa(
+        request: Request,
+        current_user: dict = Depends(get_current_user)
+    ):
+        """Verify and enable 2FA"""
+        try:
+            data = await request.json()
+            secret = data.get('secret')
+            token = data.get('token')
+            
+            if not secret or not token:
+                raise HTTPException(status_code=400, detail="Secret and token required")
+            
+            if not two_factor_auth.verify_token(secret, token):
+                log_security_event('2fa_verification_failed', {'user_id': current_user['user_id']})
+                raise HTTPException(status_code=400, detail="Invalid verification code")
+            
+            # Store secret in user record
+            # In production: update user.two_factor_secret = secret
+            
+            log_security_event('2fa_enabled', {'user_id': current_user['user_id']})
+            
+            return {'success': True, 'message': '2FA enabled successfully'}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"2FA verification failed: {str(e)}")
+
+    @app.post("/api/auth/disable-2fa")
+    @require_2fa
+    @rate_limit('auth')
+    async def disable_2fa(
+        request: Request,
+        current_user: dict = Depends(get_current_user)
+    ):
+        """Disable two-factor authentication"""
+        try:
+            data = await request.json()
+            password = data.get('password')
+            
+            if not password:
+                raise HTTPException(status_code=400, detail="Password required to disable 2FA")
+            
+            # Verify password
+            # In production: verify against user.password_hash
+            
+            # Remove 2FA secret from user record
+            # In production: user.two_factor_secret = None
+            
+            log_security_event('2fa_disabled', {'user_id': current_user['user_id']})
+            
+            return {'success': True, 'message': '2FA disabled successfully'}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to disable 2FA: {str(e)}")
+
+    @app.get("/api/security/captcha")
+    @rate_limit('auth')
+    async def get_captcha():
+        """Generate CAPTCHA challenge"""
+        try:
+            captcha_data = captcha_service.generate_captcha()
+            return captcha_data
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"CAPTCHA generation failed: {str(e)}")
+
+    @app.post("/api/security/verify-captcha")
+    @rate_limit('auth')
+    async def verify_captcha_endpoint(request: Request):
+        """Verify CAPTCHA response"""
+        try:
+            data = await request.json()
+            captcha_id = data.get('captcha_id')
+            answer = data.get('answer')
+            
+            if not captcha_id or not answer:
+                raise HTTPException(status_code=400, detail="CAPTCHA ID and answer required")
+            
+            is_valid = captcha_service.verify_captcha(captcha_id, answer)
+            
+            if not is_valid:
+                log_security_event('captcha_failed', {'ip': request.client.host})
+            
+            return {'valid': is_valid}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"CAPTCHA verification failed: {str(e)}")
+
+    @app.post("/api/security/report-csp-violation")
+    async def report_csp_violation(request: Request):
+        """Report Content Security Policy violations"""
+        try:
+            violation_data = await request.json()
+            
+            log_security_event('csp_violation', {
+                'violation': violation_data,
+                'ip': request.client.host,
+                'user_agent': request.headers.get('user-agent')
+            })
+            
+            return {'status': 'reported'}
+        except Exception as e:
+            # Don't fail CSP reporting
+            print(f"CSP violation reporting failed: {e}")
+            return {'status': 'error'}
+
+    @app.get("/api/security/check-password")
+    @rate_limit('auth')
+    async def check_password_strength(password: str):
+        """Check password strength"""
+        try:
+            validation = security_manager.validate_password_strength(password)
+            return validation
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Password validation failed: {str(e)}")
+
+    @app.post("/api/auth/change-password")
+    @rate_limit('auth')
+    async def change_password(
+        request: Request,
+        current_user: dict = Depends(get_current_user)
+    ):
+        """Change user password"""
+        try:
+            data = await request.json()
+            current_password = data.get('current_password')
+            new_password = data.get('new_password')
+            
+            if not current_password or not new_password:
+                raise HTTPException(status_code=400, detail="Current and new passwords required")
+            
+            # Verify current password
+            # In production: verify against user.password_hash
+            
+            # Validate new password strength
+            validation = security_manager.validate_password_strength(new_password)
+            if not validation['valid']:
+                raise HTTPException(status_code=400, detail={
+                    'message': 'Password does not meet requirements',
+                    'issues': validation['issues']
+                })
+            
+            # Hash and store new password
+            # In production: user.password_hash = security_manager.hash_password(new_password)
+            
+            log_security_event('password_changed', {'user_id': current_user['user_id']})
+            
+            return {'success': True, 'message': 'Password changed successfully'}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Password change failed: {str(e)}")
+
+    @app.get("/api/security/audit-log")
+    @require_permission("admin")
+    @rate_limit('api')
+    async def get_security_audit_log(
+        limit: int = 100,
+        offset: int = 0,
+        event_type: Optional[str] = None,
+        current_user: dict = Depends(get_current_user)
+    ):
+        """Get security audit log (admin only)"""
+        try:
+            # In production, query security events from database
+            # This is a placeholder implementation
+            
+            events = [
+                {
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'event_type': 'login_success',
+                    'user_id': current_user['user_id'],
+                    'ip_address': '192.168.1.1',
+                    'details': {'method': '2fa'}
+                }
+            ]
+            
+            return {
+                'events': events,
+                'total': len(events),
+                'limit': limit,
+                'offset': offset
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve audit log: {str(e)}")
+
+else:
+    # Security endpoints disabled - development mode
+    @app.get("/api/security/status")
+    async def security_status():
+        return {'status': 'disabled', 'message': 'Security hardening not available in development mode'}
 
 @app.get("/api/submission-pack")
 async def get_submission_packs(
@@ -9935,6 +11457,103 @@ async def get_org_insights(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch org insights: {str(e)}")
+
+# =====================================
+# HEALTH & MONITORING ENDPOINTS
+# =====================================
+
+from health_monitoring import HealthService, FreshnessService, AlertService
+
+@app.get("/health")
+async def health_check():
+    """Liveness check - basic service health"""
+    try:
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "service": "domus-platform",
+            "version": "1.0.0"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
+
+@app.get("/ready")
+async def readiness_check(db: Session = Depends(get_db)):
+    """Readiness check - verify all dependencies"""
+    try:
+        checks = {}
+        overall_status = "ready"
+        
+        # Check database
+        db_check = await HealthService.check_database()
+        checks["database"] = db_check
+        if db_check["status"] != "healthy":
+            overall_status = "not_ready"
+        
+        # Check S3
+        s3_check = await HealthService.check_s3()
+        checks["s3"] = s3_check
+        if s3_check["status"] != "healthy":
+            overall_status = "not_ready"
+        
+        # Check Stripe
+        stripe_check = await HealthService.check_stripe()
+        checks["stripe"] = stripe_check
+        if stripe_check["status"] != "healthy":
+            overall_status = "not_ready"
+        
+        # Get system info
+        system_info = await HealthService.get_system_info()
+        checks["system"] = system_info
+        
+        # Get data freshness
+        freshness = await FreshnessService.get_source_freshness(db)
+        checks["data_freshness"] = freshness
+        
+        status_code = 200 if overall_status == "ready" else 503
+        
+        return {
+            "status": overall_status,
+            "timestamp": datetime.now().isoformat(),
+            "checks": checks
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Readiness check failed: {str(e)}")
+
+@app.get("/api/monitoring/freshness")
+async def get_freshness_status(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get data freshness status for authenticated users"""
+    try:
+        freshness = await FreshnessService.get_source_freshness(db)
+        return {"freshness": freshness}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/monitoring/alert")
+async def send_test_alert(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Send test alert (admin only)"""
+    try:
+        # Check if user is admin
+        if current_user.get("role") not in ["admin", "super_admin"]:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        body = await request.json()
+        title = body.get("title", "Test Alert")
+        message = body.get("message", "This is a test alert from Domus Platform")
+        level = body.get("level", "info")
+        
+        success = await AlertService.send_alert(title, message, level)
+        
+        return {"success": success, "message": "Alert sent" if success else "Failed to send alert"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing & Subscription | Domus Platform</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        .billing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .subscription-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        .plan-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+        
+        .plan-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .plan-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        
+        .plan-card.selected {
+            border-color: #3b82f6;
+            background: #f8faff;
+        }
+        
+        .plan-current {
+            position: absolute;
+            top: -8px;
+            right: 12px;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .usage-bar {
+            background: #f3f4f6;
+            border-radius: 8px;
+            height: 8px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        
+        .usage-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+        
+        .usage-safe { background: #10b981; }
+        .usage-warning { background: #f59e0b; }
+        .usage-critical { background: #ef4444; }
+        
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        
+        .invoice-table th,
+        .invoice-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .invoice-table th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+        
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #3b82f6;
+            border: 2px solid #3b82f6;
+        }
+        
+        .btn-outline:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-past_due { background: #fef3c7; color: #92400e; }
+        
+        .vat-section {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        
+        .upgrade-prompt {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .quota-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="billing-container">
+        <h1>Billing & Subscription</h1>
+        
+        <!-- Quota Warning -->
+        <div id="quota-warning" class="quota-warning" style="display: none;">
+            <h3>⚠️ Usage Limit Approaching</h3>
+            <p>You've used <span id="usage-percentage">0</span>% of your plan's resources.</p>
+            <button class="btn" onclick="showUpgradeOptions()">Upgrade Plan</button>
+        </div>
+        
+        <!-- Current Subscription -->
+        <div class="subscription-card">
+            <h2>Current Subscription</h2>
+            <div id="subscription-info">
+                <p>Loading subscription details...</p>
+            </div>
+            
+            <div id="usage-info" style="margin-top: 20px;">
+                <h3>Usage This Month</h3>
+                <div id="usage-details"></div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn btn-outline" onclick="openBillingPortal()">Manage Billing</button>
+                <button class="btn" onclick="showUpgradeOptions()" style="margin-left: 12px;">Upgrade Plan</button>
+            </div>
+        </div>
+        
+        <!-- Plan Selection -->
+        <div id="plan-selection" class="subscription-card" style="display: none;">
+            <h2>Choose Your Plan</h2>
+            <div class="plan-selector">
+                <div class="plan-card" data-plan="STARTER">
+                    <h3>Starter</h3>
+                    <div class="plan-price">Free</div>
+                    <ul style="text-align: left; margin: 16px 0;">
+                        <li>5 properties</li>
+                        <li>Basic search</li>
+                        <li>Email support</li>
+                    </ul>
+                    <button class="btn" onclick="selectPlan('STARTER')">Current Plan</button>
+                </div>
+                
+                <div class="plan-card" data-plan="PRO">
+                    <h3>Professional</h3>
+                    <div class="plan-price">£29/month</div>
+                    <ul style="text-align: left; margin: 16px 0;">
+                        <li>50 properties</li>
+                        <li>Advanced search</li>
+                        <li>Priority support</li>
+                        <li>API access</li>
+                    </ul>
+                    <button class="btn" onclick="selectPlan('PRO')">Upgrade to Pro</button>
+                </div>
+                
+                <div class="plan-card" data-plan="ENTERPRISE">
+                    <h3>Enterprise</h3>
+                    <div class="plan-price">£99/month</div>
+                    <ul style="text-align: left; margin: 16px 0;">
+                        <li>Unlimited properties</li>
+                        <li>Custom integrations</li>
+                        <li>Dedicated support</li>
+                        <li>SLA guarantee</li>
+                    </ul>
+                    <button class="btn" onclick="selectPlan('ENTERPRISE')">Upgrade to Enterprise</button>
+                </div>
+            </div>
+            
+            <!-- VAT Information -->
+            <div class="vat-section">
+                <h3>VAT Information</h3>
+                <label>
+                    <input type="checkbox" id="vat-registered"> I am VAT registered
+                </label>
+                <div id="vat-details" style="display: none; margin-top: 12px;">
+                    <input type="text" id="vat-number" placeholder="VAT Number (e.g., GB123456789)" 
+                           style="width: 200px; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <button onclick="validateVAT()" style="margin-left: 8px; padding: 8px 16px;">Validate</button>
+                    <div id="vat-validation" style="margin-top: 8px;"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn btn-outline" onclick="hidePlanSelection()">Cancel</button>
+            </div>
+        </div>
+        
+        <!-- Billing History -->
+        <div class="subscription-card">
+            <h2>Billing History</h2>
+            <div id="invoices-list">
+                <p>Loading invoices...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Stripe
+        const stripe = Stripe('{{ stripe_publishable_key }}');
+        let currentSubscription = null;
+        let currentUsage = null;
+        
+        // Load billing data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSubscriptionInfo();
+            loadUsageInfo();
+            loadInvoices();
+            checkQuotaWarnings();
+        });
+        
+        async function loadSubscriptionInfo() {
+            try {
+                const response = await fetch('/api/billing/subscription');
+                currentSubscription = await response.json();
+                
+                const container = document.getElementById('subscription-info');
+                
+                if (currentSubscription.status === 'none') {
+                    container.innerHTML = `
+                        <p><strong>Plan:</strong> Starter (Free)</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-active">Active</span></p>
+                        <p>Ready to scale up? Upgrade to Pro for more features and higher limits.</p>
+                    `;
+                } else {
+                    const nextBilling = currentSubscription.next_billing_date 
+                        ? new Date(currentSubscription.next_billing_date * 1000).toLocaleDateString()
+                        : 'N/A';
+                    
+                    container.innerHTML = `
+                        <p><strong>Plan:</strong> ${currentSubscription.plan}</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${currentSubscription.status}">${currentSubscription.status}</span></p>
+                        <p><strong>Amount:</strong> £${(currentSubscription.amount / 100).toFixed(2)}/month</p>
+                        <p><strong>Next Billing:</strong> ${nextBilling}</p>
+                        ${currentSubscription.vat_number ? `<p><strong>VAT Number:</strong> ${currentSubscription.vat_number}</p>` : ''}
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load subscription info:', error);
+                document.getElementById('subscription-info').innerHTML = 
+                    '<p style="color: #ef4444;">Failed to load subscription information</p>';
+            }
+        }
+        
+        async function loadUsageInfo() {
+            try {
+                const response = await fetch('/api/billing/usage');
+                currentUsage = await response.json();
+                
+                const container = document.getElementById('usage-details');
+                const percentage = currentUsage.percentage_used;
+                
+                let usageClass = 'usage-safe';
+                if (percentage > 90) usageClass = 'usage-critical';
+                else if (percentage > 75) usageClass = 'usage-warning';
+                
+                container.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>${currentUsage.current_usage} / ${currentUsage.plan_limit} used</span>
+                        <span>${percentage.toFixed(1)}%</span>
+                    </div>
+                    <div class="usage-bar">
+                        <div class="usage-fill ${usageClass}" style="width: ${Math.min(percentage, 100)}%"></div>
+                    </div>
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 8px;">
+                        Resets in ${currentUsage.days_until_reset} days
+                    </p>
+                `;
+                
+                // Show quota warning if needed
+                if (currentUsage.needs_upgrade) {
+                    showQuotaWarning(percentage);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load usage info:', error);
+            }
+        }
+        
+        async function loadInvoices() {
+            try {
+                const response = await fetch('/api/billing/invoices');
+                const invoices = await response.json();
+                
+                const container = document.getElementById('invoices-list');
+                
+                if (invoices.length === 0) {
+                    container.innerHTML = '<p>No invoices yet.</p>';
+                    return;
+                }
+                
+                let tableHTML = `
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                invoices.forEach(invoice => {
+                    const date = new Date(invoice.created * 1000).toLocaleDateString();
+                    const amount = `£${(invoice.amount / 100).toFixed(2)}`;
+                    
+                    tableHTML += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${invoice.description}</td>
+                            <td>${amount}</td>
+                            <td><span class="status-badge status-${invoice.status}">${invoice.status}</span></td>
+                            <td>
+                                ${invoice.pdf_url ? `<a href="${invoice.pdf_url}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 12px;">PDF</a>` : '-'}
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += '</tbody></table>';
+                container.innerHTML = tableHTML;
+                
+            } catch (error) {
+                console.error('Failed to load invoices:', error);
+                document.getElementById('invoices-list').innerHTML = 
+                    '<p style="color: #ef4444;">Failed to load billing history</p>';
+            }
+        }
+        
+        function showQuotaWarning(percentage) {
+            const warning = document.getElementById('quota-warning');
+            document.getElementById('usage-percentage').textContent = percentage.toFixed(1);
+            warning.style.display = 'block';
+        }
+        
+        function checkQuotaWarnings() {
+            // Check for quota warning headers from server
+            const headers = document.querySelector('meta[name="quota-warning"]');
+            if (headers) {
+                const percentage = parseFloat(headers.getAttribute('content'));
+                showQuotaWarning(percentage);
+            }
+        }
+        
+        function showUpgradeOptions() {
+            document.getElementById('plan-selection').style.display = 'block';
+            
+            // Highlight current plan
+            if (currentSubscription) {
+                document.querySelectorAll('.plan-card').forEach(card => {
+                    card.classList.remove('selected');
+                    if (card.dataset.plan === currentSubscription.plan) {
+                        card.classList.add('selected');
+                        card.innerHTML += '<div class="plan-current">Current</div>';
+                    }
+                });
+            }
+        }
+        
+        function hidePlanSelection() {
+            document.getElementById('plan-selection').style.display = 'none';
+        }
+        
+        async function selectPlan(plan) {
+            if (currentSubscription && currentSubscription.plan === plan) {
+                alert('You are already on this plan');
+                return;
+            }
+            
+            if (plan === 'STARTER') {
+                // Handle downgrade to free plan
+                if (confirm('Are you sure you want to downgrade to the free plan? This will reduce your available features.')) {
+                    await openBillingPortal(); // Let them manage via Stripe portal
+                }
+                return;
+            }
+            
+            // Get VAT number if provided
+            let vatNumber = null;
+            if (document.getElementById('vat-registered').checked) {
+                vatNumber = document.getElementById('vat-number').value;
+                if (vatNumber && !await validateVATNumber(vatNumber)) {
+                    alert('Please enter a valid VAT number or uncheck VAT registration');
+                    return;
+                }
+            }
+            
+            try {
+                const response = await fetch('/api/billing/checkout/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        plan: plan,
+                        success_url: window.location.origin + '/billing?success=true',
+                        cancel_url: window.location.origin + '/billing?cancelled=true',
+                        vat_number: vatNumber
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Failed to create checkout session');
+                }
+                
+            } catch (error) {
+                console.error('Checkout failed:', error);
+                alert('Failed to start checkout process');
+            }
+        }
+        
+        async function openBillingPortal() {
+            try {
+                const response = await fetch('/api/billing/portal');
+                const data = await response.json();
+                
+                if (data.portal_url) {
+                    window.location.href = data.portal_url;
+                } else {
+                    alert('Billing portal not available');
+                }
+                
+            } catch (error) {
+                console.error('Portal access failed:', error);
+                alert('Failed to access billing portal');
+            }
+        }
+        
+        async function validateVAT() {
+            const vatNumber = document.getElementById('vat-number').value;
+            if (!vatNumber) return;
+            
+            const isValid = await validateVATNumber(vatNumber);
+            const validation = document.getElementById('vat-validation');
+            
+            if (isValid) {
+                validation.innerHTML = '<span style="color: #10b981;">✓ Valid VAT number</span>';
+            } else {
+                validation.innerHTML = '<span style="color: #ef4444;">✗ Invalid VAT number</span>';
+            }
+        }
+        
+        async function validateVATNumber(vatNumber) {
+            try {
+                const countryCode = vatNumber.substring(0, 2);
+                const response = await fetch('/api/billing/vat/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        vat_number: vatNumber,
+                        country_code: countryCode
+                    })
+                });
+                
+                const data = await response.json();
+                return data.valid;
+                
+            } catch (error) {
+                console.error('VAT validation failed:', error);
+                return false;
+            }
+        }
+        
+        // Toggle VAT details
+        document.getElementById('vat-registered').addEventListener('change', function() {
+            const details = document.getElementById('vat-details');
+            details.style.display = this.checked ? 'block' : 'none';
+        });
+        
+        // Handle URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            alert('Payment successful! Your subscription has been activated.');
+            // Remove URL parameter
+            window.history.replaceState({}, document.title, window.location.pathname);
+            location.reload();
+        } else if (urlParams.get('cancelled') === 'true') {
+            alert('Payment cancelled. You can try again anytime.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+</body>
+</html>

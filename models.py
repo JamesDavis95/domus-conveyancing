@@ -593,6 +593,15 @@ class Usage(Base):
     organization = relationship("Organization", back_populates="usage_records")
     user = relationship("User", back_populates="usage_records")
 
+# MONITORING AND FRESHNESS MODELS
+
+class SourceFreshness(Base):
+    __tablename__ = "source_freshness"
+    id = Column(Integer, primary_key=True)
+    source = Column(String(255), nullable=False, unique=True)  # e.g., 'policy_corpus', 'lpa_metrics'
+    last_updated_at = Column(DateTime, nullable=False)
+    status = Column(String(50), nullable=False)  # 'updated', 'failed', 'in_progress'
+
 # Database Configuration - Production Ready
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine

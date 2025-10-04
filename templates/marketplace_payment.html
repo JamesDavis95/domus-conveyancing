@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace Payment | Domus Platform</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        .payment-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .payment-form {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        .form-section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .payment-summary {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+        }
+        
+        .summary-row.total {
+            border-top: 2px solid #cbd5e1;
+            padding-top: 16px;
+            margin-top: 16px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .fee-explanation {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        
+        .stripe-elements {
+            margin: 20px 0;
+        }
+        
+        .StripeElement {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+        
+        .StripeElement--focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .StripeElement--invalid {
+            border-color: #ef4444;
+        }
+        
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            margin-right: 16px;
+            width: auto;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #4b5563;
+        }
+        
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff60;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px solid #fca5a5;
+        }
+        
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px solid #86efac;
+        }
+        
+        .seller-info {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+        
+        .seller-badge {
+            background: #0ea5e9;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        
+        .units-display {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            margin: 16px 0;
+        }
+        
+        .units-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 4px;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            margin: 32px 0;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            color: #9ca3af;
+        }
+        
+        .progress-step.active {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .progress-step.completed {
+            color: #10b981;
+        }
+        
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            font-weight: 600;
+        }
+        
+        .progress-step.active .step-number {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .progress-step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+        
+        .step-connector {
+            width: 60px;
+            height: 2px;
+            background: #e5e7eb;
+            margin: 0 16px;
+        }
+        
+        .step-connector.completed {
+            background: #10b981;
+        }
+        
+        .contract-preview {
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .payment-container {
+                padding: 16px;
+            }
+            
+            .payment-form {
+                padding: 24px;
+            }
+            
+            .progress-steps {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .step-connector {
+                width: 2px;
+                height: 40px;
+                margin: 8px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+            <div class="progress-step completed">
+                <div class="step-number">1</div>
+                <span>Select Offer</span>
+            </div>
+            <div class="step-connector completed"></div>
+            <div class="progress-step active">
+                <div class="step-number">2</div>
+                <span>Payment Details</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="progress-step">
+                <div class="step-number">3</div>
+                <span>Confirmation</span>
+            </div>
+        </div>
+        
+        <!-- Payment Form -->
+        <div class="payment-form">
+            <h1>Complete Marketplace Transaction</h1>
+            <p>Secure payment processing with automated seller transfers</p>
+            
+            <!-- Seller Information -->
+            <div class="seller-info">
+                <div class="seller-badge">Verified Seller</div>
+                <h3 id="seller-name">Loading seller information...</h3>
+                <p id="seller-description">Biodiversity unit provider</p>
+            </div>
+            
+            <!-- Biodiversity Units -->
+            <div class="units-display">
+                <div class="units-value" id="units-amount">0 Units</div>
+                <div>Biodiversity Net Gain Credits</div>
+            </div>
+            
+            <!-- Contract Details -->
+            <div class="form-section">
+                <h2>Contract Details</h2>
+                
+                <div class="form-group">
+                    <label class="form-label" for="project-name">Project Name</label>
+                    <input type="text" id="project-name" class="form-input" placeholder="Enter your project name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="project-description">Project Description</label>
+                    <textarea id="project-description" class="form-textarea" placeholder="Describe your development project and biodiversity requirements" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="delivery-date">Required Delivery Date</label>
+                    <input type="date" id="delivery-date" class="form-input" required>
+                </div>
+            </div>
+            
+            <!-- Payment Summary -->
+            <div class="payment-summary">
+                <h2>Payment Summary</h2>
+                
+                <div class="summary-row">
+                    <span>Biodiversity Units</span>
+                    <span id="summary-units">0 units</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Unit Price</span>
+                    <span id="summary-unit-price">£0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="summary-subtotal">£0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Platform Fee (7%)</span>
+                    <span id="summary-platform-fee">£0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>VAT (20%)</span>
+                    <span id="summary-vat">£0.00</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>Total Amount</span>
+                    <span id="summary-total">£0.00</span>
+                </div>
+            </div>
+            
+            <div class="fee-explanation">
+                <strong>💰 Fee Structure:</strong><br>
+                • Platform fee: 7% of transaction value (automatically deducted)<br>
+                • Seller receives 93% of subtotal via instant transfer<br>
+                • VAT applied to platform fee only<br>
+                • Your payment includes all fees - no hidden charges
+            </div>
+            
+            <!-- Payment Method -->
+            <div class="form-section">
+                <h2>Payment Method</h2>
+                
+                <div class="form-group">
+                    <label class="form-label" for="card-holder-name">Cardholder Name</label>
+                    <input type="text" id="card-holder-name" class="form-input" placeholder="Full name as it appears on card" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Card Details</label>
+                    <div id="card-element" class="stripe-elements">
+                        <!-- Stripe Elements will create form elements here -->
+                    </div>
+                    <div id="card-errors" class="error-message" style="display: none;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="billing-email">Billing Email</label>
+                    <input type="email" id="billing-email" class="form-input" placeholder="email@example.com" required>
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div style="display: flex; align-items: center; margin-top: 32px;">
+                <button type="button" class="btn btn-secondary" onclick="goBack()">
+                    Back to Offers
+                </button>
+                <button type="button" id="submit-payment" class="btn" onclick="processPayment()" disabled>
+                    <span id="submit-text">Complete Payment</span>
+                    <div id="submit-spinner" class="loading-spinner" style="display: none;"></div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Messages -->
+        <div id="message-container"></div>
+        
+        <!-- Contract Preview Modal -->
+        <div id="contract-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 12px; padding: 32px; max-width: 600px; width: 90%; max-height: 80%; overflow-y: auto;">
+                <h2>Contract Preview</h2>
+                <div id="contract-content" class="contract-preview"></div>
+                <div style="margin-top: 24px; text-align: right;">
+                    <button class="btn btn-secondary" onclick="closeContractModal()" style="margin-right: 16px;">Close</button>
+                    <button class="btn" onclick="finalizeContract()">Accept & Finalize</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Stripe
+        const stripe = Stripe('{{ stripe_publishable_key }}');
+        const elements = stripe.elements();
+        
+        // Create card element
+        const cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+            },
+        });
+        
+        cardElement.mount('#card-element');
+        
+        // Transaction data
+        let transactionData = {
+            offer_id: null,
+            seller_org_id: null,
+            units: 0,
+            unit_price_pence: 0,
+            total_amount_pence: 0,
+            platform_fee_pence: 0,
+            vat_pence: 0
+        };
+        
+        let paymentIntent = null;
+        
+        // Load transaction data from URL parameters or session storage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTransactionData();
+            setupFormValidation();
+            setupCardValidation();
+        });
+        
+        function loadTransactionData() {
+            // Get offer ID from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const offerId = urlParams.get('offer_id');
+            
+            if (offerId) {
+                transactionData.offer_id = offerId;
+                fetchOfferDetails(offerId);
+            } else {
+                // Try to load from session storage
+                const savedData = sessionStorage.getItem('marketplace_transaction');
+                if (savedData) {
+                    transactionData = JSON.parse(savedData);
+                    displayTransactionData();
+                } else {
+                    showError('No offer selected. Please return to the marketplace.');
+                }
+            }
+        }
+        
+        async function fetchOfferDetails(offerId) {
+            try {
+                const response = await fetch(`/api/marketplace/offers/${offerId}`);
+                const offer = await response.json();
+                
+                if (response.ok) {
+                    // Populate transaction data from offer
+                    transactionData.seller_org_id = offer.org_id;
+                    transactionData.units = offer.available_units;
+                    transactionData.unit_price_pence = offer.unit_price_pence;
+                    
+                    // Calculate amounts
+                    const subtotal = transactionData.units * transactionData.unit_price_pence;
+                    transactionData.platform_fee_pence = Math.round(subtotal * 0.07); // 7% platform fee
+                    transactionData.vat_pence = Math.round(transactionData.platform_fee_pence * 0.2); // 20% VAT on platform fee
+                    transactionData.total_amount_pence = subtotal + transactionData.platform_fee_pence + transactionData.vat_pence;
+                    
+                    // Save to session storage
+                    sessionStorage.setItem('marketplace_transaction', JSON.stringify(transactionData));
+                    
+                    displayTransactionData();
+                    fetchSellerInfo(offer.org_id);
+                } else {
+                    showError('Failed to load offer details');
+                }
+                
+            } catch (error) {
+                console.error('Failed to fetch offer details:', error);
+                showError('Failed to load offer details');
+            }
+        }
+        
+        async function fetchSellerInfo(orgId) {
+            try {
+                const response = await fetch(`/api/organizations/${orgId}`);
+                const org = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('seller-name').textContent = org.name;
+                    document.getElementById('seller-description').textContent = org.description || 'Biodiversity unit provider';
+                } else {
+                    console.error('Failed to load seller info');
+                }
+            } catch (error) {
+                console.error('Failed to fetch seller info:', error);
+            }
+        }
+        
+        function displayTransactionData() {
+            // Update units display
+            document.getElementById('units-amount').textContent = `${transactionData.units} Units`;
+            
+            // Update summary
+            document.getElementById('summary-units').textContent = `${transactionData.units} units`;
+            document.getElementById('summary-unit-price').textContent = `£${(transactionData.unit_price_pence / 100).toFixed(2)}`;
+            
+            const subtotal = transactionData.units * transactionData.unit_price_pence;
+            document.getElementById('summary-subtotal').textContent = `£${(subtotal / 100).toFixed(2)}`;
+            document.getElementById('summary-platform-fee').textContent = `£${(transactionData.platform_fee_pence / 100).toFixed(2)}`;
+            document.getElementById('summary-vat').textContent = `£${(transactionData.vat_pence / 100).toFixed(2)}`;
+            document.getElementById('summary-total').textContent = `£${(transactionData.total_amount_pence / 100).toFixed(2)}`;
+        }
+        
+        function setupFormValidation() {
+            const requiredFields = ['project-name', 'project-description', 'delivery-date', 'card-holder-name', 'billing-email'];
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.addEventListener('input', validateForm);
+            });
+            
+            validateForm();
+        }
+        
+        function setupCardValidation() {
+            cardElement.addEventListener('change', function(event) {
+                const cardErrors = document.getElementById('card-errors');
+                
+                if (event.error) {
+                    cardErrors.textContent = event.error.message;
+                    cardErrors.style.display = 'block';
+                } else {
+                    cardErrors.style.display = 'none';
+                }
+                
+                validateForm();
+            });
+        }
+        
+        function validateForm() {
+            const projectName = document.getElementById('project-name').value.trim();
+            const projectDescription = document.getElementById('project-description').value.trim();
+            const deliveryDate = document.getElementById('delivery-date').value;
+            const cardHolderName = document.getElementById('card-holder-name').value.trim();
+            const billingEmail = document.getElementById('billing-email').value.trim();
+            
+            const isValid = projectName && projectDescription && deliveryDate && cardHolderName && billingEmail;
+            
+            document.getElementById('submit-payment').disabled = !isValid;
+        }
+        
+        async function processPayment() {
+            const submitButton = document.getElementById('submit-payment');
+            const submitText = document.getElementById('submit-text');
+            const submitSpinner = document.getElementById('submit-spinner');
+            
+            try {
+                // Disable submit button and show loading
+                submitButton.disabled = true;
+                submitText.textContent = 'Processing Payment...';
+                submitSpinner.style.display = 'block';
+                
+                // Create payment intent
+                const paymentData = {
+                    seller_org_id: transactionData.seller_org_id,
+                    amount_pence: transactionData.total_amount_pence,
+                    application_fee_pence: transactionData.platform_fee_pence,
+                    biodiversity_units: transactionData.units,
+                    project_name: document.getElementById('project-name').value.trim(),
+                    project_description: document.getElementById('project-description').value.trim(),
+                    delivery_date: document.getElementById('delivery-date').value
+                };
+                
+                const createResponse = await fetch('/api/marketplace/payments/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+                
+                const paymentResult = await createResponse.json();
+                
+                if (!createResponse.ok) {
+                    throw new Error(paymentResult.detail || 'Failed to create payment intent');
+                }
+                
+                paymentIntent = paymentResult;
+                
+                // Confirm payment with Stripe
+                const cardHolderName = document.getElementById('card-holder-name').value.trim();
+                const billingEmail = document.getElementById('billing-email').value.trim();
+                
+                const confirmResult = await stripe.confirmCardPayment(paymentIntent.client_secret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            name: cardHolderName,
+                            email: billingEmail,
+                        },
+                    }
+                });
+                
+                if (confirmResult.error) {
+                    throw new Error(confirmResult.error.message);
+                }
+                
+                // Confirm payment on backend and process transfer
+                const confirmResponse = await fetch('/api/marketplace/payments/confirm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_intent_id: paymentIntent.payment_intent_id,
+                        contract_id: paymentIntent.contract_id
+                    })
+                });
+                
+                const confirmData = await confirmResponse.json();
+                
+                if (!confirmResponse.ok) {
+                    throw new Error(confirmData.detail || 'Failed to confirm payment');
+                }
+                
+                // Payment successful
+                showSuccess('Payment successful! Redirecting to confirmation...');
+                
+                // Clear transaction data
+                sessionStorage.removeItem('marketplace_transaction');
+                
+                // Redirect to success page
+                setTimeout(() => {
+                    window.location.href = `/marketplace/payment/success?contract_id=${paymentIntent.contract_id}`;
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Payment failed:', error);
+                showError(error.message || 'Payment failed. Please try again.');
+                
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitText.textContent = 'Complete Payment';
+                submitSpinner.style.display = 'none';
+            }
+        }
+        
+        function goBack() {
+            // Clear transaction data and go back to marketplace
+            sessionStorage.removeItem('marketplace_transaction');
+            window.location.href = '/marketplace';
+        }
+        
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('message-container');
+            const className = type === 'error' ? 'error-message' : 
+                             type === 'success' ? 'success-message' : 'info-message';
+            
+            container.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            if (type !== 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 8000);
+            }
+        }
+        
+        function showError(message) {
+            showMessage(message, 'error');
+        }
+        
+        function showSuccess(message) {
+            showMessage(message, 'success');
+        }
+        
+        function showContractPreview() {
+            // Generate contract preview
+            const projectName = document.getElementById('project-name').value;
+            const projectDescription = document.getElementById('project-description').value;
+            const deliveryDate = document.getElementById('delivery-date').value;
+            
+            const contractHTML = `
+                <h3>BIODIVERSITY NET GAIN CONTRACT</h3>
+                <hr>
+                <p><strong>Contract Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Project:</strong> ${projectName}</p>
+                <p><strong>Description:</strong> ${projectDescription}</p>
+                <p><strong>Delivery Date:</strong> ${new Date(deliveryDate).toLocaleDateString()}</p>
+                <hr>
+                <p><strong>Biodiversity Units:</strong> ${transactionData.units}</p>
+                <p><strong>Unit Price:</strong> £${(transactionData.unit_price_pence / 100).toFixed(2)}</p>
+                <p><strong>Total Value:</strong> £${(transactionData.total_amount_pence / 100).toFixed(2)}</p>
+                <hr>
+                <p><strong>Platform Fee (7%):</strong> £${(transactionData.platform_fee_pence / 100).toFixed(2)}</p>
+                <p><strong>Seller Receives:</strong> £${((transactionData.units * transactionData.unit_price_pence) / 100).toFixed(2)}</p>
+            `;
+            
+            document.getElementById('contract-content').innerHTML = contractHTML;
+            document.getElementById('contract-modal').style.display = 'block';
+        }
+        
+        function closeContractModal() {
+            document.getElementById('contract-modal').style.display = 'none';
+        }
+        
+        function finalizeContract() {
+            closeContractModal();
+            processPayment();
+        }
+        
+        // Set minimum delivery date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('delivery-date').min = tomorrow.toISOString().split('T')[0];
+    </script>
+</body>
+</html>

@@ -39,3 +39,4 @@ research/
 *email_template*
 *campaign*
 *contact*
+.env.production

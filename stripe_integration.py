@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from models import User, Organization, Subscription, Payment
+from models import Users, Organization, Subscription, Payment
 from backend_auth import PlanType
 
 # Initialize Stripe
@@ -45,7 +45,7 @@ class StripeService:
     """Service class for all Stripe operations"""
     
     @staticmethod
-    async def create_customer(user: User, organization: Organization) -> str:
+    async def create_customer(user: Users, organization: Organization) -> str:
         """Create a Stripe customer"""
         try:
             customer = stripe.Customer.create(
@@ -88,7 +88,7 @@ class StripeService:
         
         # Ensure customer exists
         if not org.stripe_customer_id:
-            user = db.query(User).filter(User.org_id == org_id).first()
+            user = db.query(Users).filter(Users.org_id == org_id).first()
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
