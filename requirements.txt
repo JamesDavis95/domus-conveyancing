@@ -30,9 +30,10 @@ redis==5.0.8
 sentry-sdk==2.14.0
 
 # Database drivers and migration
-psycopg[binary]==3.2.1
+psycopg[binary]==3.2.10
 aiofiles==24.1.0
 alembic==1.13.3
+Mako==1.3.10
 
 # Configuration
 python-dotenv==1.1.1

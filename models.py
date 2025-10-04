@@ -602,35 +602,9 @@ class SourceFreshness(Base):
     last_updated_at = Column(DateTime, nullable=False)
     status = Column(String(50), nullable=False)  # 'updated', 'failed', 'in_progress'
 
-# Database Configuration - Production Ready
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
+# Database Configuration - Use centralized engine
+from database_config import Base, engine, SessionLocal
 import os
-
-# Get database URL from environment (PostgreSQL for production, SQLite for local)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./production.db")
-
-# Handle PostgreSQL URLs (Render provides postgres://, but SQLAlchemy needs postgresql://)
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-# Create engine with appropriate configuration
-if DATABASE_URL.startswith("postgresql://"):
-    # PostgreSQL configuration for production
-    engine = create_engine(
-        DATABASE_URL,
-        pool_pre_ping=True,
-        pool_recycle=300,
-        echo=False  # Set to True for debugging
-    )
-else:
-    # SQLite configuration for local development
-    engine = create_engine(
-        DATABASE_URL, 
-        connect_args={"check_same_thread": False}
-    )
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Dependency to get DB session
 def get_db():

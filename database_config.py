@@ -1,7 +1,36 @@
-"""
-Database configuration for Domus Planning Platform
-Handles both local SQLite and production PostgreSQL
-"""
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.engine.url import make_url
+
+Base = declarative_base()
+
+raw = os.getenv("DATABASE_URL", "").strip()
+if not raw:
+    raise RuntimeError("DATABASE_URL is not set")
+
+# Accept postgres:// and normalize to postgresql+psycopg://
+url = make_url(raw)
+if url.drivername in ("postgres", "postgresql"):
+    url = url.set(drivername="postgresql+psycopg")
+
+# Guard against accidental https:// being pasted
+if url.drivername.startswith("http"):
+    raise RuntimeError(
+        f"Invalid DATABASE_URL (looks like a website, not a DB URL): {raw}"
+    )
+
+if url.drivername.startswith("sqlite"):
+    engine = create_engine(str(url), connect_args={"check_same_thread": False})
+else:
+    # Postgres / others
+    engine = create_engine(
+        str(url),
+        pool_pre_ping=True,
+        pool_recycle=300,
+    )
+
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 import os
 from sqlalchemy import create_engine

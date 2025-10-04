@@ -326,19 +326,13 @@ PRODUCTION_AUTH_AVAILABLE = False
 
 # Simple database initialization function
 def init_database():
-    # TODO: Implement proper database initialization
-    pass
-
-# Initialize database on startup
-init_database()
-def init_database():
     """Initialize database tables if they don't exist"""
     try:
-        from models import Base, engine
+        from database_config import Base, engine
         Base.metadata.create_all(bind=engine)
-        print(" Database tables initialized")
+        print("✅ Database tables initialized")
     except Exception as e:
-        print(f" Database initialization issue (non-critical): {e}")
+        print(f"⚠️ Database initialization issue (non-critical): {e}")
 
 # Initialize database on startup
 init_database()
