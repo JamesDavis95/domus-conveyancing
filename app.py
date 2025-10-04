@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 import os
 
 # Feature flag to force production UI (no demo content)
-DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
+DEMO_MODE = False  # Always disabled in production
 
 # Gate environment file loading by ENVIRONMENT variable
 ENV = os.getenv("ENVIRONMENT", "development")
@@ -31,6 +31,19 @@ if ENV != "production":
 else:
     print("Production environment detected - using Render environment variables")
 
+# Get git SHA for version tracking
+try:
+    import subprocess
+    git_sha = subprocess.run(['git', 'rev-parse', 'HEAD'], 
+                           capture_output=True, text=True, cwd=os.path.dirname(__file__))
+    version_info = git_sha.stdout.strip()[:8] if git_sha.returncode == 0 else "unknown"
+except:
+    version_info = "unknown"
+
+# Determine database type
+db_url = os.getenv("DATABASE_URL", "")
+db_type = "PostgreSQL" if db_url.startswith(("postgres://", "postgresql://")) else "SQLite" if "sqlite" in db_url else "Unknown"
+
 # Startup diagnostics for critical environment variables
 REQUIRED_KEYS = [
     "STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY", "STRIPE_WEBHOOK_SECRET",
@@ -38,7 +51,9 @@ REQUIRED_KEYS = [
     "DATABASE_URL", "MAPBOX_ACCESS_TOKEN", "RECAPTCHA_SECRET_KEY"
 ]
 present = [k for k in REQUIRED_KEYS if os.getenv(k)]
+print(f"DOMUS STARTUP: Environment={ENV}, Version={version_info}, DB={db_type}")
 print(f"Startup: {len(present)}/{len(REQUIRED_KEYS)} critical env vars present: {', '.join(sorted(present))}")
+print(f"Demo mode: {'DISABLED' if not DEMO_MODE else 'ENABLED'}")
 
 import time
 import json
@@ -342,7 +357,7 @@ init_database()
 app = FastAPI(
     title="Domus Planning Platform - AI Operating System", 
     description="The 4-Pillar AI Planning System: Planning AI + Auto-Docs + Property API + Offsets Marketplace",
-    version="4.0.0",
+    version=f"4.0.0-{version_info}",
     contact={
         "name": "Domus Platform",
         "email": "hello@domusplanning.co.uk",
@@ -350,18 +365,8 @@ app = FastAPI(
     }
 )
 
-# Startup logging for production monitoring
-current_env = os.getenv("ENVIRONMENT", "development")
-try:
-    import subprocess
-    git_sha = subprocess.run(['git', 'rev-parse', 'HEAD'], 
-                           capture_output=True, text=True, cwd=os.path.dirname(__file__))
-    version_info = git_sha.stdout.strip()[:8] if git_sha.returncode == 0 else "unknown"
-except:
-    version_info = "unknown"
-
-env_vars_present = [k for k in os.environ.keys() if k.startswith(('STRIPE_', 'OPENAI_', 'SENDGRID_', 'EPC_', 'CH_', 'OS_', 'RECAPTCHA_', 'MAPBOX_'))]
-print(f"DOMUS STARTUP: Environment={current_env}, Version={version_info}, EnvVars={len(env_vars_present)} configured")
+# Store version for template use
+app.state.build_version = version_info
 
 # Setup Jinja2 templates
 templates = Jinja2Templates(directory="templates")

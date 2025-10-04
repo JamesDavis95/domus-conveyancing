@@ -1,10 +1,16 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+# Add project root to path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
+# Import database config and models
+from database_config import engine, Base
+from models import *  # Load all model classes to register with Base
 
 config = context.config
 fileConfig(config.config_file_name)
@@ -14,14 +20,8 @@ db_url = os.getenv("DATABASE_URL")
 if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
 
-# --- Ensure all models are imported so Alembic sees all tables ---
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-import models  # main app models
-import la.models  # LA models (LAMatter, etc)
-
-target_metadata = None  # Using imperative migrations
+# Set target metadata from Base
+target_metadata = Base.metadata
 
 def run_migrations_offline():
     context.configure(url=config.get_main_option("sqlalchemy.url"), literal_binds=True)

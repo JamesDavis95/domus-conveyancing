@@ -13,6 +13,11 @@ if not raw:
 url = make_url(raw)
 if url.drivername in ("postgres", "postgresql"):
     url = url.set(drivername="postgresql+psycopg")
+    # Add SSL for external database URLs if not present
+    if not url.query:
+        url = url.update_query_dict({"sslmode": "require"})
+    elif "sslmode" not in url.query:
+        url = url.update_query_dict({"sslmode": "require"})
 
 # Guard against accidental https:// being pasted
 if url.drivername.startswith("http"):
@@ -22,15 +27,18 @@ if url.drivername.startswith("http"):
 
 if url.drivername.startswith("sqlite"):
     engine = create_engine(str(url), connect_args={"check_same_thread": False})
+    print("Using SQLite database")
 else:
-    # Postgres / others
+    # PostgreSQL configuration for production
     engine = create_engine(
         str(url),
         pool_pre_ping=True,
-        pool_recycle=300,
+        pool_recycle=1800,
+        future=True,
     )
+    print("Using PostgreSQL database")
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
 import os
 from sqlalchemy import create_engine
