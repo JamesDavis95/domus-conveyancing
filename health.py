@@ -1,8 +1,20 @@
 from fastapi import APIRouter
 import os
+import subprocess
 from datetime import datetime
 
 router = APIRouter()
+
+def get_git_sha():
+    """Get current git commit SHA"""
+    try:
+        result = subprocess.run(['git', 'rev-parse', 'HEAD'], 
+                              capture_output=True, text=True, cwd=os.path.dirname(__file__))
+        if result.returncode == 0:
+            return result.stdout.strip()[:8]  # Short SHA
+        return "unknown"
+    except:
+        return "unknown"
 
 @router.get("/health")
 def health():
@@ -51,11 +63,14 @@ def api_health():
         env_status['frontend_variables'][var] = is_set
     
     overall_status = "healthy" if len(env_status['missing_critical']) == 0 else "degraded"
+    current_env = os.getenv("ENVIRONMENT", "development")
     
     return {
+        "ok": True,
         "status": overall_status,
+        "version": get_git_sha(),
+        "env": current_env,
         "environment": env_status,
-        "version": "2.0.0",
         "timestamp": datetime.utcnow().isoformat()
     }
 

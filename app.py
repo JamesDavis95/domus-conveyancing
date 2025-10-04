@@ -13,15 +13,19 @@ Offsets Marketplace - Biodiversity Net Gain trading platform
 from dotenv import load_dotenv
 import os
 
-# Try production environment first, then fallback to local
-if os.path.exists('.env.production'):
-    load_dotenv('.env.production')
-    print("Loaded .env.production environment")
-elif os.path.exists('.env.local'):
-    load_dotenv('.env.local')
-    print("Loaded .env.local environment")
+# Gate environment file loading by ENVIRONMENT variable
+if os.getenv("ENVIRONMENT", "development") != "production":
+    # Try production environment first, then fallback to local
+    if os.path.exists('.env.production'):
+        load_dotenv('.env.production')
+        print("Loaded .env.production environment")
+    elif os.path.exists('.env.local'):
+        load_dotenv('.env.local')
+        print("Loaded .env.local environment")
+    else:
+        print("No environment file found, using system environment variables")
 else:
-    print("No environment file found, using system environment variables")
+    print("Production environment detected - using Render environment variables")
 
 import time
 import json
