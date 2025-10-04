@@ -343,6 +343,19 @@ app = FastAPI(
     }
 )
 
+# Startup logging for production monitoring
+current_env = os.getenv("ENVIRONMENT", "development")
+try:
+    import subprocess
+    git_sha = subprocess.run(['git', 'rev-parse', 'HEAD'], 
+                           capture_output=True, text=True, cwd=os.path.dirname(__file__))
+    version_info = git_sha.stdout.strip()[:8] if git_sha.returncode == 0 else "unknown"
+except:
+    version_info = "unknown"
+
+env_vars_present = [k for k in os.environ.keys() if k.startswith(('STRIPE_', 'OPENAI_', 'SENDGRID_', 'EPC_', 'CH_', 'OS_', 'RECAPTCHA_', 'MAPBOX_'))]
+print(f"🚀 DOMUS STARTUP: Environment={current_env}, Version={version_info}, EnvVars={len(env_vars_present)} configured")
+
 # Setup Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 

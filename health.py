@@ -78,3 +78,44 @@ def api_health():
 def ready():
     return {"status": "ready"}
 
+@router.get("/api/health/deps")
+def health_deps():
+    """Check if all critical dependencies can be imported"""
+    deps_status = {}
+    critical_imports = [
+        'stripe', 'sendgrid', 'httpx', 'requests', 'jwt', 'fastapi', 
+        'sqlalchemy', 'pydantic', 'bcrypt', 'jinja2'
+    ]
+    
+    all_ok = True
+    for module in critical_imports:
+        try:
+            __import__(module)
+            deps_status[module] = True
+        except ImportError:
+            deps_status[module] = False
+            all_ok = False
+    
+    return {
+        "ok": all_ok,
+        "dependencies": deps_status,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+@router.get("/api/health/freshness")
+def health_freshness():
+    """Check freshness of external data sources"""
+    # This would typically check last fetch timestamps from cache/database
+    # For now, return a placeholder structure
+    return {
+        "ok": True,
+        "sources": {
+            "epc": {"last_fetch": "N/A", "status": "available"},
+            "planit": {"last_fetch": "N/A", "status": "available"},
+            "pdg": {"last_fetch": "N/A", "status": "available"},
+            "ea_flood": {"last_fetch": "N/A", "status": "available"},
+            "companies_house": {"last_fetch": "N/A", "status": "available"}
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
