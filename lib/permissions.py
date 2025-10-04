@@ -560,3 +560,13 @@ class UserContext:
         """Check if user has permission"""
         # Simple admin check
         return self.role == "admin"
+
+# Export compatibility aliases
+Role = UserRole  # Alias for backward compatibility
+Feature = Permission  # Alias for backward compatibility
+
+# Export all public items
+__all__ = [
+    "UserRole", "Role", "Permission", "Feature", "PermissionsMatrix", 
+    "AccessControl", "UserContext", "check_access", "has_feature_access"
+]

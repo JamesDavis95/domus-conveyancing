@@ -13,8 +13,12 @@ Offsets Marketplace - Biodiversity Net Gain trading platform
 from dotenv import load_dotenv
 import os
 
+# Feature flag to force production UI (no demo content)
+DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
+
 # Gate environment file loading by ENVIRONMENT variable
-if os.getenv("ENVIRONMENT", "development") != "production":
+ENV = os.getenv("ENVIRONMENT", "development")
+if ENV != "production":
     # Try production environment first, then fallback to local
     if os.path.exists('.env.production'):
         load_dotenv('.env.production')
@@ -26,6 +30,15 @@ if os.getenv("ENVIRONMENT", "development") != "production":
         print("No environment file found, using system environment variables")
 else:
     print("Production environment detected - using Render environment variables")
+
+# Startup diagnostics for critical environment variables
+REQUIRED_KEYS = [
+    "STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY", "STRIPE_WEBHOOK_SECRET",
+    "OPENAI_API_KEY", "SENDGRID_API_KEY", "EPC_AUTH_BASIC",
+    "DATABASE_URL", "MAPBOX_ACCESS_TOKEN", "RECAPTCHA_SECRET_KEY"
+]
+present = [k for k in REQUIRED_KEYS if os.getenv(k)]
+print(f"Startup: {len(present)}/{len(REQUIRED_KEYS)} critical env vars present: {', '.join(sorted(present))}")
 
 import time
 import json
@@ -354,7 +367,7 @@ except:
     version_info = "unknown"
 
 env_vars_present = [k for k in os.environ.keys() if k.startswith(('STRIPE_', 'OPENAI_', 'SENDGRID_', 'EPC_', 'CH_', 'OS_', 'RECAPTCHA_', 'MAPBOX_'))]
-print(f"🚀 DOMUS STARTUP: Environment={current_env}, Version={version_info}, EnvVars={len(env_vars_present)} configured")
+print(f"DOMUS STARTUP: Environment={current_env}, Version={version_info}, EnvVars={len(env_vars_present)} configured")
 
 # Setup Jinja2 templates
 templates = Jinja2Templates(directory="templates")
@@ -4186,7 +4199,7 @@ async def get_inbox_messages():
                     <li><strong>Grassland Units:</strong> 15.8 units available at £12,200 per unit</li>
                     <li><strong>Woodland Units:</strong> 8.3 units available at £15,800 per unit</li>
                     <li><strong>Location:</strong> Within 5km of your development site</li>
-                    <li><strong>Provider Rating:</strong> ⭐⭐⭐⭐⭐ (Excellent - 4.9/5)</li>
+                    <li><strong>Provider Rating:</strong> Excellent (4.9/5)</li>
                 </ul>
                 <p><strong>Site Features:</strong></p>
                 <ul>
