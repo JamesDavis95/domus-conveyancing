@@ -1,11 +1,12 @@
 # Cloud-optimized requirements for Domus Platform
 fastapi==0.118.0
-uvicorn[standard]==0.37.0
-sqlalchemy==2.0.43
-pydantic==2.11.9
-passlib==1.7.4
-python-multipart==0.0.20
-python-dateutil==2.8.2
-bcrypt==4.2.0
+uvicorn[standard]==0.32.1
+sqlalchemy==2.0.36
+pydantic==2.10.3
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.17
+python-dateutil==2.9.0.post0
+bcrypt==4.2.1
 python-jose[cryptography]==3.3.0
 jinja2==3.1.4
+pyjwt==2.8.0
