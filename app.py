@@ -319,9 +319,9 @@ def init_database():
     try:
         from models import Base, engine
         Base.metadata.create_all(bind=engine)
-        print("✅ Database tables initialized")
+        print(" Database tables initialized")
     except Exception as e:
-        print(f"⚠️ Database initialization issue (non-critical): {e}")
+        print(f" Database initialization issue (non-critical): {e}")
 
 # Initialize database on startup
 init_database()
@@ -821,7 +821,7 @@ async def get_dashboard_overview():
                     "title": "Documents generated",
                     "description": "Planning Statement and DAS for Manor House",
                     "timestamp": "2024-10-01T16:45:00",
-                    "icon": "📄"
+                    "icon": ""
                 }
             ],
             "quick_actions": [
@@ -836,28 +836,28 @@ async def get_dashboard_overview():
                     "title": "Run Analysis",
                     "description": "Analyze a site with Planning AI",
                     "route": "/planning-ai",
-                    "icon": "🔍",
+                    "icon": "",
                     "color": "secondary"
                 },
                 {
                     "title": "Generate Docs",
                     "description": "Create planning documents",
                     "route": "/auto-docs",
-                    "icon": "📝",
+                    "icon": "",
                     "color": "secondary"
                 },
                 {
                     "title": "Property Data",
                     "description": "UK property intelligence & analytics",
                     "route": "/property-api",
-                    "icon": "🏠",
+                    "icon": "",
                     "color": "secondary"
                 },
                 {
                     "title": "BNG Marketplace",
                     "description": "Biodiversity Net Gain trading platform",
                     "route": "/offsets-marketplace",
-                    "icon": "🌱",
+                    "icon": "",
                     "color": "secondary"
                 }
             ]
@@ -3603,7 +3603,7 @@ async def get_dashboard_stats(
             plan_type = org.plan_type.value if org else "enterprise"
             
         except Exception as db_error:
-            print(f"⚠️ Database query failed, using demo data: {db_error}")
+            print(f" Database query failed, using demo data: {db_error}")
             # Fallback to demo data
             site_analyses = 24
             documents = 156

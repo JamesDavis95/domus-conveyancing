@@ -70,8 +70,8 @@
         }
 
         function initializeAuthentication() {
-            debugLog('🚀 Authentication initialization started');
-            debugLog('🚀 Current user: ' + JSON.stringify(window.currentUser));
+            debugLog(' Authentication initialization started');
+            debugLog(' Current user: ' + JSON.stringify(window.currentUser));
             
             // Update user display
             document.getElementById('userName').textContent = window.currentUser.name;
@@ -80,7 +80,7 @@
             // Apply role-based restrictions
             enforceRoleBasedAccess();
             
-            debugLog('🚀 Authentication initialization complete');
+            debugLog(' Authentication initialization complete');
         }
 
         function enforceRoleBasedAccess() {
@@ -88,13 +88,13 @@
             const permissions = ROLE_PERMISSIONS[userRole];
             
             if (!permissions) {
-                debugLog('❌ Invalid user role: ' + userRole);
+                debugLog(' Invalid user role: ' + userRole);
                 return;
             }
 
             // Store allowed pages globally for security checks
             window.userAllowedPages = permissions.allowedPages;
-            debugLog('✅ User allowed pages: ' + JSON.stringify(window.userAllowedPages));
+            debugLog(' User allowed pages: ' + JSON.stringify(window.userAllowedPages));
         }
 
         function showPage(pageId) {
@@ -119,12 +119,12 @@
             if (targetPage) {
                 targetPage.classList.add('active');
                 targetPage.style.display = 'block';
-                debugLog('✅ Successfully showed page: ' + pageId);
+                debugLog(' Successfully showed page: ' + pageId);
                 
                 // Update navigation active state
                 updateNavigation(pageId);
             } else {
-                debugLog('❌ Page not found: ' + pageId + '-page');
+                debugLog(' Page not found: ' + pageId + '-page');
             }
         }
 
@@ -144,10 +144,10 @@
 
         // Initialize authentication when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            debugLog('🚀 DOM Content Loaded - Starting authentication...');
+            debugLog(' DOM Content Loaded - Starting authentication...');
             initializeAuthentication();
-            debugLog('🚀 window.currentUser after init: ' + JSON.stringify(window.currentUser));
-            debugLog('🚀 window.userAllowedPages after init: ' + JSON.stringify(window.userAllowedPages));
+            debugLog(' window.currentUser after init: ' + JSON.stringify(window.currentUser));
+            debugLog(' window.userAllowedPages after init: ' + JSON.stringify(window.userAllowedPages));
             
             // Show dashboard by default
             showPage('dashboard');

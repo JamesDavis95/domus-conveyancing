@@ -13,11 +13,11 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
     # Production PostgreSQL (Render)
-    print("📊 Using PostgreSQL database")
+    print("Using PostgreSQL database")
     engine = create_engine(DATABASE_URL)
 else:
     # Local SQLite
-    print("📊 Using local SQLite database")
+    print("Using local SQLite database")
     DATABASE_URL = "sqlite:///./domus_planning.db"
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 

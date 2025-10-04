@@ -127,7 +127,7 @@
 <body>
     <div class="container">
         <div class="sidebar">
-            <div class="logo">🏠 Domus</div>
+            <div class="logo"> Domus</div>
             
             <div class="user-info">
                 <div class="user-name" id="userName">James Davis</div>
@@ -135,12 +135,12 @@
             </div>
             
             <nav>
-                <button class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</button>
-                <button class="nav-item" onclick="showPage('projects')">🏗️ Projects</button>
-                <button class="nav-item" onclick="showPage('planning-ai')">🤖 Planning AI</button>
+                <button class="nav-item active" onclick="showPage('dashboard')"> Dashboard</button>
+                <button class="nav-item" onclick="showPage('projects')">🏗 Projects</button>
+                <button class="nav-item" onclick="showPage('planning-ai')"> Planning AI</button>
                 <button class="nav-item" onclick="showPage('marketplace')">🏪 Marketplace</button>
-                <button class="nav-item" onclick="showPage('documents')">📄 Documents</button>
-                <button class="nav-item" onclick="showPage('settings')">⚙️ Settings</button>
+                <button class="nav-item" onclick="showPage('documents')"> Documents</button>
+                <button class="nav-item" onclick="showPage('settings')">⚙ Settings</button>
             </nav>
         </div>
         
@@ -153,7 +153,7 @@
                 </div>
                 
                 <div class="panel">
-                    <h3>📈 Platform Overview</h3>
+                    <h3> Platform Overview</h3>
                     <p>Welcome to the Domus Planning Platform. You have full administrative access to all features and data.</p>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 20px;">
@@ -176,12 +176,12 @@
             <!-- PROJECTS PAGE -->
             <div id="projects" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">🏗️ Projects</h1>
+                    <h1 class="page-title">🏗 Projects</h1>
                     <p class="page-subtitle">Manage development projects with AI-powered planning intelligence</p>
                 </div>
                 
                 <div class="panel">
-                    <h3>📋 Active Projects</h3>
+                    <h3> Active Projects</h3>
                     <p>Here you can view and manage all development projects in the system.</p>
                     
                     <div style="margin-top: 20px;">
@@ -204,12 +204,12 @@
             <!-- PLANNING AI PAGE -->
             <div id="planning-ai" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">🤖 Planning AI</h1>
+                    <h1 class="page-title"> Planning AI</h1>
                     <p class="page-subtitle">AI-powered site analysis and approval probability prediction</p>
                 </div>
                 
                 <div class="panel">
-                    <h3>🎯 Site Analysis</h3>
+                    <h3> Site Analysis</h3>
                     <p>Use AI to analyze development potential and predict planning approval probability.</p>
                     
                     <div style="margin-top: 20px;">
@@ -223,7 +223,7 @@
                             <option>Mixed Use</option>
                         </select>
                         
-                        <button style="background: var(--primary); color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">🚀 Start Analysis</button>
+                        <button style="background: var(--primary); color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;"> Start Analysis</button>
                     </div>
                 </div>
             </div>
@@ -236,7 +236,7 @@
                 </div>
                 
                 <div class="panel">
-                    <h3>📊 Market Overview</h3>
+                    <h3> Market Overview</h3>
                     <p>Real-time marketplace for biodiversity net gain units.</p>
                     
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 20px;">
@@ -257,7 +257,7 @@
             <!-- DOCUMENTS PAGE -->
             <div id="documents" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">📄 Documents</h1>
+                    <h1 class="page-title"> Documents</h1>
                     <p class="page-subtitle">Document management and automated generation</p>
                 </div>
                 
@@ -287,12 +287,12 @@
             <!-- SETTINGS PAGE -->
             <div id="settings" class="page">
                 <div class="page-header">
-                    <h1 class="page-title">⚙️ Settings</h1>
+                    <h1 class="page-title">⚙ Settings</h1>
                     <p class="page-subtitle">Platform configuration and user management</p>
                 </div>
                 
                 <div class="panel">
-                    <h3>🔧 System Settings</h3>
+                    <h3> System Settings</h3>
                     <p>Configure platform settings and manage user accounts.</p>
                     
                     <div style="margin-top: 20px;">
@@ -328,7 +328,7 @@
             if (targetPage) {
                 targetPage.style.display = 'block';
                 targetPage.classList.add('active');
-                console.log('✅ Page shown:', pageId);
+                console.log(' Page shown:', pageId);
             }
             
             // Update navigation
@@ -339,13 +339,13 @@
             const activeNavItem = document.querySelector(`[onclick*="showPage('${pageId}')"]`);
             if (activeNavItem) {
                 activeNavItem.classList.add('active');
-                console.log('✅ Nav updated:', pageId);
+                console.log(' Nav updated:', pageId);
             }
         }
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Clean navigation loaded');
+            console.log(' Clean navigation loaded');
             showPage('dashboard');
         });
     </script>
