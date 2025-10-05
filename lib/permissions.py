@@ -561,6 +561,20 @@ class UserContext:
         # Simple admin check
         return self.role == "admin"
 
+# Utility functions for compatibility
+def has_feature_access(user_context: UserContext, feature: str) -> bool:
+    """Check if user has access to a feature"""
+    if not user_context:
+        return False
+    # Simple admin check for now
+    return user_context.role == "admin"
+
+def check_access(user_context: UserContext, permission: str) -> bool:
+    """Check if user has a permission"""
+    if not user_context:
+        return False
+    return user_context.has_permission(permission)
+
 # Export compatibility aliases
 Role = UserRole  # Alias for backward compatibility
 Feature = Permission  # Alias for backward compatibility

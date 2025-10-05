@@ -2,6 +2,7 @@ from fastapi import APIRouter
 import os
 import subprocess
 from datetime import datetime
+from sqlalchemy import text
 
 router = APIRouter()
 
@@ -16,6 +17,17 @@ def get_git_sha():
     except:
         return "unknown"
 
+def check_database():
+    """Check database connectivity"""
+    try:
+        from database_config import engine
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT 1 as test"))
+            row = result.fetchone()
+            return {"status": "connected", "test_query": row[0] if row else None}
+    except Exception as e:
+        return {"status": "failed", "error": str(e)}
+
 @router.get("/health")
 def health():
     """Basic health check"""
@@ -24,6 +36,9 @@ def health():
 @router.get("/api/health")
 def api_health():
     """Comprehensive health check with environment status"""
+    
+    # Check database connectivity
+    db_status = check_database()
     
     # Required server-side environment variables
     required_server_vars = [
@@ -62,7 +77,7 @@ def api_health():
         is_set = bool(value and len(value.strip()) > 0)
         env_status['frontend_variables'][var] = is_set
     
-    overall_status = "healthy" if len(env_status['missing_critical']) == 0 else "degraded"
+    overall_status = "healthy" if len(env_status['missing_critical']) == 0 and db_status['status'] == 'connected' else "degraded"
     current_env = os.getenv("ENVIRONMENT", "development")
     
     return {
@@ -70,6 +85,7 @@ def api_health():
         "status": overall_status,
         "version": get_git_sha(),
         "env": current_env,
+        "database": db_status,
         "environment": env_status,
         "timestamp": datetime.utcnow().isoformat()
     }
