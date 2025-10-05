@@ -1255,11 +1255,19 @@ app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    """Serve the main application shell"""
-    return templates.TemplateResponse("app_shell.html", {
-        "request": request,
-        "static_build_id": STATIC_BUILD_ID
-    })
+    """Serve the main application shell with no-cache headers"""
+    html = templates.get_template("app_shell.html").render(
+        request=request, 
+        static_build_id=STATIC_BUILD_ID
+    )
+    return HTMLResponse(
+        html,
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 @app.head("/")
 async def head_root():
@@ -1278,7 +1286,10 @@ async def head_root():
 @app.get("/admin", response_class=HTMLResponse)
 async def app_routes(request: Request):
     """Serve the app shell for all authenticated routes"""
-    return templates.TemplateResponse("app_shell.html", {"request": request})
+    return templates.TemplateResponse("app_shell.html", {
+        "request": request,
+        "static_build_id": STATIC_BUILD_ID
+    })
 
 # Marketplace supply template route
 @app.get("/marketplace/supply", response_class=HTMLResponse)
