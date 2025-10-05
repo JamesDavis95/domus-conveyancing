@@ -5,6 +5,25 @@ Clean FastAPI application assembly according to specification
 
 import os
 import subprocess
+
+# Load environment variables first (production vs development)
+ENV = os.getenv("ENVIRONMENT", "development")
+if ENV != "production":
+    # Try to load dotenv if available for development
+    try:
+        from dotenv import load_dotenv
+        if os.path.exists('.env.production'):
+            load_dotenv('.env.production')
+            print("Loaded .env.production environment")
+        elif os.path.exists('.env.local'):
+            load_dotenv('.env.local')
+            print("Loaded .env.local environment")
+    except ImportError:
+        # dotenv not available, use system environment
+        pass
+else:
+    print("Production environment detected - using Render environment variables")
+
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
