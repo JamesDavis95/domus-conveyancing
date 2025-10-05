@@ -1253,6 +1253,16 @@ print("   Professional planning intelligence and compliance automation")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
+@app.head("/")
+async def head_root():
+    """Handle HEAD requests for health checks"""
+    return HTMLResponse(headers={
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "Surrogate-Control": "no-store"
+    })
+
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     """Serve the main application shell with no-cache headers"""
@@ -1265,14 +1275,10 @@ async def root(request: Request):
         headers={
             "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
             "Pragma": "no-cache",
-            "Expires": "0"
+            "Expires": "0",
+            "Surrogate-Control": "no-store"
         }
     )
-
-@app.head("/")
-async def head_root():
-    """Handle HEAD requests for health checks"""
-    return HTMLResponse(headers={"Cache-Control": "no-store"})
 
 # All authenticated app routes serve the same app shell except projects, planning-ai, auto-docs, property-api, offsets-marketplace, and marketplace/supply which have dedicated templates
 @app.get("/dashboard", response_class=HTMLResponse)

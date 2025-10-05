@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title | default("Domus Planning Platform") }}</title>
+    
+    <!-- DOMUS_PRO_SHELL -->
+    <!-- TEMP: SW/cache purge -->
+    <script>
+    (function () {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+      }
+      if (window.caches && caches.keys) {
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      }
+      const u = new URL(location.href);
+      if (!u.searchParams.has('sw_bust')) {
+        u.searchParams.set('sw_bust', Date.now().toString(36));
+        location.replace(u);
+      }
+    })();
+    </script>
+    
     <link rel="stylesheet" href="/static/dashboard.css?v={{ static_build_id }}">
     <style>
         :root {
@@ -1386,6 +1405,6 @@
     </script>
     
     <!-- Cookie Consent Management -->
-    <script src="/static/js/cookie-consent.js"></script>
+    <script src="/static/js/cookie-consent.js?v={{ static_build_id }}"></script>
 </body>
 </html>
