@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Domus{% endblock %}</title>
+    <meta name="theme-color" content="#0E7490">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    
+    <style>
+        /* Design system - Professional, neutral colors */
+        :root {
+            /* Text colors */
+            --text-primary: #0B0F14;
+            --text-heading: #0B1F2A;
+            --text-sub: #46505A;
+            
+            /* Backgrounds */
+            --bg-border: #E5E7EB;
+            --bg-background: #FAFAFB;
+            --bg-surface: #FFFFFF;
+            
+            /* Accent colors */
+            --accent-primary: #0E7490;
+            --accent-hover: #0C5F75;
+            --danger: #B42318;
+            --success: #027A48;
+            --warning: #B54708;
+            
+            /* Typography */
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            
+            /* Spacing scale */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-6: 24px;
+            --space-8: 32px;
+            
+            /* Border radius */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        /* App layout */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Left navigation */
+        .left-nav {
+            width: 250px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--bg-border);
+            padding: var(--space-6);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: var(--space-8);
+            text-decoration: none;
+        }
+        
+        .nav-section {
+            margin-bottom: var(--space-6);
+        }
+        
+        .nav-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-3);
+        }
+        
+        .nav-item {
+            display: block;
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            margin-bottom: var(--space-1);
+            background: none;
+            border: none;
+            text-align: left;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .nav-item:hover {
+            background: var(--bg-background);
+            color: var(--accent-primary);
+        }
+        
+        .nav-item.active {
+            background: var(--accent-primary);
+            color: white;
+        }
+        
+        /* Main content area */
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Top bar */
+        .top-bar {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--bg-border);
+            padding: var(--space-4) var(--space-6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        /* Content area */
+        .content {
+            flex: 1;
+            padding: var(--space-6);
+            overflow-y: auto;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--bg-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            margin-bottom: var(--space-4);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-4);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-background);
+            color: var(--text-primary);
+            border: 1px solid var(--bg-border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-border);
+        }
+        
+        /* Form inputs */
+        .form-input {
+            width: 100%;
+            padding: var(--space-3);
+            border: 1px solid var(--bg-border);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            background: var(--bg-surface);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.1);
+        }
+        
+        /* Tables */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--space-4);
+        }
+        
+        .table th,
+        .table td {
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            border-bottom: 1px solid var(--bg-border);
+        }
+        
+        .table th {
+            font-weight: 600;
+            color: var(--text-heading);
+            background: var(--bg-background);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .left-nav {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .left-nav.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Left Navigation -->
+        <nav class="left-nav">
+            <a href="/" class="nav-brand">Domus</a>
+            
+            <!-- Navigation based on user role -->
+            {% set user_role = auth_ctx.role if auth_ctx else 'Guest' %}
+            
+            <!-- Dashboard -->
+            {% if user_role in ['Owner', 'Admin', 'Manager', 'Staff', 'ReadOnly'] %}
+            <div class="nav-section">
+                <a href="/dashboard" class="nav-item {% if request.url.path == '/dashboard' %}active{% endif %}">
+                    Dashboard
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Cases -->
+            <div class="nav-section">
+                <div class="nav-section-title">Cases</div>
+                <a href="/cases" class="nav-item {% if request.url.path.startswith('/cases') %}active{% endif %}">
+                    List
+                </a>
+                <a href="/documents" class="nav-item {% if request.url.path.startswith('/documents') %}active{% endif %}">
+                    Documents
+                </a>
+            </div>
+            
+            <!-- Enterprise (Owner/Admin/Manager only) -->
+            {% if user_role in ['Owner', 'Admin', 'Manager'] %}
+            <div class="nav-section">
+                <div class="nav-section-title">Enterprise</div>
+                <a href="/enterprise-management" class="nav-item {% if request.url.path.startswith('/enterprise') %}active{% endif %}">
+                    Enterprise Management
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Users & Roles (Owner/Admin only) -->
+            {% if user_role in ['Owner', 'Admin'] %}
+            <div class="nav-section">
+                <div class="nav-section-title">Users & Roles</div>
+                <a href="/users" class="nav-item {% if request.url.path.startswith('/users') %}active{% endif %}">
+                    Users
+                </a>
+                <a href="/roles" class="nav-item {% if request.url.path.startswith('/roles') %}active{% endif %}">
+                    Roles & Permissions
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Billing (Owner/Admin/BillingOnly) -->
+            {% if user_role in ['Owner', 'Admin', 'BillingOnly'] %}
+            <div class="nav-section">
+                <a href="/billing" class="nav-item {% if request.url.path.startswith('/billing') %}active{% endif %}">
+                    Billing
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Audit Logs (Owner/Admin/ReadOnly) -->
+            {% if user_role in ['Owner', 'Admin', 'ReadOnly'] %}
+            <div class="nav-section">
+                <a href="/audit-logs" class="nav-item {% if request.url.path.startswith('/audit') %}active{% endif %}">
+                    Audit Logs
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Settings (Owner/Admin) -->
+            {% if user_role in ['Owner', 'Admin'] %}
+            <div class="nav-section">
+                <a href="/settings" class="nav-item {% if request.url.path.startswith('/settings') %}active{% endif %}">
+                    Settings
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Sign out -->
+            <div class="nav-section">
+                <a href="/auth/signout" class="nav-item">
+                    Sign out
+                </a>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <h1 class="page-title">{% block page_title %}Domus{% endblock %}</h1>
+                
+                <div class="user-menu">
+                    {% if auth_ctx %}
+                    <span class="user-name">{{ auth_ctx.user.name }}</span>
+                    <div class="user-avatar">
+                        {{ auth_ctx.user.name[0].upper() }}
+                    </div>
+                    {% endif %}
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Cache-busting for all static assets -->
+    <script>
+        // Apply cache busting to all static assets
+        const staticBuildId = '{{ static_build_id }}';
+        
+        // Update any dynamically loaded assets with cache busting
+        function addCacheBuster(url) {
+            if (url.includes('/static/') && !url.includes('?v=')) {
+                return url + (url.includes('?') ? '&' : '?') + 'v=' + staticBuildId;
+            }
+            return url;
+        }
+        
+        // Override fetch to add cache busting
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            if (typeof url === 'string') {
+                url = addCacheBuster(url);
+            }
+            return originalFetch(url, options);
+        };
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

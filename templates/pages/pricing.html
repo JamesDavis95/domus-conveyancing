@@ -1,0 +1,80 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Pricing - Domus{% endblock %}
+{% block page_title %}Pricing{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="color: var(--text-heading); margin-bottom: var(--space-4);">Professional Conveyancing Platform Pricing</h2>
+    <p style="color: var(--text-sub); margin-bottom: var(--space-6);">
+        Choose the plan that fits your practice size and needs.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-6);">
+        <div style="padding: var(--space-6); border: 2px solid var(--bg-border); border-radius: var(--radius-md); text-align: center;">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Starter</h3>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--accent-primary); margin-bottom: var(--space-4);">£49/month</div>
+            <ul style="text-align: left; margin-bottom: var(--space-6); color: var(--text-sub);">
+                <li style="margin-bottom: var(--space-2);">Up to 50 cases per month</li>
+                <li style="margin-bottom: var(--space-2);">Basic document generation</li>
+                <li style="margin-bottom: var(--space-2);">Email support</li>
+                <li style="margin-bottom: var(--space-2);">Standard compliance reporting</li>
+            </ul>
+            <a href="/auth/signup" class="btn btn-secondary">Get Started</a>
+        </div>
+        
+        <div style="padding: var(--space-6); border: 2px solid var(--accent-primary); border-radius: var(--radius-md); text-align: center; position: relative;">
+            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent-primary); color: white; padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 600;">Most Popular</div>
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Professional</h3>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--accent-primary); margin-bottom: var(--space-4);">£99/month</div>
+            <ul style="text-align: left; margin-bottom: var(--space-6); color: var(--text-sub);">
+                <li style="margin-bottom: var(--space-2);">Unlimited cases</li>
+                <li style="margin-bottom: var(--space-2);">Advanced document automation</li>
+                <li style="margin-bottom: var(--space-2);">Priority support</li>
+                <li style="margin-bottom: var(--space-2);">Advanced analytics</li>
+                <li style="margin-bottom: var(--space-2);">Team collaboration tools</li>
+            </ul>
+            <a href="/auth/signup" class="btn btn-primary">Get Started</a>
+        </div>
+        
+        <div style="padding: var(--space-6); border: 2px solid var(--bg-border); border-radius: var(--radius-md); text-align: center;">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Enterprise</h3>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--accent-primary); margin-bottom: var(--space-4);">Custom</div>
+            <ul style="text-align: left; margin-bottom: var(--space-6); color: var(--text-sub);">
+                <li style="margin-bottom: var(--space-2);">Unlimited everything</li>
+                <li style="margin-bottom: var(--space-2);">Custom integrations</li>
+                <li style="margin-bottom: var(--space-2);">Dedicated support</li>
+                <li style="margin-bottom: var(--space-2);">Custom compliance rules</li>
+                <li style="margin-bottom: var(--space-2);">API access</li>
+            </ul>
+            <a href="/contact" class="btn btn-secondary">Contact Sales</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="color: var(--text-heading); margin-bottom: var(--space-4);">All Plans Include</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Secure & Compliant</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Bank-grade security with full audit trails and regulatory compliance.</p>
+        </div>
+        
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Document Management</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Intelligent document storage, versioning, and automated generation.</p>
+        </div>
+        
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Case Tracking</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Real-time case progress tracking with automated status updates.</p>
+        </div>
+        
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Client Portal</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Secure client access to case progress and document sharing.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

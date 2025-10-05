@@ -1,205 +1,498 @@
-"""
-Role-Based Access Control (RBAC) System
-Single source of truth for all permissions and access control
-"""
+""""""
 
-from enum import Enum
-from typing import Dict, List, Set, Optional, Any
-from dataclasses import dataclass
-import logging
+Role-Based Access Control (RBAC) system for DomusRole-Based Access Control (RBAC) system for Domus
 
-logger = logging.getLogger(__name__)
+Server-side permissions enforcement with org scopingServer-side permissions enforcement with org scoping
 
-class UserRole(str, Enum):
-    """User roles in the system"""
-    DEV = "DEV"           # Developer
-    CON = "CON"           # Consultant  
-    OWN = "OWN"           # Landowner
-    AUTH = "AUTH"         # Authority
-    ADM = "ADM"           # Admin
+""""""
 
-class Permission(str, Enum):
-    """Granular permissions"""
-    # Project management
-    VIEW_PROJECTS = "view_projects"
-    CREATE_PROJECTS = "create_projects"
-    EDIT_PROJECTS = "edit_projects"
-    DELETE_PROJECTS = "delete_projects"
-    
-    # Planning AI
-    USE_PLANNING_AI = "use_planning_ai"
+
+
+from typing import Dict, List, Tuple, Optionalfrom typing import Dict, List, Tuple, Optional
+
+from fastapi import HTTPException, Depends, Request, statusfrom fastapi import HTTPException, Depends, Request, status
+
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentialsfrom fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+from sqlalchemy.orm import Sessionfrom sqlalchemy.orm import Session
+
+from database_config import get_dbfrom database_config import get_db
+
+from models import User, Organization, Membershipfrom models import User, Organization, Membership
+
+import jwtimport jwt
+
+import osimport os
+
+
+
+# Security scheme# Security scheme
+
+security = HTTPBearer(auto_error=False)security = HTTPBearer(auto_error=False)
+
+
+
+# Role definitions and permissions mapping# Role definitions and permissions mapping
+
+ROLE_PERMISSIONS: Dict[str, List[str]] = {ROLE_PERMISSIONS: Dict[str, List[str]] = {
+
+    "Owner": [    "Owner": [
+
+        "org:read", "org:write", "org:transfer",        "org:read", "org:write", "org:transfer",
+
+        "users:read", "users:invite", "users:role:set",        "users:read", "users:invite", "users:role:set",
+
+        "roles:read", "roles:write",        "roles:read", "roles:write",
+
+        "cases:read", "cases:write", "cases:assign",        "cases:read", "cases:write", "cases:assign",
+
+        "documents:read", "documents:write",        "documents:read", "documents:write",
+
+        "billing:read", "billing:manage",        "billing:read", "billing:manage",
+
+        "enterprise:read",        "enterprise:read",
+
+        "audit:read"        "audit:read"
+
+    ],    ],
+
+    "Admin": [    "Admin": [
+
+        "org:read", "org:write",        "org:read", "org:write",
+
+        "users:read", "users:invite", "users:role:set",        "users:read", "users:invite", "users:role:set",
+
+        "roles:read", "roles:write",        "roles:read", "roles:write",
+
+        "cases:read", "cases:write", "cases:assign",        "cases:read", "cases:write", "cases:assign",
+
+        "documents:read", "documents:write",        "documents:read", "documents:write",
+
+        "billing:read", "billing:manage",        "billing:read", "billing:manage",
+
+        "enterprise:read",        "enterprise:read",
+
+        "audit:read"        "audit:read"
+
+    ],    ],
+
+    "Manager": [    "Manager": [
+
+        "org:read",        "org:read",
+
+        "users:read",        "users:read",
+
+        "cases:read", "cases:write", "cases:assign",        "cases:read", "cases:write", "cases:assign",
+
+        "documents:read", "documents:write",        "documents:read", "documents:write",
+
+        "enterprise:read",        "enterprise:read",
+
+        "audit:read"        "audit:read"
+
+    ],    ],
+
+    "Staff": [    "Staff": [
+
+        "org:read",        "org:read",
+
+        "cases:read", "cases:write",  # Scoped to assigned cases only        "cases:read", "cases:write",  # Scoped to assigned cases only
+
+        "documents:read", "documents:write"  # Scoped to assigned cases only        "documents:read", "documents:write"  # Scoped to assigned cases only
+
+    ],    ],
+
+    "BillingOnly": [    "BillingOnly": [
+
+        "billing:read", "billing:manage"        "billing:read", "billing:manage"
+
+    ],    ],
+
+    "ReadOnly": [    "ReadOnly": [
+
+        "org:read",        "org:read",
+
+        "cases:read",        "cases:read",
+
+        "documents:read",        "documents:read",
+
+        "enterprise:read",        "enterprise:read",
+
+        "audit:read"        "audit:read"
+
+    ],    ],
+
+    "Client": [    "Client": [
+
+        "cases:read",  # Scoped to own cases only        "cases:read",  # Scoped to own cases only
+
+        "documents:read"  # Scoped to own cases only        "documents:read"  # Scoped to own cases only
+
+    ]    ]
+
+}}
+
+
+
+class AuthContext:class AuthContext:
+
+    """Authentication context containing user, org, and membership info"""    """Authentication context containing user, org, and membership info"""
+
+    def __init__(self, user: User, org: Organization, membership: Membership):    def __init__(self, user: User, org: Organization, membership: Membership):
+
+        self.user = user        self.user = user
+
+        self.org = org        self.org = org
+
+        self.membership = membership        self.membership = membership
+
+        self.role = membership.role        self.role = membership.role
+
+        self.permissions = ROLE_PERMISSIONS.get(self.role, [])        self.permissions = ROLE_PERMISSIONS.get(self.role, [])
+
     VIEW_AI_ANALYSIS = "view_ai_analysis"
-    EXPORT_AI_ANALYSIS = "export_ai_analysis"
-    
-    # Documents
-    GENERATE_DOCS = "generate_docs"
-    VIEW_DOCS = "view_docs"
-    EDIT_DOCS = "edit_docs"
-    DELETE_DOCS = "delete_docs"
-    GENERATE_ADVANCED_DOCS = "generate_advanced_docs"
-    
-    # Submission packs
-    CREATE_SUBMISSION_PACK = "create_submission_pack"
-    VIEW_SUBMISSION_PACK = "view_submission_pack"
-    EDIT_SUBMISSION_PACK = "edit_submission_pack"
-    SUBMIT_TO_COUNCIL = "submit_to_council"
-    
+
+def get_current_user_from_token(token: str, db: Session) -> Optional[User]:    EXPORT_AI_ANALYSIS = "export_ai_analysis"
+
+    """Extract user from JWT token"""    
+
+    try:    # Documents
+
+        # Replace with your JWT secret from environment    GENERATE_DOCS = "generate_docs"
+
+        secret = os.getenv("JWT_SECRET", "your-secret-key")    VIEW_DOCS = "view_docs"
+
+        payload = jwt.decode(token, secret, algorithms=["HS256"])    EDIT_DOCS = "edit_docs"
+
+        user_id = payload.get("sub")    DELETE_DOCS = "delete_docs"
+
+            GENERATE_ADVANCED_DOCS = "generate_advanced_docs"
+
+        if user_id is None:    
+
+            return None    # Submission packs
+
+                CREATE_SUBMISSION_PACK = "create_submission_pack"
+
+        user = db.query(User).filter(User.id == user_id, User.is_active == True).first()    VIEW_SUBMISSION_PACK = "view_submission_pack"
+
+        return user    EDIT_SUBMISSION_PACK = "edit_submission_pack"
+
+    except jwt.PyJWTError:    SUBMIT_TO_COUNCIL = "submit_to_council"
+
+        return None    
+
     # Marketplace
-    VIEW_MARKETPLACE_DEMAND = "view_marketplace_demand"
-    CREATE_MARKETPLACE_DEMAND = "create_marketplace_demand"
-    VIEW_MARKETPLACE_SUPPLY = "view_marketplace_supply"
-    CREATE_MARKETPLACE_SUPPLY = "create_marketplace_supply"
-    MANAGE_MARKETPLACE_LISTINGS = "manage_marketplace_listings"
-    
-    # Contracts
-    VIEW_CONTRACTS = "view_contracts"
-    CREATE_CONTRACTS = "create_contracts"
-    EDIT_CONTRACTS = "edit_contracts"
-    SIGN_CONTRACTS = "sign_contracts"
-    
-    # Analytics
-    VIEW_BASIC_ANALYTICS = "view_basic_analytics"
-    VIEW_FULL_ANALYTICS = "view_full_analytics"
+
+def get_user_org_membership(user: User, org_slug: str, db: Session) -> Optional[Tuple[Organization, Membership]]:    VIEW_MARKETPLACE_DEMAND = "view_marketplace_demand"
+
+    """Get user's organization and membership"""    CREATE_MARKETPLACE_DEMAND = "create_marketplace_demand"
+
+    org = db.query(Organization).filter(Organization.slug == org_slug).first()    VIEW_MARKETPLACE_SUPPLY = "view_marketplace_supply"
+
+    if not org:    CREATE_MARKETPLACE_SUPPLY = "create_marketplace_supply"
+
+        return None    MANAGE_MARKETPLACE_LISTINGS = "manage_marketplace_listings"
+
+            
+
+    membership = db.query(Membership).filter(    # Contracts
+
+        Membership.user_id == user.id,    VIEW_CONTRACTS = "view_contracts"
+
+        Membership.org_id == org.id    CREATE_CONTRACTS = "create_contracts"
+
+    ).first()    EDIT_CONTRACTS = "edit_contracts"
+
+        SIGN_CONTRACTS = "sign_contracts"
+
+    if not membership:    
+
+        return None    # Analytics
+
+            VIEW_BASIC_ANALYTICS = "view_basic_analytics"
+
+    return org, membership    VIEW_FULL_ANALYTICS = "view_full_analytics"
+
     VIEW_LPA_ANALYTICS = "view_lpa_analytics"
-    VIEW_ORG_INSIGHTS = "view_org_insights"
-    
-    # Appeals & Objections
-    VIEW_APPEALS = "view_appeals"
-    CREATE_APPEALS = "create_appeals"
-    VIEW_OBJECTIONS = "view_objections"
-    ANALYZE_OBJECTIONS = "analyze_objections"
-    
-    # New Premium Modules
-    USE_VIABILITY_CALC = "use_viability_calc"
-    USE_SCHEME_OPTIMISER = "use_scheme_optimiser"
-    USE_LEGISLATION_TRACKER = "use_legislation_tracker"
-    USE_PLANNING_COPILOT = "use_planning_copilot"
-    ACCESS_PREMIUM_MODULES = "access_premium_modules"
-    ACCESS_APP_FEATURES = "access_app_features"
-    
-    # General access permissions
-    VIEW_PROFILE = "view_profile"
-    VIEW_BILLING = "view_billing"
-    VIEW_PROPERTY_DATA = "view_property_data"
-    ACCESS_AUTHORITY_PORTAL = "access_authority_portal"
-    ADMIN_ACCESS = "admin_access"
-    
-    # Settings & Admin
-    VIEW_SETTINGS = "view_settings"
-    EDIT_SETTINGS = "edit_settings"
-    MANAGE_BILLING = "manage_billing"
-    MANAGE_CREDITS = "manage_credits"
-    MANAGE_SECURITY = "manage_security"
-    
-    # Authority access
-    VIEW_AUTHORITY_PORTAL = "view_authority_portal"
-    COMMENT_ON_SUBMISSIONS = "comment_on_submissions"
-    
-    # Admin functions
-    MANAGE_USERS = "manage_users"
-    MANAGE_ORGANIZATIONS = "manage_organizations"
-    VIEW_SYSTEM_LOGS = "view_system_logs"
-    MANAGE_SYSTEM_CONFIG = "manage_system_config"
 
-@dataclass
-class RolePermissions:
-    """Permissions assigned to a role"""
-    role: UserRole
-    permissions: Set[Permission]
-    description: str
+async def require_auth(    VIEW_ORG_INSIGHTS = "view_org_insights"
 
-class PermissionsMatrix:
-    """Central permissions matrix - single source of truth"""
-    
-    ROLE_PERMISSIONS = {
-        UserRole.DEV: RolePermissions(
-            role=UserRole.DEV,
-            permissions={
-                # Projects
-                Permission.VIEW_PROJECTS,
-                Permission.CREATE_PROJECTS,
-                Permission.EDIT_PROJECTS,
-                Permission.DELETE_PROJECTS,
-                
-                # Planning AI
-                Permission.USE_PLANNING_AI,
-                Permission.VIEW_AI_ANALYSIS,
-                Permission.EXPORT_AI_ANALYSIS,
-                
-                # Documents (basic)
-                Permission.GENERATE_DOCS,
-                Permission.VIEW_DOCS,
-                Permission.EDIT_DOCS,
-                Permission.DELETE_DOCS,
-                
-                # Submission packs
-                Permission.CREATE_SUBMISSION_PACK,
-                Permission.VIEW_SUBMISSION_PACK,
-                Permission.EDIT_SUBMISSION_PACK,
-                Permission.SUBMIT_TO_COUNCIL,
-                
-                # Marketplace (demand side)
-                Permission.VIEW_MARKETPLACE_DEMAND,
-                Permission.CREATE_MARKETPLACE_DEMAND,
-                
-                # Contracts
-                Permission.VIEW_CONTRACTS,
-                Permission.CREATE_CONTRACTS,
-                Permission.EDIT_CONTRACTS,
-                Permission.SIGN_CONTRACTS,
-                
-                # Analytics (basic)
-                Permission.VIEW_BASIC_ANALYTICS,
-                
-                # New Premium Modules
-                Permission.USE_VIABILITY_CALC,
-                Permission.USE_SCHEME_OPTIMISER,
-                Permission.USE_PLANNING_COPILOT,
-                
-                # General access
-                Permission.VIEW_PROFILE,
-                Permission.VIEW_BILLING,
-                Permission.VIEW_PROPERTY_DATA,
-                
-                # Settings
-                Permission.VIEW_SETTINGS,
-                Permission.EDIT_SETTINGS,
-                Permission.MANAGE_BILLING,
-                Permission.MANAGE_CREDITS,
-                Permission.MANAGE_SECURITY
-            },
-            description="Developer with project management and planning tools"
-        ),
+    request: Request,    
+
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),    # Appeals & Objections
+
+    db: Session = Depends(get_db)    VIEW_APPEALS = "view_appeals"
+
+) -> AuthContext:    CREATE_APPEALS = "create_appeals"
+
+    """    VIEW_OBJECTIONS = "view_objections"
+
+    Require authentication and return auth context    ANALYZE_OBJECTIONS = "analyze_objections"
+
+    Returns (user, org, membership) or raises 401    
+
+    """    # New Premium Modules
+
+    # Try to get token from Authorization header or cookies    USE_VIABILITY_CALC = "use_viability_calc"
+
+    token = None    USE_SCHEME_OPTIMISER = "use_scheme_optimiser"
+
+    if credentials:    USE_LEGISLATION_TRACKER = "use_legislation_tracker"
+
+        token = credentials.credentials    USE_PLANNING_COPILOT = "use_planning_copilot"
+
+    elif "session_token" in request.cookies:    ACCESS_PREMIUM_MODULES = "access_premium_modules"
+
+        token = request.cookies["session_token"]    ACCESS_APP_FEATURES = "access_app_features"
+
         
-        UserRole.CON: RolePermissions(
-            role=UserRole.CON,
-            permissions={
-                # All DEV permissions plus...
-                Permission.VIEW_PROJECTS,
-                Permission.CREATE_PROJECTS,
-                Permission.EDIT_PROJECTS,
+
+    if not token:    # General access permissions
+
+        raise HTTPException(    VIEW_PROFILE = "view_profile"
+
+            status_code=status.HTTP_401_UNAUTHORIZED,    VIEW_BILLING = "view_billing"
+
+            detail="Authentication required"    VIEW_PROPERTY_DATA = "view_property_data"
+
+        )    ACCESS_AUTHORITY_PORTAL = "access_authority_portal"
+
+        ADMIN_ACCESS = "admin_access"
+
+    # Get user from token    
+
+    user = get_current_user_from_token(token, db)    # Settings & Admin
+
+    if not user:    VIEW_SETTINGS = "view_settings"
+
+        raise HTTPException(    EDIT_SETTINGS = "edit_settings"
+
+            status_code=status.HTTP_401_UNAUTHORIZED,    MANAGE_BILLING = "manage_billing"
+
+            detail="Invalid or expired token"    MANAGE_CREDITS = "manage_credits"
+
+        )    MANAGE_SECURITY = "manage_security"
+
+        
+
+    # Get organization from URL path or default to first membership    # Authority access
+
+    org_slug = None    VIEW_AUTHORITY_PORTAL = "view_authority_portal"
+
+    path_parts = request.url.path.strip("/").split("/")    COMMENT_ON_SUBMISSIONS = "comment_on_submissions"
+
+        
+
+    # Try to extract org slug from URL patterns like /org/{slug}/...    # Admin functions
+
+    if len(path_parts) >= 2 and path_parts[0] == "org":    MANAGE_USERS = "manage_users"
+
+        org_slug = path_parts[1]    MANAGE_ORGANIZATIONS = "manage_organizations"
+
+        VIEW_SYSTEM_LOGS = "view_system_logs"
+
+    # If no org in URL, use the user's first active membership    MANAGE_SYSTEM_CONFIG = "manage_system_config"
+
+    if not org_slug:
+
+        membership = db.query(Membership).filter(Membership.user_id == user.id).first()@dataclass
+
+        if not membership:class RolePermissions:
+
+            raise HTTPException(    """Permissions assigned to a role"""
+
+                status_code=status.HTTP_403_FORBIDDEN,    role: UserRole
+
+                detail="No organization access"    permissions: Set[Permission]
+
+            )    description: str
+
+        org = db.query(Organization).filter(Organization.id == membership.org_id).first()
+
+    else:class PermissionsMatrix:
+
+        # Get specific org and membership    """Central permissions matrix - single source of truth"""
+
+        result = get_user_org_membership(user, org_slug, db)    
+
+        if not result:    ROLE_PERMISSIONS = {
+
+            raise HTTPException(        UserRole.DEV: RolePermissions(
+
+                status_code=status.HTTP_403_FORBIDDEN,            role=UserRole.DEV,
+
+                detail="No access to this organization"            permissions={
+
+            )                # Projects
+
+        org, membership = result                Permission.VIEW_PROJECTS,
+
+                    Permission.CREATE_PROJECTS,
+
+    return AuthContext(user, org, membership)                Permission.EDIT_PROJECTS,
+
                 Permission.DELETE_PROJECTS,
-                Permission.USE_PLANNING_AI,
-                Permission.VIEW_AI_ANALYSIS,
-                Permission.EXPORT_AI_ANALYSIS,
-                Permission.GENERATE_DOCS,
-                Permission.VIEW_DOCS,
-                Permission.EDIT_DOCS,
-                Permission.DELETE_DOCS,
-                Permission.CREATE_SUBMISSION_PACK,
+
+def require_permission(permission: str):                
+
+    """                # Planning AI
+
+    FastAPI dependency to require specific permission                Permission.USE_PLANNING_AI,
+
+    Usage: @router.get("/endpoint", dependencies=[Depends(require_permission("cases:read"))])                Permission.VIEW_AI_ANALYSIS,
+
+    """                Permission.EXPORT_AI_ANALYSIS,
+
+    async def permission_dependency(auth_ctx: AuthContext = Depends(require_auth)) -> AuthContext:                
+
+        if permission not in auth_ctx.permissions:                # Documents (basic)
+
+            raise HTTPException(                Permission.GENERATE_DOCS,
+
+                status_code=status.HTTP_403_FORBIDDEN,                Permission.VIEW_DOCS,
+
+                detail=f"Permission '{permission}' required"                Permission.EDIT_DOCS,
+
+            )                Permission.DELETE_DOCS,
+
+        return auth_ctx                
+
+                    # Submission packs
+
+    return permission_dependency                Permission.CREATE_SUBMISSION_PACK,
+
                 Permission.VIEW_SUBMISSION_PACK,
-                Permission.EDIT_SUBMISSION_PACK,
-                Permission.SUBMIT_TO_COUNCIL,
-                Permission.VIEW_MARKETPLACE_DEMAND,
+
+def apply_org_scoping(query, model, auth_ctx: AuthContext):                Permission.EDIT_SUBMISSION_PACK,
+
+    """Apply organization scoping to SQLAlchemy query"""                Permission.SUBMIT_TO_COUNCIL,
+
+    if hasattr(model, 'org_id'):                
+
+        return query.filter(model.org_id == auth_ctx.org.id)                # Marketplace (demand side)
+
+    return query                Permission.VIEW_MARKETPLACE_DEMAND,
+
                 Permission.CREATE_MARKETPLACE_DEMAND,
+
+def apply_staff_scoping(query, model, auth_ctx: AuthContext):                
+
+    """Apply staff scoping - only assigned cases/docs"""                # Contracts
+
+    if auth_ctx.role == "Staff":                Permission.VIEW_CONTRACTS,
+
+        if hasattr(model, 'assigned_to'):                Permission.CREATE_CONTRACTS,
+
+            return query.filter(model.assigned_to == auth_ctx.user.id)                Permission.EDIT_CONTRACTS,
+
+        elif hasattr(model, 'case_id'):                Permission.SIGN_CONTRACTS,
+
+            # For documents, filter by cases assigned to staff                
+
+            from models import Case                # Analytics (basic)
+
+            assigned_case_ids = [c.id for c in query.session.query(Case).filter(                Permission.VIEW_BASIC_ANALYTICS,
+
+                Case.org_id == auth_ctx.org.id,                
+
+                Case.assigned_to == auth_ctx.user.id                # New Premium Modules
+
+            ).all()]                Permission.USE_VIABILITY_CALC,
+
+            return query.filter(model.case_id.in_(assigned_case_ids))                Permission.USE_SCHEME_OPTIMISER,
+
+    return query                Permission.USE_PLANNING_COPILOT,
+
+                
+
+def apply_client_scoping(query, model, auth_ctx: AuthContext):                # General access
+
+    """Apply client scoping - only own cases/docs"""                Permission.VIEW_PROFILE,
+
+    if auth_ctx.role == "Client":                Permission.VIEW_BILLING,
+
+        if hasattr(model, 'client_user_id'):                Permission.VIEW_PROPERTY_DATA,
+
+            return query.filter(model.client_user_id == auth_ctx.user.id)                
+
+        elif hasattr(model, 'case_id'):                # Settings
+
+            # For documents, filter by client's own cases                Permission.VIEW_SETTINGS,
+
+            from models import Case                Permission.EDIT_SETTINGS,
+
+            client_case_ids = [c.id for c in query.session.query(Case).filter(                Permission.MANAGE_BILLING,
+
+                Case.org_id == auth_ctx.org.id,                Permission.MANAGE_CREDITS,
+
+                Case.client_user_id == auth_ctx.user.id                Permission.MANAGE_SECURITY
+
+            ).all()]            },
+
+            return query.filter(model.case_id.in_(client_case_ids))            description="Developer with project management and planning tools"
+
+    return query        ),
+
+        
+
+def build_scoped_query(query, model, auth_ctx: AuthContext):        UserRole.CON: RolePermissions(
+
+    """            role=UserRole.CON,
+
+    Build a properly scoped query based on user role and permissions            permissions={
+
+    Always applies org scoping, then role-specific scoping                # All DEV permissions plus...
+
+    """                Permission.VIEW_PROJECTS,
+
+    # Always apply org scoping                Permission.CREATE_PROJECTS,
+
+    query = apply_org_scoping(query, model, auth_ctx)                Permission.EDIT_PROJECTS,
+
+                    Permission.DELETE_PROJECTS,
+
+    # Apply role-specific scoping                Permission.USE_PLANNING_AI,
+
+    query = apply_staff_scoping(query, model, auth_ctx)                Permission.VIEW_AI_ANALYSIS,
+
+    query = apply_client_scoping(query, model, auth_ctx)                Permission.EXPORT_AI_ANALYSIS,
+
+                    Permission.GENERATE_DOCS,
+
+    return query                Permission.VIEW_DOCS,
+
+                Permission.EDIT_DOCS,
+
+def has_permission(auth_ctx: AuthContext, permission: str) -> bool:                Permission.DELETE_DOCS,
+
+    """Check if user has specific permission"""                Permission.CREATE_SUBMISSION_PACK,
+
+    return permission in auth_ctx.permissions                Permission.VIEW_SUBMISSION_PACK,
+
+                Permission.EDIT_SUBMISSION_PACK,
+
+def can_access_user_management(auth_ctx: AuthContext) -> bool:                Permission.SUBMIT_TO_COUNCIL,
+
+    """Check if user can access user management features"""                Permission.VIEW_MARKETPLACE_DEMAND,
+
+    return auth_ctx.role in ["Owner", "Admin"]                Permission.CREATE_MARKETPLACE_DEMAND,
+
                 Permission.VIEW_CONTRACTS,
-                Permission.CREATE_CONTRACTS,
-                Permission.EDIT_CONTRACTS,
-                Permission.SIGN_CONTRACTS,
+
+def can_access_billing(auth_ctx: AuthContext) -> bool:                Permission.CREATE_CONTRACTS,
+
+    """Check if user can access billing features"""                Permission.EDIT_CONTRACTS,
+
+    return auth_ctx.role in ["Owner", "Admin", "BillingOnly"]                Permission.SIGN_CONTRACTS,
+
                 Permission.VIEW_SETTINGS,
-                Permission.EDIT_SETTINGS,
-                Permission.MANAGE_BILLING,
-                Permission.MANAGE_CREDITS,
+
+def can_access_enterprise(auth_ctx: AuthContext) -> bool:                Permission.EDIT_SETTINGS,
+
+    """Check if user can access enterprise features"""                Permission.MANAGE_BILLING,
+
+    return auth_ctx.role in ["Owner", "Admin", "Manager"]                Permission.MANAGE_CREDITS,
                 Permission.MANAGE_SECURITY,
                 
                 # Advanced consultant features

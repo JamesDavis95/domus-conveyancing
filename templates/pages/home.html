@@ -1,0 +1,67 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Domus - Professional Conveyancing Platform{% endblock %}
+{% block page_title %}Welcome to Domus{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="color: var(--text-heading); margin-bottom: var(--space-4);">Professional Conveyancing Platform</h2>
+    <p style="color: var(--text-sub); margin-bottom: var(--space-6);">
+        Streamline your conveyancing workflow with intelligent case management, document generation, and compliance tracking.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-8);">
+        <div style="padding: var(--space-6); border: 1px solid var(--bg-border); border-radius: var(--radius-md);">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Case Management</h3>
+            <p style="color: var(--text-sub);">Organize and track all your conveyancing cases with intelligent workflow automation.</p>
+        </div>
+        
+        <div style="padding: var(--space-6); border: 1px solid var(--bg-border); border-radius: var(--radius-md);">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Document Generation</h3>
+            <p style="color: var(--text-sub);">Generate professional legal documents automatically with our intelligent document system.</p>
+        </div>
+        
+        <div style="padding: var(--space-6); border: 1px solid var(--bg-border); border-radius: var(--radius-md);">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Compliance Tracking</h3>
+            <p style="color: var(--text-sub);">Stay compliant with automated tracking and reporting for all regulatory requirements.</p>
+        </div>
+    </div>
+    
+    {% if not auth_ctx %}
+    <div style="text-align: center;">
+        <a href="/auth/signin" class="btn btn-primary" style="margin-right: var(--space-3);">Sign In</a>
+        <a href="/auth/signup" class="btn btn-secondary">Sign Up</a>
+    </div>
+    {% else %}
+    <div style="text-align: center;">
+        <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 style="color: var(--text-heading); margin-bottom: var(--space-4);">Platform Features</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Secure & Compliant</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Enterprise-grade security with full audit trails and compliance reporting.</p>
+        </div>
+        
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Team Collaboration</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Work together seamlessly with role-based access and real-time updates.</p>
+        </div>
+        
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Professional Reporting</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Generate comprehensive reports and analytics for informed decision-making.</p>
+        </div>
+        
+        <div style="padding: var(--space-4); background: var(--bg-background); border-radius: var(--radius-sm);">
+            <h4 style="color: var(--text-heading); margin-bottom: var(--space-2);">Client Portal</h4>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Keep clients informed with secure access to their case progress and documents.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

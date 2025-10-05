@@ -1,0 +1,89 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Security - Domus{% endblock %}
+{% block page_title %}Security{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="color: var(--text-heading); margin-bottom: var(--space-4);">Security & Compliance</h2>
+    <p style="color: var(--text-sub); margin-bottom: var(--space-6);">
+        Your data security and regulatory compliance are our top priorities.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-6);">
+        <div style="padding: var(--space-6); border: 1px solid var(--bg-border); border-radius: var(--radius-md);">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Data Encryption</h3>
+            <p style="color: var(--text-sub); margin-bottom: var(--space-4);">All data is encrypted in transit and at rest using industry-standard AES-256 encryption.</p>
+            <ul style="color: var(--text-sub);">
+                <li>TLS 1.3 for all connections</li>
+                <li>Database encryption at rest</li>
+                <li>Encrypted file storage</li>
+            </ul>
+        </div>
+        
+        <div style="padding: var(--space-6); border: 1px solid var(--bg-border); border-radius: var(--radius-md);">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Access Control</h3>
+            <p style="color: var(--text-sub); margin-bottom: var(--space-4);">Comprehensive role-based access controls ensure only authorized users can access sensitive data.</p>
+            <ul style="color: var(--text-sub);">
+                <li>Multi-factor authentication</li>
+                <li>Role-based permissions</li>
+                <li>Session management</li>
+            </ul>
+        </div>
+        
+        <div style="padding: var(--space-6); border: 1px solid var(--bg-border); border-radius: var(--radius-md);">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Audit & Compliance</h3>
+            <p style="color: var(--text-sub); margin-bottom: var(--space-4);">Complete audit trails and compliance reporting for regulatory requirements.</p>
+            <ul style="color: var(--text-sub);">
+                <li>Full audit logging</li>
+                <li>GDPR compliance</li>
+                <li>Data retention policies</li>
+            </ul>
+        </div>
+        
+        <div style="padding: var(--space-6); border: 1px solid var(--bg-border); border-radius: var(--radius-md);">
+            <h3 style="color: var(--text-heading); margin-bottom: var(--space-3);">Infrastructure</h3>
+            <p style="color: var(--text-sub); margin-bottom: var(--space-4);">Hosted on secure, compliant cloud infrastructure with 99.9% uptime SLA.</p>
+            <ul style="color: var(--text-sub);">
+                <li>SOC 2 certified hosting</li>
+                <li>Regular security assessments</li>
+                <li>Automated backups</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="color: var(--text-heading); margin-bottom: var(--space-4);">Compliance Standards</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
+        <div style="text-align: center; padding: var(--space-4);">
+            <div style="font-size: 2rem; color: var(--accent-primary); margin-bottom: var(--space-2);">GDPR</div>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">General Data Protection Regulation compliant</p>
+        </div>
+        
+        <div style="text-align: center; padding: var(--space-4);">
+            <div style="font-size: 2rem; color: var(--accent-primary); margin-bottom: var(--space-2);">SOC 2</div>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Type II certified infrastructure</p>
+        </div>
+        
+        <div style="text-align: center; padding: var(--space-4);">
+            <div style="font-size: 2rem; color: var(--accent-primary); margin-bottom: var(--space-2);">ISO 27001</div>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Information security management</p>
+        </div>
+        
+        <div style="text-align: center; padding: var(--space-4);">
+            <div style="font-size: 2rem; color: var(--accent-primary); margin-bottom: var(--space-2);">SRA</div>
+            <p style="color: var(--text-sub); font-size: 0.875rem;">Solicitors Regulation Authority compliant</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="color: var(--text-heading); margin-bottom: var(--space-4);">Security Contact</h3>
+    <p style="color: var(--text-sub); margin-bottom: var(--space-4);">
+        If you have security concerns or wish to report a vulnerability, please contact our security team.
+    </p>
+    <a href="/contact" class="btn btn-primary">Contact Security Team</a>
+</div>
+{% endblock %}

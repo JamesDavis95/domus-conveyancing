@@ -1,0 +1,140 @@
+{% extends "layouts/base.html" %    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);"">
+
+{% block title %}Dashboard - Domus{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6);">
+    <!-- KPI Cards -->
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--accent-primary); font-size: 2rem; margin-bottom: var(--space-2);" id="active-cases-count">0</h3>
+        <p style="color: var(--text-sub); font-size: 0.875rem;">Active Cases</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--success); font-size: 2rem; margin-bottom: var(--space-2);" id="completed-cases-count">0</h3>
+        <p style="color: var(--text-sub); font-size: 0.875rem;">Completed This Month</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--warning); font-size: 2rem; margin-bottom: var(--space-2);" id="pending-documents-count">0</h3>
+        <p style="color: var(--text-sub); font-size: 0.875rem;">Pending Documents</p>
+    </div>
+    
+    <div class="card" style="text-align: center;">
+        <h3 style="color: var(--text-heading); font-size: 2rem; margin-bottom: var(--space-2);" id="team-members-count">0</h3>
+        <p style="color: var(--text-sub); font-size: 0.875rem;">Team Members</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
+    <!-- Recent Cases -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+            <h3 style="color: var(--text-heading);">Recent Cases</h3>
+            <a href="/cases" class="btn btn-secondary">View All</a>
+        </div>
+        
+        <div id="recent-cases">
+            <p style="color: var(--text-sub); text-align: center; padding: var(--space-8);">Loading recent cases...</p>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="card">
+        <h3 style="color: var(--text-heading); margin-bottom: var(--space-4);">Quick Actions</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            <a href="/cases/new" class="btn btn-primary">New Case</a>
+            <a href="/documents" class="btn btn-secondary">Upload Document</a>
+            <a href="/enterprise-management" class="btn btn-secondary">View Reports</a>
+            {% if auth_ctx.role in ['Owner', 'Admin'] %}
+            <a href="/users" class="btn btn-secondary">Manage Users</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if auth_ctx.role in ['Owner', 'Admin', 'ReadOnly'] %}
+<!-- Audit Log Preview -->
+<div class="card" style="margin-top: var(--space-6);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+        <h3 style="color: var(--text-heading);">Recent Activity</h3>
+        <a href="/audit-logs" class="btn btn-secondary">View All</a>
+    </div>
+    
+    <div id="recent-activity">
+        <p style="color: var(--text-sub); text-align: center; padding: var(--space-8);">Loading recent activity...</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load dashboard data
+async function loadDashboardData() {
+    try {
+        // Load KPIs
+        const kpisResponse = await fetch('/api/dashboard/kpis');
+        if (kpisResponse.ok) {
+            const kpis = await kpisResponse.json();
+            document.getElementById('active-cases-count').textContent = kpis.active_cases || 0;
+            document.getElementById('completed-cases-count').textContent = kpis.completed_this_month || 0;
+            document.getElementById('pending-documents-count').textContent = kpis.pending_documents || 0;
+            document.getElementById('team-members-count').textContent = kpis.team_members || 0;
+        }
+        
+        // Load recent cases
+        const casesResponse = await fetch('/api/cases?limit=5');
+        if (casesResponse.ok) {
+            const casesData = await casesResponse.json();
+            const recentCasesHtml = casesData.cases && casesData.cases.length > 0 
+                ? casesData.cases.map(caseItem => 
+                    '<div style="padding: var(--space-3); border-bottom: 1px solid var(--bg-border); display: flex; justify-content: space-between; align-items: center;">' +
+                        '<div>' +
+                            '<div style="font-weight: 600;">' + (caseItem.title || 'Untitled Case') + '</div>' +
+                            '<div style="color: var(--text-sub); font-size: 0.875rem;">' + (caseItem.property_address || 'No address') + '</div>' +
+                        '</div>' +
+                        '<div style="text-align: right;">' +
+                            '<div style="background: var(--accent-primary); color: white; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: 0.75rem;">' +
+                                (caseItem.status || 'Unknown') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                ).join('')
+                : '<p style="color: var(--text-sub); text-align: center; padding: var(--space-8);">No cases found</p>';
+            
+            document.getElementById('recent-cases').innerHTML = recentCasesHtml;
+        }
+        
+        // Load recent activity (if user has permission)
+        const activityElement = document.getElementById('recent-activity');
+        if (activityElement) {
+            const activityResponse = await fetch('/api/audit-logs?limit=5');
+            if (activityResponse.ok) {
+                const activityData = await activityResponse.json();
+                const activityHtml = activityData.logs && activityData.logs.length > 0
+                    ? activityData.logs.map(log => 
+                        '<div style="padding: var(--space-3); border-bottom: 1px solid var(--bg-border);">' +
+                            '<div style="font-weight: 500;">' + (log.action || 'Unknown action') + '</div>' +
+                            '<div style="color: var(--text-sub); font-size: 0.875rem;">' +
+                                'by ' + (log.actor_name || 'Unknown') + ' • ' + new Date(log.created_at).toLocaleDateString() +
+                            '</div>' +
+                        '</div>'
+                    ).join('')
+                    : '<p style="color: var(--text-sub); text-align: center; padding: var(--space-8);">No recent activity</p>';
+                
+                activityElement.innerHTML = activityHtml;
+            }
+        }
+        
+    } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+    }
+}
+
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', loadDashboardData);
+</script>
+{% endblock %}
