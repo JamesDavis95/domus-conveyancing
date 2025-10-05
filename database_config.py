@@ -13,11 +13,11 @@ if raw_url:
     url = make_url(raw_url)
     if url.drivername in ("postgres", "postgresql"):
         url = url.set(drivername="postgresql+psycopg")
-        # For Render PostgreSQL, try sslmode=prefer first, then require
+        # For production PostgreSQL, require SSL
         if not url.query:
-            url = url.update_query_dict({"sslmode": "prefer"})
+            url = url.update_query_dict({"sslmode": "require"})
         elif "sslmode" not in url.query:
-            url = url.update_query_dict({"sslmode": "prefer"})
+            url = url.update_query_dict({"sslmode": "require"})
 
     # Guard against accidental https:// being pasted
     if url.drivername.startswith("http"):

@@ -365,6 +365,10 @@ app = FastAPI(
 # Store version for template use
 app.state.build_version = version_info
 
+# Setup cache-busting ID for static assets
+STATIC_BUILD_ID = os.getenv("STATIC_BUILD_ID", version_info)
+app.state.static_build_id = STATIC_BUILD_ID
+
 # Setup Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 
@@ -1252,7 +1256,15 @@ app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     """Serve the main application shell"""
-    return templates.TemplateResponse("app_shell.html", {"request": request})
+    return templates.TemplateResponse("app_shell.html", {
+        "request": request,
+        "static_build_id": STATIC_BUILD_ID
+    })
+
+@app.head("/")
+async def head_root():
+    """Handle HEAD requests for health checks"""
+    return HTMLResponse(headers={"Cache-Control": "no-store"})
 
 # All authenticated app routes serve the same app shell except projects, planning-ai, auto-docs, property-api, offsets-marketplace, and marketplace/supply which have dedicated templates
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -11580,6 +11592,14 @@ async def send_test_alert(
         return {"success": success, "message": "Alert sent" if success else "Failed to send alert"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Catch-all route to block public index fallbacks (must be last)
+@app.get("/{path:path}")
+async def block_public_index(path: str):
+    """Block any accidental static fallback to public/index.html"""
+    if path.lower().endswith("index.html") or path.lower().startswith("public/"):
+        raise HTTPException(status_code=410, detail="Public index disabled")
+    raise HTTPException(status_code=404, detail="Not found")
 
 if __name__ == "__main__":
     import uvicorn

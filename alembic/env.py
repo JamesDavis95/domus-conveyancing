@@ -20,6 +20,11 @@ if db_url.startswith("postgres://"):
 elif db_url.startswith("postgresql://") and "+psycopg" not in db_url:
     db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
+# Ensure SSL mode for production databases
+if "sslmode=" not in db_url:
+    separator = "&" if "?" in db_url else "?"
+    db_url = f"{db_url}{separator}sslmode=require"
+
 config.set_main_option("sqlalchemy.url", db_url)
 
 fileConfig(config.config_file_name)
