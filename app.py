@@ -13,9 +13,6 @@ Offsets Marketplace - Biodiversity Net Gain trading platform
 from dotenv import load_dotenv
 import os
 
-# Feature flag to force production UI (no demo content)
-DEMO_MODE = False  # Always disabled in production
-
 # Gate environment file loading by ENVIRONMENT variable
 ENV = os.getenv("ENVIRONMENT", "development")
 if ENV != "production":
@@ -53,7 +50,7 @@ REQUIRED_KEYS = [
 present = [k for k in REQUIRED_KEYS if os.getenv(k)]
 print(f"DOMUS STARTUP: Environment={ENV}, Version={version_info}, DB={db_type}")
 print(f"Startup: {len(present)}/{len(REQUIRED_KEYS)} critical env vars present: {', '.join(sorted(present))}")
-print(f"Demo mode: {'DISABLED' if not DEMO_MODE else 'ENABLED'}")
+print(f"Production mode: ENABLED (demo mode removed)")
 
 import time
 import json
