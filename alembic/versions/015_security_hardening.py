@@ -8,7 +8,7 @@ from sqlalchemy.dialects import sqlite
 
 # revision identifiers
 revision = '015_security_hardening'
-down_revision = '014_submission_packs'
+down_revision = 'd7eff4466045'
 branch_labels = None
 depends_on = None
 
