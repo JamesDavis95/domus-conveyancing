@@ -1,0 +1,41 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Calculator - Domus AI{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-gray-900">Domus AI</h1>
+                    <nav class="hidden md:ml-8 md:flex space-x-8">
+                        <a href="/dashboard" class="text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Dashboard</a>
+                        <a href="/sites" class="text-gray-500 hover:text-gray-700 px-1 pt-1 text-sm font-medium">Sites</a>
+                        <a href="/calculator" class="text-cyan-600 border-b-2 border-cyan-600 px-1 pt-1 text-sm font-medium">Calculator</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">Development Calculator</h2>
+            <p class="mt-2 text-gray-600">Calculate development viability and profitability</p>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6">
+            <div class="text-center py-12">
+                <svg class="mx-auto h-16 w-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="mt-4 text-lg font-medium text-gray-900">Development Calculator</h3>
+                <p class="mt-2 text-gray-500">Advanced development viability calculations and scenario modeling</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

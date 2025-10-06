@@ -48,10 +48,14 @@ except:
 
 app.state.static_build_id = static_build_id
 
-# Create database tables
+# Create database tables (dev only - production uses Alembic)
 try:
-    Base.metadata.create_all(bind=engine)
-    print(f"✓ Database tables created/verified")
+    if os.getenv("ENV", "production") != "production":
+        # Local/dev convenience only
+        Base.metadata.create_all(bind=engine)
+        print(f"✓ Database tables created/verified (dev mode)")
+    else:
+        print(f"✓ Production mode - trusting Alembic migrations")
 except Exception as e:
     print(f"✗ Database setup failed: {e}")
 
@@ -59,13 +63,15 @@ except Exception as e:
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Import routers (order matters per specification)
-from routers import public, health, dashboard
-# TODO: Add remaining routers: auth, cases, documents, enterprise, users, roles, billing, settings, audit
+from routers import public, health, dashboard, sites, ai
+# TODO: Add remaining routers: auth, documents, enterprise, users, roles, billing, settings, audit
 
 # Include routers in correct order
 app.include_router(public.router, tags=["public"])
 app.include_router(health.router, tags=["health"])
 app.include_router(dashboard.router, tags=["dashboard"])
+app.include_router(sites.router, tags=["sites"])
+app.include_router(ai.router, tags=["ai"])
 
 # Catch-all route (must be last) - returns 404, never serves app shell
 @app.get("/{path:path}")

@@ -77,12 +77,19 @@ def get_db():
 
 
 def init_database():
-    """Initialize database tables"""
+    """Initialize database tables (dev only - production uses Alembic)"""
     try:
         from models import Base
-        Base.metadata.create_all(bind=engine)
-        print("✅ Database tables initialized")
-        return True
+        import os
+        
+        if os.getenv("ENV", "production") != "production":
+            # Local/dev convenience only
+            Base.metadata.create_all(bind=engine)
+            print("✅ Database tables initialized (dev mode)")
+            return True
+        else:
+            print("✅ Production mode - trusting Alembic migrations")
+            return True
     except Exception as e:
         print(f"⚠️ Database initialization error: {e}")
         return False

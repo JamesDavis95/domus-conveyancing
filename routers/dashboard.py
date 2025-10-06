@@ -1,5 +1,5 @@
 """
-Dashboard routes and APIs
+Dashboard routes and APIs for Domus AI Platform
 """
 
 from fastapi import APIRouter, Request, Depends
@@ -8,60 +8,62 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database_config import get_db
 from lib.permissions import require_auth, require_permission, AuthContext
-from models import Case, User, Membership, AuditLog
+from models import Site, User, Membership, AuditLog
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/dashboard", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
 async def dashboard(request: Request, auth_ctx: AuthContext = Depends(require_auth)):
-    """Serve dashboard page"""
+    """Serve Domus AI dashboard page"""
     static_build_id = getattr(request.app.state, 'static_build_id', 'dev')
     
-    response = templates.TemplateResponse("app/dashboard.html", {
+    return templates.TemplateResponse("dashboard.html", {
         "request": request,
+        "title": "Domus AI Dashboard",
         "static_build_id": static_build_id,
-        "auth_ctx": auth_ctx
+        "user_name": auth_ctx.user.email if hasattr(auth_ctx.user, 'email') else "User",
+        "org_name": auth_ctx.org.name if hasattr(auth_ctx.org, 'name') else "Organization",
+        "user_role": auth_ctx.membership.role if hasattr(auth_ctx.membership, 'role') else "Manager"
     })
-    response.headers["Cache-Control"] = "no-store"
-    return response
 
-@router.get("/api/dashboard/kpis", dependencies=[Depends(require_permission("org:read"))])
+@router.get("/api/dashboard/kpis", dependencies=[Depends(require_permission("sites:read"))])
 async def get_dashboard_kpis(
+    request: Request,
     auth_ctx: AuthContext = Depends(require_auth),
     db: Session = Depends(get_db)
 ):
-    """Get dashboard KPIs"""
+    """Get KPI data for dashboard"""
     try:
-        # Active cases count
-        active_cases = db.query(Case).filter(
-            Case.org_id == auth_ctx.org.id,
-            Case.status.in_(["planning", "submitted"])
+        # Get dashboard metrics for Domus AI platform
+        active_sites = db.query(Site).filter(
+            Site.org_id == auth_ctx.org.id,
+            Site.status.in_(["analyzing", "planning", "submitted"])
         ).count()
         
-        # Completed cases this month  
+        # Get completed sites this month
         from datetime import datetime, timedelta
         month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        completed_this_month = db.query(Case).filter(
-            Case.org_id == auth_ctx.org.id,
-            Case.status == "approved",
-            Case.updated_at >= month_start
+        completed_this_month = db.query(Site).filter(
+            Site.org_id == auth_ctx.org.id,
+            Site.status == "approved",
+            Site.updated_at >= month_start
         ).count()
         
-        # Team members count
-        team_members = db.query(Membership).filter(
-            Membership.org_id == auth_ctx.org.id
+        # Get recent activity count
+        recent_activity = db.query(AuditLog).filter(
+            AuditLog.org_id == auth_ctx.org.id,
+            AuditLog.created_at >= datetime.now() - timedelta(days=7)
         ).count()
         
-        # Pending documents (placeholder)
-        pending_documents = 0
-        
-        return JSONResponse({
-            "active_cases": active_cases,
-            "completed_this_month": completed_this_month,
-            "pending_documents": pending_documents,
-            "team_members": team_members
-        })
-        
+        return {
+            "active_sites": active_sites,
+            "completed_this_month": completed_this_month, 
+            "recent_activity": recent_activity,
+            "ai_credits_remaining": 100  # TODO: Get from credit wallet
+        }
     except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to fetch dashboard data", "detail": str(e)}
+        )
