@@ -64,6 +64,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Import routers (order matters per specification)
 from routers import public, health, dashboard, sites, ai
+import test_template
 # TODO: Add remaining routers: auth, documents, enterprise, users, roles, billing, settings, audit
 
 # Include routers in correct order
@@ -75,6 +76,7 @@ async def root():
     """Redirect to Domus AI dashboard"""
     return RedirectResponse(url="/dashboard", status_code=302)
 
+app.include_router(test_template.router, tags=["test"])
 app.include_router(public.router, tags=["public"])
 app.include_router(health.router, tags=["health"])
 app.include_router(dashboard.router, tags=["dashboard"])
