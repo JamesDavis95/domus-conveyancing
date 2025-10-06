@@ -1,14 +1,13 @@
 """
-Sites router for Domus AI Platform - Site management and analysis
+Sites management routes for Domus AI Platform
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Request, Depends, Form, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database_config import get_db
 from lib.permissions import require_auth, require_permission, AuthContext
-from models import Site, Analysis, User
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -65,6 +64,9 @@ async def api_sites_list(
     """Get sites list for organization"""
     try:
         try:
+            # Import Site model only when needed
+            from models import Site
+            
             sites = db.query(Site).filter(
                 Site.org_id == auth_ctx.org.id
             ).order_by(Site.created_at.desc()).all()
@@ -123,6 +125,9 @@ async def api_sites_create(
     """Create a new site"""
     try:
         data = await request.json()
+        
+        # Import Site model only when needed
+        from models import Site
         
         site = Site(
             name=data.get("name"),

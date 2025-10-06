@@ -8,7 +8,6 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database_config import get_db
 from lib.permissions import require_auth, require_permission, AuthContext
-from models import Site, User, Membership, AuditLog
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -37,6 +36,9 @@ async def get_dashboard_kpis(
     try:
         # Try to get dashboard metrics for Domus AI platform
         try:
+            # Import models only when needed for database queries
+            from models import Site, AuditLog
+            
             active_sites = db.query(Site).filter(
                 Site.org_id == auth_ctx.org.id,
                 Site.status.in_(["analyzing", "planning", "submitted"])
