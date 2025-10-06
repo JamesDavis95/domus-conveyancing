@@ -13,17 +13,18 @@ import os
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-@router.get("/old-home", response_class=HTMLResponse)
-async def home(request: Request):
-    """Serve the old home page (moved from / to avoid conflicts)"""
-    static_build_id = getattr(request.app.state, 'static_build_id', 'dev')
+# DISABLED - This route conflicts with Domus AI dashboard
+# @router.get("/old-home", response_class=HTMLResponse)
+# async def home(request: Request):
+#     """Serve the old home page (moved from / to avoid conflicts)"""
+#     static_build_id = getattr(request.app.state, 'static_build_id', 'dev')
     
-    response = templates.TemplateResponse("pages/home.html", {
-        "request": request,
-        "static_build_id": static_build_id
-    })
-    response.headers["Cache-Control"] = "no-store"
-    return response
+#     response = templates.TemplateResponse("pages/home.html", {
+#         "request": request,
+#         "static_build_id": static_build_id
+#     })
+#     response.headers["Cache-Control"] = "no-store"
+#     return response
 
 @router.get("/pricing", response_class=HTMLResponse)
 async def pricing(request: Request):

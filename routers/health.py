@@ -29,28 +29,23 @@ async def health_check():
     try:
         # Get git version
         try:
-            git_sha = subprocess.run(
-                ['git', 'rev-parse', '--short', 'HEAD'], 
-                capture_output=True, text=True, cwd=os.path.dirname(__file__)
-            )
-            version = git_sha.stdout.strip() if git_sha.returncode == 0 else "unknown"
+            result = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], 
+                                  capture_output=True, text=True, timeout=5)
+            version = result.stdout.strip() if result.returncode == 0 else "unknown"
         except:
             version = "unknown"
         
-        return JSONResponse({
+        return {
             "ok": True,
             "status": "healthy",
             "version": version,
-            "env": os.getenv("ENVIRONMENT", "development"),
-            "timestamp": datetime.utcnow().isoformat() + "Z"
-        })
+            "env": os.getenv("ENVIRONMENT", "production"),
+            "timestamp": datetime.now().isoformat(),
+            "platform": "domus-ai",
+            "force_deploy": "2025-10-06-v2"  # Force deployment marker
+        }
     except Exception as e:
         return JSONResponse(
-            {
-                "ok": False,
-                "status": "error",
-                "error": str(e),
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            },
-            status_code=500
+            status_code=500,
+            content={"ok": False, "status": "error", "error": str(e)}
         )

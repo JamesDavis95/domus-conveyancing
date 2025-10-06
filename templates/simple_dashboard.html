@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domus AI - Development Intelligence Platform</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 2rem; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .nav { margin-bottom: 2rem; }
+        .nav a { color: #0E7490; text-decoration: none; margin-right: 2rem; font-weight: 500; }
+        .nav a:hover { text-decoration: underline; }
+        .btn { background: #0E7490; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; text-decoration: none; display: inline-block; font-weight: 500; }
+        .btn:hover { background: #0C5F75; }
+        .kpi { font-size: 2rem; font-weight: bold; color: #0E7490; }
+        .error { color: #B42318; background: #FEF2F2; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="margin: 0 0 1rem 0; color: #0B1F2A;">Domus AI</h1>
+            <p style="margin: 0; color: #46505A; font-size: 1.1rem;">AI-Powered Development Intelligence Platform</p>
+            
+            <nav class="nav">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/sites">Sites</a>
+                <a href="/ai">AI Analysis</a>
+                <a href="/documents">Documents</a>
+                <a href="/calculator">Calculator</a>
+            </nav>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3 style="margin-top: 0; color: #0B1F2A;">Active Sites</h3>
+                <div class="kpi" id="active-sites">Loading...</div>
+                <p style="color: #46505A;">Sites currently under analysis</p>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-top: 0; color: #0B1F2A;">Completed This Month</h3>
+                <div class="kpi" id="completed">Loading...</div>
+                <p style="color: #46505A;">Planning applications approved</p>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-top: 0; color: #0B1F2A;">Recent Activity</h3>
+                <div class="kpi" id="activity">Loading...</div>
+                <p style="color: #46505A;">Actions in the last 7 days</p>
+            </div>
+            
+            <div class="card">
+                <h3 style="margin-top: 0; color: #0B1F2A;">AI Credits</h3>
+                <div class="kpi" id="credits">Loading...</div>
+                <p style="color: #46505A;">Remaining analysis credits</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; color: #0B1F2A;">Platform Features</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div>
+                    <h4 style="color: #0B1F2A;">AI Site Scoring</h4>
+                    <p style="color: #46505A;">Instant viability analysis with planning constraints and opportunities assessment.</p>
+                </div>
+                <div>
+                    <h4 style="color: #0B1F2A;">Planning Automation</h4>
+                    <p style="color: #46505A;">AI-generated documents, design statements, and approval probability prediction.</p>
+                </div>
+                <div>
+                    <h4 style="color: #0B1F2A;">ESG Intelligence</h4>
+                    <p style="color: #46505A;">Sustainability scoring and environmental compliance optimization.</p>
+                </div>
+                <div>
+                    <h4 style="color: #0B1F2A;">Council Integration</h4>
+                    <p style="color: #46505A;">Direct integration with planning authorities for seamless submissions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load dashboard data
+        fetch('/api/dashboard/kpis')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('active-sites').textContent = data.active_sites || '0';
+                document.getElementById('completed').textContent = data.completed_this_month || '0';
+                document.getElementById('activity').textContent = data.recent_activity || '0';
+                document.getElementById('credits').textContent = data.ai_credits_remaining || '0';
+            })
+            .catch(error => {
+                console.error('Error loading dashboard data:', error);
+                document.getElementById('active-sites').innerHTML = '<div class="error">Error loading data</div>';
+            });
+    </script>
+</body>
+</html>

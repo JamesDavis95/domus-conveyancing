@@ -17,7 +17,8 @@ async def sites_list(request: Request, auth_ctx: AuthContext = Depends(require_a
     """List all sites for the organization"""
     static_build_id = getattr(request.app.state, 'static_build_id', 'dev')
     
-    return templates.TemplateResponse("sites_list.html", {
+    # Use simple template that's guaranteed to work
+    return templates.TemplateResponse("simple_sites.html", {
         "request": request,
         "title": "Sites - Domus AI",
         "static_build_id": static_build_id,

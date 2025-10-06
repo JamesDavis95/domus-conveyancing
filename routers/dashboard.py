@@ -17,7 +17,8 @@ async def dashboard(request: Request, auth_ctx: AuthContext = Depends(require_au
     """Serve Domus AI dashboard page"""
     static_build_id = getattr(request.app.state, 'static_build_id', 'dev')
     
-    return templates.TemplateResponse("dashboard.html", {
+    # Use simple template that's guaranteed to work
+    return templates.TemplateResponse("simple_dashboard.html", {
         "request": request,
         "title": "Domus AI Dashboard",
         "static_build_id": static_build_id,

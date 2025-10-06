@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sites - Domus AI</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 2rem; background: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .card { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .nav { margin-bottom: 2rem; }
+        .nav a { color: #0E7490; text-decoration: none; margin-right: 2rem; font-weight: 500; }
+        .nav a:hover { text-decoration: underline; }
+        .nav a.active { color: #0B1F2A; border-bottom: 2px solid #0E7490; }
+        .btn { background: #0E7490; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; text-decoration: none; display: inline-block; font-weight: 500; }
+        .btn:hover { background: #0C5F75; }
+        .site-item { border-left: 4px solid #0E7490; padding-left: 1rem; }
+        .status { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 500; }
+        .status-analyzing { background: #FEF3C7; color: #92400E; }
+        .status-approved { background: #D1FAE5; color: #065F46; }
+        .status-draft { background: #E5E7EB; color: #374151; }
+        .ai-score { font-size: 1.5rem; font-weight: bold; color: #0E7490; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="margin: 0 0 1rem 0; color: #0B1F2A;">Domus AI</h1>
+            <p style="margin: 0; color: #46505A; font-size: 1.1rem;">Development Site Management</p>
+            
+            <nav class="nav">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/sites" class="active">Sites</a>
+                <a href="/ai">AI Analysis</a>
+                <a href="/documents">Documents</a>
+                <a href="/calculator">Calculator</a>
+            </nav>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0; color: #0B1F2A;">Development Sites</h2>
+                <a href="/sites/new" class="btn">Add New Site</a>
+            </div>
+            
+            <div id="sites-list">
+                <p style="color: #46505A;">Loading sites...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load sites data
+        fetch('/api/sites')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('sites-list');
+                
+                if (data.sites && data.sites.length > 0) {
+                    container.innerHTML = data.sites.map(site => `
+                        <div class="card site-item">
+                            <div style="display: flex; justify-content: between; align-items: flex-start;">
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0 0 0.5rem 0; color: #0B1F2A;">${site.name}</h3>
+                                    <p style="margin: 0 0 1rem 0; color: #46505A;">${site.address}</p>
+                                    <span class="status status-${site.status}">${site.status.charAt(0).toUpperCase() + site.status.slice(1)}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div class="ai-score">${site.ai_score || 'N/A'}</div>
+                                    <p style="margin: 0; color: #46505A; font-size: 0.875rem;">AI Score</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="card" style="text-align: center; padding: 3rem;">
+                            <h3 style="color: #46505A; margin-bottom: 1rem;">No sites yet</h3>
+                            <p style="color: #46505A; margin-bottom: 2rem;">Add your first development site to start AI analysis</p>
+                            <a href="/sites/new" class="btn">Add Your First Site</a>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading sites:', error);
+                document.getElementById('sites-list').innerHTML = `
+                    <div style="color: #B42318; background: #FEF2F2; padding: 1rem; border-radius: 6px;">
+                        Error loading sites data
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>
