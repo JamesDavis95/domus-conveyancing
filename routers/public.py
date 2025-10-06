@@ -13,9 +13,9 @@ import os
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/old-home", response_class=HTMLResponse)
 async def home(request: Request):
-    """Serve the main home page with no-cache headers"""
+    """Serve the old home page (moved from / to avoid conflicts)"""
     static_build_id = getattr(request.app.state, 'static_build_id', 'dev')
     
     response = templates.TemplateResponse("pages/home.html", {
