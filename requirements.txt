@@ -1,4 +1,4 @@
-# Cloud-optimized requirements for Domus Platform
+# Cloud-optimized requirements for Domus AI Platform - FORCE REBUILD
 fastapi==0.118.0
 uvicorn[standard]==0.32.1
 sqlalchemy==2.0.36
