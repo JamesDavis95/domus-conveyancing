@@ -72,20 +72,33 @@ def get_current_user_from_token(token: str, db: Session) -> Optional[User]:
 def require_auth():
     """Dependency that returns AuthContext or raises 401"""
     def _dep(request: Request, db: Session = Depends(get_db)) -> AuthContext:
-        # For now, create a mock context for development
+        # For development, create a simple mock context without database dependencies
         # TODO: Implement proper JWT authentication
-        from models import User, Organization, Membership
         
-        # Mock user for development
-        mock_user = User(id=1, email="demo@domus.ai", is_active=True)
-        mock_org = Organization(id=1, name="Demo Organization")
-        mock_membership = Membership(user_id=1, organization_id=1, role="Manager", is_active=True)
+        # Simple mock objects
+        class MockUser:
+            def __init__(self):
+                self.id = 1
+                self.email = "demo@domus.ai"
+                self.is_active = True
+        
+        class MockOrg:
+            def __init__(self):
+                self.id = 1 
+                self.name = "Demo Organization"
+        
+        class MockMembership:
+            def __init__(self):
+                self.user_id = 1
+                self.org_id = 1
+                self.role = "Manager"
+                self.is_active = True
         
         return AuthContext(
             request=request,
-            user=mock_user,
-            org=mock_org,
-            membership=mock_membership
+            user=MockUser(),
+            org=MockOrg(),
+            membership=MockMembership()
         )
     
     return _dep
